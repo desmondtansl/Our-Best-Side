@@ -2,7 +2,7 @@ import { useState } from "react";
 import styled from "styled-components";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
-import { carouselPhotos } from "../stockPhotos";
+import { carouselPhotos } from "../carouselPhotos.js";
 
 const Container = styled.div`
   width: 100%;
@@ -35,7 +35,7 @@ const Wrapper = styled.div`
   height: 100%;
   display: flex;
   transition: all 2s ease;
-  transform: translateX(${(props) => props.slideIndex * -100} vw);
+  transform: translateX(${(props) => props.slideIndex * -100}vw);
 `;
 
 const Slide = styled.div`
@@ -83,9 +83,7 @@ function Carousel() {
   const handleClick = (direction) => {
     if (direction === "left") {
       setSlideIndex(slideIndex > 0 ? slideIndex - 1 : 2);
-    } else {
-      setSlideIndex(slideIndex < 2 ? slideIndex + 1 : 0);
-    }
+    } else setSlideIndex(slideIndex < 2 ? slideIndex + 1 : 0);
   };
 
   return (
@@ -113,4 +111,5 @@ function Carousel() {
     </Container>
   );
 }
+
 export default Carousel;

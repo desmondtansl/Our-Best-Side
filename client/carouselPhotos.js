@@ -16,10 +16,21 @@ export const carouselPhotos = [
   },
   {
     id: 3,
-    img: "https://chinesenewyear.imgix.net/assets/images/chinese-new-year--mobile.png?q=25&w=1920&auto=format%201920w",
+    img: "https://images.pexels.com/photos/1202446/pexels-photo-1202446.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
     title: "HAPPY CHINESE NEW YEAR",
     description:
       "Wishing all our shoppers an auspicious and prosperous New Year!",
     bg: "fcf1ed",
+  },
+];
+
+export const featuredProducts = [
+  {
+    id: 1,
+    img: "https://images.pexels.com/photos/9154719/pexels-photo-9154719.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+  },
+  {
+    id: 2,
+    img: "",
   },
 ];
