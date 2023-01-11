@@ -23,14 +23,3 @@ export const carouselPhotos = [
     bg: "fcf1ed",
   },
 ];
-
-export const featuredProducts = [
-  {
-    id: 1,
-    img: "https://images.pexels.com/photos/9154719/pexels-photo-9154719.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-  },
-  {
-    id: 2,
-    img: "",
-  },
-];
