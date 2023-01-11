@@ -2,7 +2,7 @@ import { useState } from "react";
 import styled from "styled-components";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
-import { carouselPhotos } from "../carouselPhotos.js";
+import { carouselPhotos } from "../assets/carouselPhotos.js";
 
 const Container = styled.div`
   width: 100%;

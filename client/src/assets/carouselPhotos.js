@@ -10,16 +10,15 @@ export const carouselPhotos = [
     id: 2,
     img: "https://images.pexels.com/photos/247298/pexels-photo-247298.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
     title: "GET READY FOR SPRING",
-    description:
-      "Celebrate the Lunar New Year in style with our latest CNY collection",
+    description: "Prepare for spring with our latest designs",
     bg: "fcf1ed",
   },
   {
     id: 3,
     img: "https://images.pexels.com/photos/1202446/pexels-photo-1202446.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    title: "HAPPY CHINESE NEW YEAR",
+    title: "NEW YEAR NEW ME",
     description:
-      "Wishing all our shoppers an auspicious and prosperous New Year!",
+      "Celebrate the Lunar New Year in style with our latest CNY collection",
     bg: "fcf1ed",
   },
 ];

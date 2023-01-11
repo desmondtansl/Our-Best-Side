@@ -1,4 +1,4 @@
-import Homepage from "../pages/Homepage";
+import Homepage from "./pages/Homepage.jsx";
 import { Routes, Route } from "react-router-dom";
 
 function App() {
