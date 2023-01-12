@@ -1,5 +1,6 @@
-import { featuredProducts } from "../assets/featuredProductsPhotos";
+import { featuredProducts } from "../assets/featuredProductsPhotos.js";
 import styled from "styled-components";
+import SingleFeaturedProduct from "./SingleFeaturedProduct.jsx";
 
 const Container = styled.div`
   display: flex;
@@ -11,9 +12,9 @@ const Container = styled.div`
 function FeaturedProducts() {
   return (
     <Container>
-      {featuredProducts.map((item) => {
-        <img src={item.img} key={item.id} />;
-      })}
+      {featuredProducts.map((item) => (
+        <SingleFeaturedProduct item={item} key={item.id} />
+      ))}
     </Container>
   );
 }
