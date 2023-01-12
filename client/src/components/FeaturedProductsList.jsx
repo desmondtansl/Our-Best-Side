@@ -7,6 +7,7 @@ const Container = styled.div`
   padding: 20px;
   flex-wrap: wrap;
   justify-content: space-between;
+  overflow: hidden;
 `;
 
 function FeaturedProducts() {
