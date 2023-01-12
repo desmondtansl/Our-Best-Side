@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
+import { Link } from "react-router-dom";
 
 const Container = styled.div`
   height: 60px;
@@ -49,7 +50,9 @@ function Navbar() {
       <Wrapper>
         <Left>
           <MenuItems>Home</MenuItems>
-          <MenuItems>Men</MenuItems>
+          <Link to="/men" style={{ textDecoration: "none" }}>
+            <MenuItems>Men</MenuItems>
+          </Link>
           <MenuItems>Ladies</MenuItems>
         </Left>
         <Center>
