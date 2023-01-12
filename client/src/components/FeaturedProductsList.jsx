@@ -3,13 +3,16 @@ import styled from "styled-components";
 
 const Container = styled.div`
   display: flex;
+  padding: 20px;
+  flex-wrap: wrap;
+  justify-content: space-between;
 `;
 
 function FeaturedProducts() {
   return (
     <Container>
-      {featuredProducts.map((id, img) => {
-        <img src={img} key={id} />;
+      {featuredProducts.map((item) => {
+        <img src={item.img} key={item.id} />;
       })}
     </Container>
   );
