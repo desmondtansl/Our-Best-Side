@@ -5,6 +5,7 @@ import Carousel from "../components/Carousel.jsx";
 import FeaturedProductsList from "../components/FeaturedProductsList.jsx";
 import FeaturedProductsHeader from "../components/FeaturedProductsHeader.jsx";
 import Newsletter from "../components/Newsletter.jsx";
+import Footer from "../components/Footer.jsx";
 
 function Homepage() {
   return (
@@ -15,6 +16,7 @@ function Homepage() {
       <FeaturedProductsHeader />
       <FeaturedProductsList />
       <Newsletter />
+      <Footer />
     </div>
   );
 }
