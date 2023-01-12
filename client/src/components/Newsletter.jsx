@@ -15,7 +15,7 @@ const Title = styled.h1`
 `;
 
 const InputContainer = styled.div`
-  width: 50%;
+  width: 30%;
   height: 40px;
   display: flex;
   justify-content: space-between;
@@ -24,7 +24,7 @@ const InputContainer = styled.div`
 
 const Input = styled.input`
   border: none;
-  flex: 7;
+  flex: 5;
   padding-left: 20px;
   font-style: italic;
 `;
@@ -40,7 +40,7 @@ function Newsletter() {
     <Container>
       <Title>Subscribe to get latest updates!</Title>
       <InputContainer>
-        <Input placeholder="e.g. example@example.com" />
+        <Input type="email" placeholder="e.g. example@example.com" />
         <Button>
           <SendIcon />
         </Button>
