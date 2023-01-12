@@ -64,9 +64,11 @@ function Navbar() {
         </Center>
         <Right>
           <MenuItems>Login/Register</MenuItems>
-          <MenuItems>
-            <ShoppingCartOutlinedIcon />
-          </MenuItems>
+          <NavLink to="/cart" style={{ textDecoration: "none" }}>
+            <MenuItems>
+              <ShoppingCartOutlinedIcon />
+            </MenuItems>
+          </NavLink>
         </Right>
       </Wrapper>
     </Container>
