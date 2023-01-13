@@ -5,6 +5,7 @@ export const carouselPhotos = [
     title: "STAY IN TREND",
     description: "Browse our latest menswear collection",
     bg: "f5fafd",
+    link: "/men",
   },
   {
     id: 2,
@@ -12,6 +13,7 @@ export const carouselPhotos = [
     title: "GET READY FOR SPRING",
     description: "Prepare for spring with our latest designs",
     bg: "fcf1ed",
+    link: "/ladies",
   },
   {
     id: 3,
@@ -20,5 +22,6 @@ export const carouselPhotos = [
     description:
       "Celebrate the Lunar New Year in style with our latest CNY collection",
     bg: "fcf1ed",
+    link: "/ladies",
   },
 ];
