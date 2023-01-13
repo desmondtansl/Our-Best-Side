@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
+import productsRoutes from "./routes/products.js";
 
 dotenv.config();
 mongoose.set("strictQuery", false);
@@ -22,6 +23,7 @@ const main = async () => {
       allowedHeaders: ["Content-Type", "Authorization", "x-access-token"],
     })
   );
+  app.use("/products", productsRoutes);
 
   app.listen(PORT, () => {
     console.log(`Now listening to port ${PORT}`);
