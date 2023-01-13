@@ -11,7 +11,7 @@ const productSchema = new Schema(
     size: { type: Array, required: true },
     color: { type: Array, required: true },
     price: { type: Number, required: true },
-    inStock: { type: Boolean, required: true, default: true },
+    inStock: { type: Number, required: true },
   },
   { timestamps: true }
 );
