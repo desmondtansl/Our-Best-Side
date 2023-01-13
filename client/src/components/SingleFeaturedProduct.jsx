@@ -1,10 +1,13 @@
 import styled from "styled-components";
 
 const Container = styled.div`
-  flex: 1;
-  margin: 5px;
-  min-width: 280px;
+  /* flex: 1; */
+  /* padding: 5px; */
   height: 350px;
+  width: 25%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const Image = styled.img`

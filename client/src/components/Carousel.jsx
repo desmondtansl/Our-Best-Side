@@ -3,6 +3,7 @@ import styled from "styled-components";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import { carouselPhotos } from "../assets/carouselPhotos.js";
+import { Link as NavLink } from "react-router-dom";
 
 const Container = styled.div`
   width: 100%;
@@ -100,7 +101,11 @@ function Carousel() {
             <InfoContainer>
               <Title>{item.title}</Title>
               <Description>{item.description}</Description>
-              <Button>SHOP NOW</Button>
+              <Button>
+                <NavLink to={item.link} style={{ textDecoration: "none" }}>
+                  SHOP NOW
+                </NavLink>
+              </Button>
             </InfoContainer>
           </Slide>
         ))}
