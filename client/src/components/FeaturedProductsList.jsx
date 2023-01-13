@@ -8,6 +8,8 @@ const Container = styled.div`
   flex-wrap: wrap;
   justify-content: space-between;
   overflow: hidden;
+  width: 100%;
+  align-items: center;
 `;
 
 function FeaturedProducts() {
