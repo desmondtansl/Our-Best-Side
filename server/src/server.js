@@ -6,11 +6,13 @@ import mongoose from "mongoose";
 dotenv.config();
 mongoose.set("strictQuery", false);
 
+const MONGO_URI = process.env.MONGO_URI;
+
 const main = async () => {
   await mongoose.connect(MONGO_URI);
   console.log("Connected to mongoDB");
 
-  const PORT = process.env.PORT || 8080;
+  const PORT = process.env.PORT || 6969;
   const app = express();
   app.use(express.json());
   app.use(
