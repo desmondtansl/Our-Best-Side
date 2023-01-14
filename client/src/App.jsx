@@ -3,6 +3,7 @@ import MenProducts from "./pages/MenProducts.jsx";
 import LadiesProducts from "./pages/LadiesProducts.jsx";
 import Cart from "./pages/Cart.jsx";
 import Signup from "./pages/Signup.jsx";
+import Login from "./pages/Login.jsx";
 import { Routes, Route } from "react-router-dom";
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
       <Route path="/ladies" element={<LadiesProducts />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/login" element={<Login />} />
     </Routes>
   );
 }
