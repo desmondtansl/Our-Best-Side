@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
 import productsRoutes from "./routes/products.js";
+import authRoutes from "./routes/auth.js";
 
 dotenv.config();
 mongoose.set("strictQuery", false);
@@ -13,7 +14,7 @@ const main = async () => {
   await mongoose.connect(MONGO_URI);
   console.log("Connected to mongoDB");
 
-  const PORT = process.env.PORT || 6969;
+  const PORT = process.env.PORT || 8000;
   const app = express();
   app.use(express.json());
   app.use(
@@ -24,6 +25,7 @@ const main = async () => {
     })
   );
   app.use("/products", productsRoutes);
+  app.use("/auth", authRoutes);
 
   app.listen(PORT, () => {
     console.log(`Now listening to port ${PORT}`);
