@@ -5,14 +5,19 @@ import Footer from "../components/Footer";
 
 const Container = styled.div`
   overflow: hidden;
+  height: 100vh;
+  flex-direction: column;
+  justify-content: space-between;
+  display: flex;
 `;
 
 const Wrapper = styled.div`
   width: 100vw;
-  height: 100vh;
-  padding: 20px;
+  height: auto;
   align-items: center;
-  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  margin-top: 0;
 `;
 
 const Title = styled.h1`
@@ -43,7 +48,10 @@ const Button = styled.button`
   font-size: 14px;
   display: inline-block;
   align-items: center;
+  background-color: #e1d7c6;
 `;
+
+const SpareContainer = styled.div``;
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -73,6 +81,7 @@ function Login() {
           <Button onClick={handleClick}>Signup</Button>
         </Form>
       </Wrapper>
+      <SpareContainer></SpareContainer>
       <Footer />
     </Container>
   );

@@ -9,7 +9,7 @@ const Container = styled.div`
 const Wrapper = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-around;
 `;
 
 const Left = styled.div`
@@ -17,6 +17,7 @@ const Left = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  padding: 0px 20px;
 `;
 
 const SocialMediaContainer = styled.div`
