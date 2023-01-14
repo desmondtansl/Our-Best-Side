@@ -63,7 +63,9 @@ function Navbar() {
           <Logo>PLACEHOLDER</Logo>
         </Center>
         <Right>
-          <MenuItems>Login/Register</MenuItems>
+          <NavLink to="/login" style={{ textDecoration: "none" }}>
+            <MenuItems>Login/Register</MenuItems>
+          </NavLink>
           <NavLink to="/cart" style={{ textDecoration: "none" }}>
             <MenuItems>
               <ShoppingCartOutlinedIcon />
