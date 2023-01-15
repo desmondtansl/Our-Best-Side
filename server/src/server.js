@@ -14,7 +14,7 @@ const main = async () => {
   await mongoose.connect(MONGO_URI);
   console.log("Connected to mongoDB");
 
-  const PORT = process.env.PORT || 8000;
+  const PORT = process.env.PORT || 6000;
   const app = express();
   app.use(express.json());
   app.use(
