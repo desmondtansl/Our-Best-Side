@@ -2,6 +2,7 @@ import { useState } from "react";
 import styled from "styled-components";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { Link } from "react-router-dom";
 
 const Container = styled.div`
   overflow: hidden;
@@ -51,6 +52,8 @@ const Button = styled.button`
   background-color: #e1d7c6;
 `;
 
+const InfoContainer = styled.div``;
+
 const SpareContainer = styled.div``;
 
 function Login() {
@@ -80,6 +83,12 @@ function Login() {
           />
           <Button onClick={handleClick}>Login</Button>
         </Form>
+        <InfoContainer>
+          Don't have an account?{" "}
+          <Link to="/signup" style={{ textDecoration: "none" }}>
+            Sign up here
+          </Link>
+        </InfoContainer>
       </Wrapper>
       <SpareContainer></SpareContainer>
       <Footer />
