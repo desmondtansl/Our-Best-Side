@@ -64,7 +64,7 @@ function Navbar() {
         </Center>
         <Right>
           <NavLink to="/login" style={{ textDecoration: "none" }}>
-            <MenuItems>Login/Register</MenuItems>
+            <MenuItems>Login</MenuItems>
           </NavLink>
           <NavLink to="/cart" style={{ textDecoration: "none" }}>
             <MenuItems>

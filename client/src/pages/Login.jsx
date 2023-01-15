@@ -2,6 +2,8 @@ import { useState } from "react";
 import styled from "styled-components";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { Link } from "react-router-dom";
+import axios from "axios";
 
 const Container = styled.div`
   overflow: hidden;
@@ -51,24 +53,36 @@ const Button = styled.button`
   background-color: #e1d7c6;
 `;
 
+const InfoContainer = styled.div``;
+
 const SpareContainer = styled.div``;
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleClick = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
+      const response = await axios.post("http://localhost:8000/auth/login", {
+        email,
+        password,
+      });
+      console.log(response);
+    } catch (error) {
+      console.log(error.message);
+    }
   };
   return (
     <Container>
       <Navbar />
       <Wrapper>
         <Title>Welcome Back</Title>
-        <Form>
+        <Form onSubmit={handleSubmit}>
           <Input
             placeholder="Email"
             required
+            value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <Input
@@ -76,10 +90,17 @@ function Login() {
             placeholder="Password"
             type="password"
             minlength="8"
+            value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <Button onClick={handleClick}>Login</Button>
+          <Button>Login</Button>
         </Form>
+        <InfoContainer>
+          Don't have an account?{" "}
+          <Link to="/signup" style={{ textDecoration: "none" }}>
+            Sign up here
+          </Link>
+        </InfoContainer>
       </Wrapper>
       <SpareContainer></SpareContainer>
       <Footer />
