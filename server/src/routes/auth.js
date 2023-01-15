@@ -7,7 +7,7 @@ import JWT from "jsonwebtoken";
 const router = express.Router();
 
 router.post(
-  "/register",
+  "/signup",
   body("email").isEmail().withMessage("Invalid email"),
   body("password").isLength({ min: 8 }).withMessage("Invalid password"),
   async (req, res) => {
