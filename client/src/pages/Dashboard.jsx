@@ -96,20 +96,6 @@ const ProductQtyHeader = styled.p`
 `;
 
 function Dashboard() {
-  //   let formData = new FormData(formElem);
-
-  //   formElem.onsubmit = async (e) => {
-  //     e.preventDefault();
-
-  //     let response = await axios.post("http://localhost:8000/products/create", {
-  //       method: "POST",
-  //       body: new FormData(formElem),
-  //     });
-
-  //     let result = await response.json();
-
-  //     alert(result.message);
-  //   };
   const [data, setData] = useState({});
 
   const updateData = (e) => {
@@ -123,7 +109,7 @@ function Dashboard() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:8000/products/create",
+        `${import.meta.env.VITE_BASE_URL}/products/create`,
         {
           data,
         }
