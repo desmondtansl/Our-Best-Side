@@ -4,14 +4,14 @@ const { Schema } = mongoose;
 
 const productSchema = new Schema(
   {
-    title: { type: String, required: true },
-    description: { type: String, required: true },
-    image: { type: String, required: true },
-    category: { type: Array, required: true },
-    size: { type: Array, required: true },
-    color: { type: Array, required: true },
-    price: { type: Number, required: true },
-    inStock: { type: Number, required: true },
+    title: { type: String },
+    description: { type: String },
+    // image: { type: String },
+    category: { type: Array },
+    size: { type: Array },
+    color: { type: Array },
+    price: { type: Number },
+    inStock: { type: Number },
   },
   { timestamps: true }
 );

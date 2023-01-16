@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useState } from "react";
 import styled from "styled-components";
 
@@ -95,6 +96,20 @@ const ProductQtyHeader = styled.p`
 `;
 
 function Dashboard() {
+  //   let formData = new FormData(formElem);
+
+  //   formElem.onsubmit = async (e) => {
+  //     e.preventDefault();
+
+  //     let response = await axios.post("http://localhost:8000/products/create", {
+  //       method: "POST",
+  //       body: new FormData(formElem),
+  //     });
+
+  //     let result = await response.json();
+
+  //     alert(result.message);
+  //   };
   const [data, setData] = useState({});
 
   const updateData = (e) => {
@@ -103,9 +118,20 @@ function Dashboard() {
       [e.target.name]: e.target.value,
     });
   };
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(data);
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/products/create",
+        {
+          data,
+        }
+      );
+      console.log(response);
+    } catch (error) {
+      console.log(error.message);
+    }
   };
   return (
     <Container>
@@ -115,43 +141,70 @@ function Dashboard() {
         <Form onSubmit={handleSubmit}>
           <TitleHeader>Enter Product Title</TitleHeader>
           <Input
+            name="title"
+            id="title"
             placeholder="e.g. Nike SB Tee, Moncler Swim Shorts"
             required
             onChange={updateData}
           />
           <ProductDescHeader>Enter Product Description</ProductDescHeader>
-          <Input required onChange={updateData} />
+          <Input
+            name="description"
+            id="description"
+            required
+            onChange={updateData}
+          />
           <ImageContainer>
             Upload Product Image
-            <Input type="file" required onChange={updateData} />
+            <Input
+              name="image"
+              id="image"
+              type="file"
+              required
+              onChange={updateData}
+            />
           </ImageContainer>
           <ProductCategoryHeader>Product Category</ProductCategoryHeader>
-          <Input placeholder="Mens or Ladies" required onChange={updateData} />
+          <Input
+            name="category"
+            id="category"
+            placeholder="Mens or Ladies"
+            required
+            onChange={updateData}
+          />
           <ProductSizesHeader>Product Sizes</ProductSizesHeader>
           <Input
+            name="size"
+            id="size"
             placeholder="separated by commas - e.g. S, M or US 6, US 7"
             required
             onChange={updateData}
           />
           <ProductColorsHeader>Product Colors</ProductColorsHeader>
           <Input
+            name="color"
+            id="color"
             placeholder="separated by commas - e.g. Black, Navy"
             required
             onChange={updateData}
           />
           <ProductPricesHeader>Product Prices</ProductPricesHeader>
           <Input
+            name="price"
+            id="price"
             placeholder="enter ONLY numbers w/o $ sign - e.g. 30, 40"
             required
             onChange={updateData}
           />
           <ProductQtyHeader>Product Inventory Qty</ProductQtyHeader>
           <Input
+            name="inStock"
+            id="inStock"
             placeholder="enter ONLY numbers"
             required
             onChange={updateData}
           />
-          <Button>Create</Button>
+          <Input type="submit" value="Create" />
         </Form>
       </Wrapper>
     </Container>
