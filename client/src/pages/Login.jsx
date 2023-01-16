@@ -64,10 +64,13 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:8000/auth/login", {
-        email,
-        password,
-      });
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/auth/login`,
+        {
+          email,
+          password,
+        }
+      );
       console.log(response);
     } catch (error) {
       console.log(error.message);

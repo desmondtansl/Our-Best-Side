@@ -27,16 +27,6 @@ const ImageContainer = styled.p`
   font-weight: 600;
 `;
 
-const SubHeader = styled.p`
-  font-size: 30px;
-  font-weight: 300;
-  padding: 5px;
-  display: flex;
-  margin: 5px;
-  align-items: center;
-  justify-content: center;
-`;
-
 const Form = styled.form`
   display: flex;
   flex-direction: column;
@@ -96,20 +86,6 @@ const ProductQtyHeader = styled.p`
 `;
 
 function Dashboard() {
-  //   let formData = new FormData(formElem);
-
-  //   formElem.onsubmit = async (e) => {
-  //     e.preventDefault();
-
-  //     let response = await axios.post("http://localhost:8000/products/create", {
-  //       method: "POST",
-  //       body: new FormData(formElem),
-  //     });
-
-  //     let result = await response.json();
-
-  //     alert(result.message);
-  //   };
   const [data, setData] = useState({});
 
   const updateData = (e) => {
@@ -122,8 +98,8 @@ function Dashboard() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:8000/products/create",
+      const response = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/products/:params`,
         {
           data,
         }
@@ -136,18 +112,17 @@ function Dashboard() {
   return (
     <Container>
       <Wrapper>
-        <Title>Admin Dashboard</Title>
-        <SubHeader>Product Upload Form</SubHeader>
+        <Title>Edit Products Form</Title>
         <Form onSubmit={handleSubmit}>
-          <TitleHeader>Enter Product Title</TitleHeader>
+          <TitleHeader>Search Products by ID</TitleHeader>
           <Input
             name="title"
             id="title"
-            placeholder="e.g. Nike SB Tee, Moncler Swim Shorts"
+            placeholder="63c117a77ede8c8c349ba37d"
             required
             onChange={updateData}
           />
-          <ProductDescHeader>Enter Product Description</ProductDescHeader>
+          {/* <ProductDescHeader>Enter Product Description</ProductDescHeader>
           <Input
             name="description"
             id="description"
@@ -203,7 +178,7 @@ function Dashboard() {
             placeholder="enter ONLY numbers"
             required
             onChange={updateData}
-          />
+          /> */}
           <Input type="submit" value="Create" />
         </Form>
       </Wrapper>
