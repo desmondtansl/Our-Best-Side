@@ -27,16 +27,6 @@ const ImageContainer = styled.p`
   font-weight: 600;
 `;
 
-const SubHeader = styled.p`
-  font-size: 30px;
-  font-weight: 300;
-  padding: 5px;
-  display: flex;
-  margin: 5px;
-  align-items: center;
-  justify-content: center;
-`;
-
 const Form = styled.form`
   display: flex;
   flex-direction: column;
@@ -122,8 +112,7 @@ function Dashboard() {
   return (
     <Container>
       <Wrapper>
-        <Title>Admin Dashboard</Title>
-        <SubHeader>Product Upload Form</SubHeader>
+        <Title>Product Upload Form</Title>
         <Form onSubmit={handleSubmit}>
           <TitleHeader>Enter Product Title</TitleHeader>
           <Input
