@@ -57,24 +57,24 @@ router.post("/create", async (req, res) => {
 
 // GET PRODUCT
 
-router.get("/:params", async (req, res) => {
-  try {
-    const getProduct = await Product.findOne();
-    if (!getProduct) {
-      return res.status(400).json({
-        data: "",
-        error: "No Product Found",
-      });
-    }
-    res.status(200).json({
-      data: getProduct,
-      error: "",
-    });
-  } catch (error) {
-    return res.status(400).json({
-      data: "",
-      error: error.message,
-    });
-  }
-});
+// router.get("/:params", async (req, res) => {
+//   try {
+//     const getProduct = await Product.findOne();
+//     if (!getProduct) {
+//       return res.status(400).json({
+//         data: "",
+//         error: "No Product Found",
+//       });
+//     }
+//     res.status(200).json({
+//       data: getProduct,
+//       error: "",
+//     });
+//   } catch (error) {
+//     return res.status(400).json({
+//       data: "",
+//       error: error.message,
+//     });
+//   }
+// });
 export default router;
