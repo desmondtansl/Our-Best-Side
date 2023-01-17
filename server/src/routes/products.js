@@ -1,6 +1,11 @@
 import express from "express";
 import Product from "../models/Product.js";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import multer from "multer";
 import dotenv from "dotenv";
 import crypto from "crypto";
@@ -48,7 +53,7 @@ router.post("/upload", upload.single("image"), async (req, res) => {
   const product = await Product.create({
     title: req.body.title,
     description: req.body.description,
-    imageName: imageName,
+    image: imageName,
     category: req.body.category,
     size: req.body.size,
     color: req.body.color,
@@ -84,24 +89,32 @@ router.post("/upload", upload.single("image"), async (req, res) => {
 
 // GET PRODUCT
 
-// router.get("/:params", async (req, res) => {
-//   try {
-//     const getProduct = await Product.findOne();
-//     if (!getProduct) {
-//       return res.status(400).json({
-//         data: "",
-//         error: "No Product Found",
-//       });
-//     }
-//     res.status(200).json({
-//       data: getProduct,
-//       error: "",
-//     });
-//   } catch (error) {
-//     return res.status(400).json({
-//       data: "",
-//       error: error.message,
-//     });
-//   }
-// });
+router.get("/:params", async (req, res) => {
+  try {
+    const getProduct = await Product.findOne();
+    const getObjectParams = {
+      Bucket: bucketName,
+      Key: getProduct.image,
+    };
+    const command = new GetObjectCommand(getObjectParams);
+    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+    Product.imageUrl = url;
+
+    if (!getProduct) {
+      return res.status(400).json({
+        data: "",
+        error: "No Product Found",
+      });
+    }
+    res.status(200).json({
+      data: getProduct,
+      error: "",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      data: "",
+      error: error.message,
+    });
+  }
+});
 export default router;
