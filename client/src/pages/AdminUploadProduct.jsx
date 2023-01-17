@@ -95,6 +95,8 @@ function Dashboard() {
     });
   };
 
+  // const form = document.querySelector("form");
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -103,12 +105,18 @@ function Dashboard() {
         {
           data,
         }
+        // {
+        //   headers: {
+        //     "Content-Type": "multipart/form-data",
+        //   },
+        // }
       );
       console.log(response);
     } catch (error) {
       console.log(error.message);
     }
   };
+
   return (
     <Container>
       <Wrapper>
@@ -116,6 +124,7 @@ function Dashboard() {
         <Form onSubmit={handleSubmit}>
           <TitleHeader>Enter Product Title</TitleHeader>
           <Input
+            type="text"
             name="title"
             id="title"
             placeholder="e.g. Nike SB Tee, Moncler Swim Shorts"
@@ -133,6 +142,7 @@ function Dashboard() {
             Upload Product Image
             <Input
               name="image"
+              accept="image/*"
               id="image"
               type="file"
               required
@@ -179,7 +189,7 @@ function Dashboard() {
             required
             onChange={updateData}
           />
-          <Input type="submit" value="Create" />
+          <Button type="submit">Submit</Button>
         </Form>
       </Wrapper>
     </Container>
