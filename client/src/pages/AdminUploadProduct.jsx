@@ -1,5 +1,4 @@
 import axios from "axios";
-import { useState } from "react";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -85,31 +84,16 @@ const ProductQtyHeader = styled.p`
   font-weight: 600;
 `;
 
-function Dashboard() {
-  const [data, setData] = useState({});
-
-  const updateData = (e) => {
-    setData({
-      ...data,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  // const form = document.querySelector("form");
-
+function AdminUploadProduct() {
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const form = document.getElementById("form");
+    const formData = new FormData(form);
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/products/create`,
-        {
-          data,
-        }
-        // {
-        //   headers: {
-        //     "Content-Type": "multipart/form-data",
-        //   },
-        // }
+        `${import.meta.env.VITE_BASE_URL}/products/upload`,
+        formData
       );
       console.log(response);
     } catch (error) {
@@ -121,7 +105,7 @@ function Dashboard() {
     <Container>
       <Wrapper>
         <Title>Product Upload Form</Title>
-        <Form onSubmit={handleSubmit}>
+        <Form onSubmit={handleSubmit} encType="multipart/form-data" id="form">
           <TitleHeader>Enter Product Title</TitleHeader>
           <Input
             type="text"
@@ -129,15 +113,9 @@ function Dashboard() {
             id="title"
             placeholder="e.g. Nike SB Tee, Moncler Swim Shorts"
             required
-            onChange={updateData}
           />
           <ProductDescHeader>Enter Product Description</ProductDescHeader>
-          <Input
-            name="description"
-            id="description"
-            required
-            onChange={updateData}
-          />
+          <Input name="description" id="description" required />
           <ImageContainer>
             Upload Product Image
             <Input
@@ -146,7 +124,6 @@ function Dashboard() {
               id="image"
               type="file"
               required
-              onChange={updateData}
             />
           </ImageContainer>
           <ProductCategoryHeader>Product Category</ProductCategoryHeader>
@@ -155,7 +132,6 @@ function Dashboard() {
             id="category"
             placeholder="Mens or Ladies"
             required
-            onChange={updateData}
           />
           <ProductSizesHeader>Product Sizes</ProductSizesHeader>
           <Input
@@ -163,7 +139,6 @@ function Dashboard() {
             id="size"
             placeholder="separated by commas - e.g. S, M or US 6, US 7"
             required
-            onChange={updateData}
           />
           <ProductColorsHeader>Product Colors</ProductColorsHeader>
           <Input
@@ -171,7 +146,6 @@ function Dashboard() {
             id="color"
             placeholder="separated by commas - e.g. Black, Navy"
             required
-            onChange={updateData}
           />
           <ProductPricesHeader>Product Prices</ProductPricesHeader>
           <Input
@@ -179,7 +153,6 @@ function Dashboard() {
             id="price"
             placeholder="enter ONLY numbers w/o $ sign - e.g. 30, 40"
             required
-            onChange={updateData}
           />
           <ProductQtyHeader>Product Inventory Qty</ProductQtyHeader>
           <Input
@@ -187,7 +160,6 @@ function Dashboard() {
             id="inStock"
             placeholder="enter ONLY numbers"
             required
-            onChange={updateData}
           />
           <Button type="submit">Submit</Button>
         </Form>
@@ -196,4 +168,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default AdminUploadProduct;
