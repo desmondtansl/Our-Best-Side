@@ -92,7 +92,7 @@ function AdminUploadProduct() {
     const formData = new FormData(form);
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/products/create`,
+        `${import.meta.env.VITE_BASE_URL}/products/upload`,
         formData
       );
       console.log(response);
