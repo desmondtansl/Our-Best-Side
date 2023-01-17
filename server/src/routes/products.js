@@ -3,12 +3,16 @@ import Product from "../models/Product.js";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import multer from "multer";
 import dotenv from "dotenv";
+import crypto from "crypto";
 
 dotenv.config();
 const router = express.Router();
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+
+const hashedImageName = (bytes = 32) =>
+  crypto.randomBytes(bytes).toString("hex");
 
 const bucketName = process.env.BUCKET_NAME;
 const bucketRegion = process.env.AWS_REGION;
@@ -29,9 +33,11 @@ router.post("/upload", upload.single("image"), async (req, res) => {
 
   req.file.buffer;
 
+  const imageName = hashedImageName();
+
   const params = {
     Bucket: bucketName,
-    Key: req.file.originalname,
+    Key: imageName,
     Body: req.file.buffer,
     ContentType: req.file.mimetype,
   };
@@ -39,37 +45,19 @@ router.post("/upload", upload.single("image"), async (req, res) => {
   const command = new PutObjectCommand(params);
   await s3.send(command);
 
-  res.send({});
+  const product = await Product.create({
+    title: req.body.title,
+    description: req.body.description,
+    imageName: imageName,
+    category: req.body.category,
+    size: req.body.size,
+    color: req.body.color,
+    price: req.body.price,
+    inStock: req.body.inStock,
+  });
+
+  res.send(product);
 });
-
-// CREATE PRODUCT
-
-// router.post("/create", async (req, res) => {
-//   const data = req.body;
-//   const product = new Product({
-//     title: data.data.title,
-//     description: data.data.description,
-//     image: data.data.image,
-//     category: data.data.category,
-//     size: data.data.size,
-//     color: data.data.color,
-//     price: data.data.price,
-//     inStock: data.data.inStock,
-//   });
-
-//   try {
-//     const savedProduct = await product.save();
-//     res.status(200).json({
-//       data: savedProduct,
-//       error: "",
-//     });
-//   } catch (error) {
-//     res.status(400).json({
-//       data: "",
-//       error: error.message,
-//     });
-//   }
-// });
 
 // EDIT PRODUCT
 
