@@ -85,7 +85,7 @@ const ProductQtyHeader = styled.p`
   font-weight: 600;
 `;
 
-function Dashboard() {
+function AdminEditProduct() {
   const [data, setData] = useState({});
 
   const updateData = (e) => {
@@ -186,4 +186,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default AdminEditProduct;
