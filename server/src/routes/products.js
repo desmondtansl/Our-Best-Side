@@ -96,6 +96,7 @@ router.get("/:params", async (req, res) => {
       Bucket: bucketName,
       Key: getProduct.image,
     };
+    console.log(getProduct);
     const command = new GetObjectCommand(getObjectParams);
     const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
     Product.imageUrl = url;
