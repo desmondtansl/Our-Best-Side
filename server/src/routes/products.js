@@ -96,7 +96,24 @@ router.post("/upload", upload.single("image"), async (req, res) => {
 //   }
 // });
 
-// GET PRODUCT
+// GET MULTIPLE PRODUCTS FOR SEARCH
+
+router.get("/search/", async (req, res) => {
+  try {
+    const fetchAllProducts = await Product.find();
+    res.status(200).json({
+      data: fetchAllProducts,
+      error: "",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      data: "",
+      error: error.message,
+    });
+  }
+});
+
+// GET 1 PRODUCT
 
 router.get("/:params", async (req, res) => {
   try {
@@ -107,9 +124,9 @@ router.get("/:params", async (req, res) => {
       Key: getProduct.image,
     };
     const command = new GetObjectCommand(getObjectParams);
-    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+    const url = await getSignedUrl(s3, command, { expiresIn: 604800 });
     Product.imageUrl = url;
-    console.log(Product.imageUrl);
+    // console.log(getProduct, "getproduct123");
     if (!getProduct) {
       return res.status(400).json({
         data: "",
@@ -127,4 +144,5 @@ router.get("/:params", async (req, res) => {
     });
   }
 });
+
 export default router;

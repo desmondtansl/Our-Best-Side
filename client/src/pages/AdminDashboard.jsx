@@ -40,8 +40,8 @@ function AdminDashboard() {
         <Link to="/upload" style={{ textDecoration: "none" }}>
           <MenuItems>Upload New Products</MenuItems>
         </Link>
-        <Link to="/edit" style={{ textDecoration: "none" }}>
-          <MenuItems>Edit Products</MenuItems>
+        <Link to="/search" style={{ textDecoration: "none" }}>
+          <MenuItems>Search and Edit Products</MenuItems>
         </Link>
         <Link to="/delete" style={{ textDecoration: "none" }}>
           <MenuItems>Delete Products</MenuItems>
