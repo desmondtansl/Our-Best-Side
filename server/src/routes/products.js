@@ -33,35 +33,44 @@ const s3 = new S3Client({
 });
 
 router.post("/upload", upload.single("image"), async (req, res) => {
-  console.log("req.body", req.body);
-  console.log("req.file", req.file);
+  try {
+    console.log("req.body", req.body);
+    console.log("req.file", req.file);
 
-  req.file.buffer;
+    req.file.buffer;
 
-  const imageName = hashedImageName();
+    const imageName = hashedImageName();
 
-  const params = {
-    Bucket: bucketName,
-    Key: imageName,
-    Body: req.file.buffer,
-    ContentType: req.file.mimetype,
-  };
+    const params = {
+      Bucket: bucketName,
+      Key: imageName,
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype,
+    };
 
-  const command = new PutObjectCommand(params);
-  await s3.send(command);
+    const command = new PutObjectCommand(params);
+    await s3.send(command);
 
-  const product = await Product.create({
-    title: req.body.title,
-    description: req.body.description,
-    image: imageName,
-    category: req.body.category,
-    size: req.body.size,
-    color: req.body.color,
-    price: req.body.price,
-    inStock: req.body.inStock,
-  });
-
-  res.send(product);
+    const product = await Product.create({
+      title: req.body.title,
+      description: req.body.description,
+      image: imageName,
+      category: req.body.category,
+      size: req.body.size,
+      color: req.body.color,
+      price: req.body.price,
+      inStock: req.body.inStock,
+    });
+    res.status(200).json({
+      data: product,
+      error: "",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      data: "",
+      error: error.message,
+    });
+  }
 });
 
 // EDIT PRODUCT
@@ -87,20 +96,37 @@ router.post("/upload", upload.single("image"), async (req, res) => {
 //   }
 // });
 
-// GET PRODUCT
+// GET MULTIPLE PRODUCTS FOR SEARCH
+
+router.get("/search/", async (req, res) => {
+  try {
+    const fetchAllProducts = await Product.find();
+    res.status(200).json({
+      data: fetchAllProducts,
+      error: "",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      data: "",
+      error: error.message,
+    });
+  }
+});
+
+// GET 1 PRODUCT
 
 router.get("/:params", async (req, res) => {
   try {
-    const getProduct = await Product.findOne();
+    const { params } = req.params;
+    const getProduct = await Product.findById(params);
     const getObjectParams = {
       Bucket: bucketName,
       Key: getProduct.image,
     };
-    console.log(getProduct);
     const command = new GetObjectCommand(getObjectParams);
-    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+    const url = await getSignedUrl(s3, command, { expiresIn: 604800 });
     Product.imageUrl = url;
-
+    // console.log(getProduct, "getproduct123");
     if (!getProduct) {
       return res.status(400).json({
         data: "",
@@ -118,4 +144,5 @@ router.get("/:params", async (req, res) => {
     });
   }
 });
+
 export default router;
