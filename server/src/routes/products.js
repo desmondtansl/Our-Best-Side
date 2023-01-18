@@ -91,11 +91,13 @@ router.post("/upload", upload.single("image"), async (req, res) => {
 
 router.get("/:params", async (req, res) => {
   try {
-    const getProduct = await Product.findOne();
+    const { params } = req.params;
+    const getProduct = await Product.findById(params);
     const getObjectParams = {
       Bucket: bucketName,
       Key: getProduct.image,
     };
+    console.log(Product);
     console.log(getProduct);
     const command = new GetObjectCommand(getObjectParams);
     const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
