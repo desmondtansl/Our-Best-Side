@@ -130,7 +130,7 @@ function AdminUploadProduct() {
           <Input
             name="category"
             id="category"
-            placeholder="Mens or Ladies"
+            placeholder="Men or Ladies"
             required
           />
           <ProductSizesHeader>Product Sizes</ProductSizesHeader>
@@ -161,7 +161,7 @@ function AdminUploadProduct() {
             placeholder="enter ONLY numbers"
             required
           />
-          <Button type="submit">Submit</Button>
+          <Button type="submit">Upload Product</Button>
         </Form>
       </Wrapper>
     </Container>

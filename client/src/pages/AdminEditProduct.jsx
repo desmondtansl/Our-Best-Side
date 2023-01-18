@@ -122,7 +122,7 @@ function AdminEditProduct() {
             required
             onChange={updateData}
           />
-          {/* <ProductDescHeader>Enter Product Description</ProductDescHeader>
+          <ProductDescHeader>Enter Product Description</ProductDescHeader>
           <Input
             name="description"
             id="description"
@@ -143,7 +143,7 @@ function AdminEditProduct() {
           <Input
             name="category"
             id="category"
-            placeholder="Mens or Ladies"
+            placeholder="Men or Ladies"
             required
             onChange={updateData}
           />
@@ -178,7 +178,7 @@ function AdminEditProduct() {
             placeholder="enter ONLY numbers"
             required
             onChange={updateData}
-          /> */}
+          />
           <Input type="submit" value="Create" />
         </Form>
       </Wrapper>
