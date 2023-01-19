@@ -151,21 +151,7 @@ function AdminEditProduct() {
           inStock: inStock,
         }
       );
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/products/upload`,
-        {
-          title: title,
-          description: description,
-          image: image,
-          category: categoryArray,
-          size: sizeArray,
-          color: colorArray,
-          price: price,
-          inStock: inStock,
-        }
-      );
       setEditedProduct("success");
-
       return editedProduct;
     } catch (error) {
       console.log(error.message);
@@ -176,25 +162,6 @@ function AdminEditProduct() {
     e.preventDefault();
     editProduct();
   };
-  //   const handleSubmit = async (e) => {
-  //     e.preventDefault();
-
-  //     const form = document.getElementById("form");
-  //     const formData = new FormData(form);
-  //     console.log(form);
-  //     for (let [key, value] of formData.entries()) {
-  //       console.log(key, value);
-  //     }
-  //     try {
-  //       const response = await axios.put(
-  //         `${import.meta.env.VITE_BASE_URL}/products/${params}`,
-  //         { key, value }
-  //       );
-  //       console.log(response);
-  //     } catch (error) {
-  //       console.log(error.message);
-  //     }
-  //   };
 
   return (
     <Container>
