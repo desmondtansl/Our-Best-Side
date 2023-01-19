@@ -98,9 +98,12 @@ router.post("/upload", upload.single("image"), async (req, res) => {
 
 // GET MULTIPLE PRODUCTS FOR SEARCH
 
-router.get("/search/", async (req, res) => {
+router.get("/search/:params", async (req, res) => {
   try {
-    const fetchAllProducts = await Product.find();
+    const { params } = req.params;
+    const fetchAllProducts = await Product.find({
+      title: { $regex: "^" + params, $options: "i" },
+    });
     res.status(200).json({
       data: fetchAllProducts,
       error: "",
@@ -126,13 +129,7 @@ router.get("/:params", async (req, res) => {
     const command = new GetObjectCommand(getObjectParams);
     const url = await getSignedUrl(s3, command, { expiresIn: 604800 });
     Product.imageUrl = url;
-    // console.log(getProduct, "getproduct123");
-    if (!getProduct) {
-      return res.status(400).json({
-        data: "",
-        error: "No Product Found",
-      });
-    }
+
     res.status(200).json({
       data: getProduct,
       error: "",
@@ -145,4 +142,35 @@ router.get("/:params", async (req, res) => {
   }
 });
 
+// EDIT 1 PRODUCT
+
+router.put("/:params", async (req, res) => {
+  try {
+    const { params } = req.params;
+    const getEditedProduct = await Product.findByIdAndUpdate(
+      params,
+      {
+        $set: req.body,
+      },
+      { new: true }
+    );
+    const getObjectParams = {
+      Bucket: bucketName,
+      Key: getEditedProduct.image,
+    };
+    const command = new PutObjectCommand(getObjectParams);
+    const url = await getSignedUrl(s3, command, { expiresIn: 604800 });
+    Product.imageUrl = url;
+
+    res.status(200).json({
+      data: getEditedProduct,
+      error: "",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      data: "",
+      error: error.message,
+    });
+  }
+});
 export default router;

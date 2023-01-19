@@ -1,8 +1,7 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
-import { useParams } from "react-router-dom";
-import { Table } from "@mui/material";
+import { NavLink } from "react-router-dom";
 
 const Container = styled.div`
   display: flex;
@@ -59,48 +58,20 @@ const TitleHeader = styled.p`
 
 const InfoContainer = styled.div`
   display: flex;
-`;
-
-const ProductDescHeader = styled.p`
-  font-size: 14px;
-  font-weight: 600;
-`;
-
-const ProductCategoryHeader = styled.p`
-  font-size: 14px;
-  font-weight: 600;
-`;
-
-const ProductSizesHeader = styled.p`
-  font-size: 14px;
-  font-weight: 600;
-`;
-
-const ProductColorsHeader = styled.p`
-  font-size: 14px;
-  font-weight: 600;
-`;
-
-const ProductPricesHeader = styled.p`
-  font-size: 14px;
-  font-weight: 600;
-`;
-
-const ProductQtyHeader = styled.p`
-  font-size: 14px;
-  font-weight: 600;
+  padding: 5px;
 `;
 
 function AdminSearchProduct() {
   const [data, setData] = useState({});
   const [query, setQuery] = useState("");
-  const [table, setTable] = useState([]);
 
   const fetchProducts = async () => {
     const response = await axios.get(
-      `${import.meta.env.VITE_BASE_URL}/products/search/`
+      `${import.meta.env.VITE_BASE_URL}/products/search/${query}`
     );
+    console.log(query);
     setData(response.data);
+    console.log(response);
   };
 
   const handleSubmit = (e) => {
@@ -116,7 +87,7 @@ function AdminSearchProduct() {
           <TitleHeader>Search Products</TitleHeader>
           <Input
             name="search"
-            placeholder="search"
+            placeholder="search by name or desc"
             required
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -124,11 +95,32 @@ function AdminSearchProduct() {
           <Button type="submit">Search</Button>
         </Form>
         <InfoContainer>
-          <ul>
-            {data?.data?.map((product, index) => (
-              <li key={index}>{product.title}</li>
-            ))}
-          </ul>
+          <table>
+            <thead>
+              <tr>
+                <th>product title</th>
+                <th>product description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                {data?.data?.map((product, index) => (
+                  <td key={index}>
+                    <NavLink to={`/search/${product?._id}`}>
+                      {product.title}
+                    </NavLink>
+                  </td>
+                ))}
+                {data?.data?.map((product, index) => (
+                  <td key={index}>
+                    <NavLink to={`/search/${product?._id}`}>
+                      {product.description}
+                    </NavLink>
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
         </InfoContainer>
       </Wrapper>
     </Container>
