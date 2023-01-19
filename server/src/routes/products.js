@@ -98,9 +98,14 @@ router.post("/upload", upload.single("image"), async (req, res) => {
 
 // GET MULTIPLE PRODUCTS FOR SEARCH
 
-router.get("/search/", async (req, res) => {
+router.get("/search/:params", async (req, res) => {
   try {
-    const fetchAllProducts = await Product.find();
+    const { params } = req.params;
+    const fetchAllProducts = await Product.find({
+      title: { $regex: "^" + params, $options: "i" },
+      // description: { $regex: "^" + params, $options: "i" },
+      // $text: { $search: params },
+    });
     res.status(200).json({
       data: fetchAllProducts,
       error: "",

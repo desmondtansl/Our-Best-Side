@@ -2,7 +2,6 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useParams } from "react-router-dom";
-import { Table } from "@mui/material";
 
 const Container = styled.div`
   display: flex;
@@ -94,12 +93,12 @@ const ProductQtyHeader = styled.p`
 function AdminSearchProduct() {
   const [data, setData] = useState({});
   const [query, setQuery] = useState("");
-  const [table, setTable] = useState([]);
 
   const fetchProducts = async () => {
     const response = await axios.get(
-      `${import.meta.env.VITE_BASE_URL}/products/search/`
+      `${import.meta.env.VITE_BASE_URL}/products/search/${query}`
     );
+    console.log(query);
     setData(response.data);
   };
 
