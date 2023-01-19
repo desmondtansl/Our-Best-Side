@@ -103,8 +103,6 @@ router.get("/search/:params", async (req, res) => {
     const { params } = req.params;
     const fetchAllProducts = await Product.find({
       title: { $regex: "^" + params, $options: "i" },
-      // description: { $regex: "^" + params, $options: "i" },
-      // $text: { $search: params },
     });
     res.status(200).json({
       data: fetchAllProducts,

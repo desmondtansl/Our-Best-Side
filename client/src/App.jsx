@@ -7,6 +7,7 @@ import Login from "./pages/Login.jsx";
 import { Routes, Route } from "react-router-dom";
 import UploadProduct from "./pages/AdminUploadProduct.jsx";
 import SearchProduct from "./pages/AdminSearchProduct.jsx";
+import EditProduct from "./pages/AdminEditProduct.jsx";
 import Dashboard from "./pages/AdminDashboard.jsx";
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/upload" element={<UploadProduct />} />
       <Route path="/search" element={<SearchProduct />} />
+      <Route path="/search/:params" element={<EditProduct />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/login" element={<Login />} />
