@@ -1,7 +1,7 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
-import { NavLink, useParams } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 const Container = styled.div`
   display: flex;
@@ -61,40 +61,9 @@ const InfoContainer = styled.div`
   padding: 5px;
 `;
 
-const ProductDescHeader = styled.p`
-  font-size: 14px;
-  font-weight: 600;
-`;
-
-const ProductCategoryHeader = styled.p`
-  font-size: 14px;
-  font-weight: 600;
-`;
-
-const ProductSizesHeader = styled.p`
-  font-size: 14px;
-  font-weight: 600;
-`;
-
-const ProductColorsHeader = styled.p`
-  font-size: 14px;
-  font-weight: 600;
-`;
-
-const ProductPricesHeader = styled.p`
-  font-size: 14px;
-  font-weight: 600;
-`;
-
-const ProductQtyHeader = styled.p`
-  font-size: 14px;
-  font-weight: 600;
-`;
-
 function AdminSearchProduct() {
   const [data, setData] = useState({});
   const [query, setQuery] = useState("");
-  const { params } = useParams;
 
   const fetchProducts = async () => {
     const response = await axios.get(
