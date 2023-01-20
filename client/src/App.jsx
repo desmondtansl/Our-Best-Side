@@ -9,12 +9,14 @@ import UploadProduct from "./pages/AdminUploadProduct.jsx";
 import SearchProduct from "./pages/AdminSearchProduct.jsx";
 import EditProduct from "./pages/AdminEditProduct.jsx";
 import Dashboard from "./pages/AdminDashboard.jsx";
+import IndividualMenProduct from "./pages/IndividualMenProduct.jsx";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Homepage />} />
       <Route path="/men" element={<MenProducts />} />
+      <Route path="/men/:params" element={<IndividualMenProduct />} />
       <Route path="/ladies" element={<LadiesProducts />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/upload" element={<UploadProduct />} />

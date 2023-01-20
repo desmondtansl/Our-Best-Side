@@ -96,7 +96,71 @@ router.post("/upload", upload.single("image"), async (req, res) => {
 //   }
 // });
 
-// GET MULTIPLE PRODUCTS FOR SEARCH
+// GET ALL MEN PRODUCTS
+
+let imageUrlArray = [];
+let menProducts = [];
+let combinedMenProducts = [];
+
+router.get("/men", async (req, res) => {
+  try {
+    imageUrlArray = [];
+    menProducts = [];
+    combinedMenProducts = [];
+    const fetchMenProducts = await Product.find({ category: "Men" }).exec();
+    // console.log(fetchMenProducts);
+    for (let singleProduct of fetchMenProducts) {
+      const getObjectParams = {
+        Bucket: bucketName,
+        Key: singleProduct.image,
+      };
+
+      // console.log(fetchMenProducts[0].image);
+      const command = new GetObjectCommand(getObjectParams);
+      const url = await getSignedUrl(s3, command, { expiresIn: 604800 });
+      singleProduct.imageUrl = url;
+      imageUrlArray.push(singleProduct.imageUrl);
+      menProducts.push(singleProduct);
+      console.log(fetchMenProducts);
+      console.log(imageUrlArray);
+      console.log(menProducts);
+    }
+
+    for (let i = 0; i < imageUrlArray.length; i++) {
+      menProducts[i].url = imageUrlArray[i];
+      combinedMenProducts.push(menProducts[i]);
+    }
+    console.log(combinedMenProducts[0], "TEST 1234");
+    console.log(combinedMenProducts[0].url);
+    res.status(200).send(combinedMenProducts);
+    // console.log(combinedMenProducts);
+  } catch (error) {
+    return res.status(400).json({
+      data: "",
+      error: error.message,
+    });
+  }
+});
+
+// GET SPECIFIC MEN PRODUCT FROM SEARCH
+
+router.get("/men/:params", async (req, res) => {
+  try {
+    const { params } = req.params;
+    const fetchIndividualMenProduct = await Product.findById(params);
+    res.status(200).json({
+      data: fetchIndividualMenProduct,
+      error: "",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      data: "",
+      error: error.message,
+    });
+  }
+});
+
+// GET SPECIFIC PRODUCT FROM SEARCH
 
 router.get("/search/:params", async (req, res) => {
   try {
