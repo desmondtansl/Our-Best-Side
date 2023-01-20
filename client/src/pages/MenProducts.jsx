@@ -16,31 +16,23 @@ const MainContainer = styled.div`
 const Container = styled.div`
   display: flex;
   flex-wrap: wrap;
-  /* width: 100vw; */
   height: 100%;
   justify-content: space-between;
   padding: 200px;
-  /* background-color: lightblue; */
 `;
 
 const Container2 = styled.div`
   display: flex;
   flex-direction: column;
   width: 30%;
-  /* background-color: red; */
   padding: 10px;
   justify-content: center;
 `;
 
 const ImageCard = styled.img`
   display: flex;
-  /* height: 100%; */
   width: 80%;
-  /* padding: 40px; */
   cursor: pointer;
-  /* overflow: hidden;
-  height: 100%; */
-  background-color: black;
 `;
 
 const InfoContainer = styled.div`
@@ -75,7 +67,6 @@ function MenProducts() {
     console.log(response);
     setData(response);
   };
-  // console.log(data);
 
   useEffect(() => {
     fetchMenProducts();
@@ -85,22 +76,19 @@ function MenProducts() {
     <MainContainer>
       <Navbar />
       <Container>
-        {/* <Navbar /> */}
         {data?.map((product) => (
-          <Container2>
+          <Container2 key={product?._id}>
             <NavLink to={`/men/${product?._id}`}>
               <ImageCard
-                key={product.id}
                 src={`https://desmondecommercesite.s3.ap-southeast-1.amazonaws.com/${product.image}`}
               />
             </NavLink>
             <InfoContainer>
-              <Text>{product.title}</Text>
+              <Text> {product.title}</Text>
               <Price>$ {product.price}</Price>
             </InfoContainer>
           </Container2>
         ))}
-        {/* <Footer /> */}
       </Container>
       <Footer />
     </MainContainer>
