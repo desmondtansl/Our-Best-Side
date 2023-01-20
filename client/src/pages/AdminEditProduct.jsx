@@ -116,21 +116,18 @@ function AdminEditProduct() {
   }, []);
 
   const categoryStringSplitter = (category) => {
-    // console.log(category.toString());
     return category.toString().split(/[,\s]+/);
   };
 
   const categoryArray = categoryStringSplitter(category);
 
   const sizeStringSplitter = (size) => {
-    // console.log(category.toString());
     return size.toString().split(/[,\s]+/);
   };
 
   const sizeArray = sizeStringSplitter(size);
 
   const colorStringSplitter = (color) => {
-    // console.log(category.toString());
     return color.toString().split(/[,\s]+/);
   };
 
