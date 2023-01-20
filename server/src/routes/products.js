@@ -142,6 +142,24 @@ router.get("/men", async (req, res) => {
   }
 });
 
+// GET SPECIFIC MEN PRODUCT FROM SEARCH
+
+router.get("/men/:params", async (req, res) => {
+  try {
+    const { params } = req.params;
+    const fetchIndividualMenProduct = await Product.findById(params);
+    res.status(200).json({
+      data: fetchIndividualMenProduct,
+      error: "",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      data: "",
+      error: error.message,
+    });
+  }
+});
+
 // GET SPECIFIC PRODUCT FROM SEARCH
 
 router.get("/search/:params", async (req, res) => {

@@ -88,7 +88,7 @@ function MenProducts() {
         {/* <Navbar /> */}
         {data?.map((product) => (
           <Container2>
-            <NavLink>
+            <NavLink to={`/men/${product?._id}`}>
               <ImageCard
                 key={product.id}
                 src={`https://desmondecommercesite.s3.ap-southeast-1.amazonaws.com/${product.image}`}
