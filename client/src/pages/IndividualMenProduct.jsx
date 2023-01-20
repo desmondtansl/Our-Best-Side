@@ -6,6 +6,8 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
+import { addProduct } from "../redux/cartRedux";
+import { useDispatch } from "react-redux";
 
 const Container = styled.div``;
 
@@ -116,6 +118,7 @@ function IndividualMenProduct() {
   const [data, setData] = useState("");
   const [quantity, setQuantity] = useState(1);
   const { params } = useParams();
+  const dispatch = useDispatch();
 
   const fetchIndividualMenProduct = async () => {
     const response = await axios.get(
@@ -131,6 +134,10 @@ function IndividualMenProduct() {
     } else {
       setQuantity(quantity + 1);
     }
+  };
+
+  const handleClick = () => {
+    dispatch(addProduct({ ...data, quantity, data: Price }));
   };
 
   useEffect(() => {
@@ -172,7 +179,7 @@ function IndividualMenProduct() {
               <Amount>{quantity}</Amount>
               <AddIcon onClick={() => handleQty("increase")} />
             </QtyToggleContainer>
-            <Button>Add to Cart</Button>
+            <Button onClick={handleClick}>Add to Cart</Button>
           </QtyContainer>
         </InfoContainer>
       </Wrapper>
