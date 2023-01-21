@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import Footer from "../components/Footer";
@@ -129,7 +129,7 @@ function IndividualMenProduct() {
     console.log(response.data);
     setData(response.data);
   };
-  console.log(data);
+
   const handleQty = (type) => {
     if (type === "decrease") {
       quantity > 1 && setQuantity(quantity - 1);
@@ -150,6 +150,7 @@ function IndividualMenProduct() {
     sizeSelect();
     dispatch(addProduct({ ...data.data, quantity, color, size }));
   };
+
   console.log(size);
 
   useEffect(() => {
