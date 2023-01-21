@@ -171,6 +171,24 @@ router.get("/men/:params", async (req, res) => {
   }
 });
 
+// GET SPECIFIC LADIES PRODUCT FROM SEARCH
+
+router.get("/ladies/:params", async (req, res) => {
+  try {
+    const { params } = req.params;
+    const fetchIndividualLadiesProduct = await Product.findById(params);
+    res.status(200).json({
+      data: fetchIndividualLadiesProduct,
+      error: "",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      data: "",
+      error: error.message,
+    });
+  }
+});
+
 // GET SPECIFIC PRODUCT FROM SEARCH
 
 router.get("/search/:params", async (req, res) => {

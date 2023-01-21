@@ -10,6 +10,7 @@ import SearchProduct from "./pages/AdminSearchProduct.jsx";
 import EditProduct from "./pages/AdminEditProduct.jsx";
 import Dashboard from "./pages/AdminDashboard.jsx";
 import IndividualMenProduct from "./pages/IndividualMenProduct.jsx";
+import IndividualLadiesProduct from "./pages/IndividualLadiesProduct.jsx";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
       <Route path="/" element={<Homepage />} />
       <Route path="/men" element={<MenProducts />} />
       <Route path="/men/:params" element={<IndividualMenProduct />} />
+      <Route path="/ladies/:params" element={<IndividualLadiesProduct />} />
       <Route path="/ladies" element={<LadiesProducts />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/upload" element={<UploadProduct />} />
