@@ -114,7 +114,7 @@ const Button = styled.button`
   }
 `;
 
-function IndividualMenProduct() {
+function IndividualLadiesProduct() {
   const [data, setData] = useState({});
   const [quantity, setQuantity] = useState(1);
   const [color, setColor] = useState("");
@@ -122,9 +122,9 @@ function IndividualMenProduct() {
   const { params } = useParams();
   const dispatch = useDispatch();
 
-  const fetchIndividualMenProduct = async () => {
+  const fetchIndividualLadiesProduct = async () => {
     const response = await axios.get(
-      `${import.meta.env.VITE_BASE_URL}/products/men/${params}`
+      `${import.meta.env.VITE_BASE_URL}/products/ladies/${params}`
     );
     console.log(response.data);
     setData(response.data);
@@ -154,7 +154,7 @@ function IndividualMenProduct() {
   console.log(size);
 
   useEffect(() => {
-    fetchIndividualMenProduct();
+    fetchIndividualLadiesProduct();
   }, []);
   console.log(data?.data?.size.toString().split(","));
 
@@ -210,4 +210,4 @@ function IndividualMenProduct() {
   );
 }
 
-export default IndividualMenProduct;
+export default IndividualLadiesProduct;

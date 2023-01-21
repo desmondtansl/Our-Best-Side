@@ -73,29 +73,6 @@ router.post("/upload", upload.single("image"), async (req, res) => {
   }
 });
 
-// EDIT PRODUCT
-
-// router.put("/edit", async (req, res) => {
-//   try {
-//     const updatedProduct = await Product.findByIdAndUpdate(
-//       req.params.id,
-//       {
-//         $set: req.body,
-//       },
-//       { new: true }
-//     );
-//     res.status(200).json({
-//       data: updatedProduct,
-//       error: "",
-//     });
-//   } catch (error) {
-//     res.status(400).json({
-//       data: "",
-//       error: error.message,
-//     });
-//   }
-// });
-
 // GET ALL MEN PRODUCTS
 
 let imageUrlArray = [];
@@ -108,22 +85,17 @@ router.get("/men", async (req, res) => {
     menProducts = [];
     combinedMenProducts = [];
     const fetchMenProducts = await Product.find({ category: "Men" }).exec();
-    // console.log(fetchMenProducts);
     for (let singleProduct of fetchMenProducts) {
       const getObjectParams = {
         Bucket: bucketName,
         Key: singleProduct.image,
       };
 
-      // console.log(fetchMenProducts[0].image);
       const command = new GetObjectCommand(getObjectParams);
       const url = await getSignedUrl(s3, command, { expiresIn: 604800 });
       singleProduct.imageUrl = url;
       imageUrlArray.push(singleProduct.imageUrl);
       menProducts.push(singleProduct);
-      console.log(fetchMenProducts);
-      console.log(imageUrlArray);
-      console.log(menProducts);
     }
 
     for (let i = 0; i < imageUrlArray.length; i++) {
@@ -133,7 +105,46 @@ router.get("/men", async (req, res) => {
     console.log(combinedMenProducts[0], "TEST 1234");
     console.log(combinedMenProducts[0].url);
     res.status(200).send(combinedMenProducts);
-    // console.log(combinedMenProducts);
+  } catch (error) {
+    return res.status(400).json({
+      data: "",
+      error: error.message,
+    });
+  }
+});
+
+// GET ALL LADIES PRODUCTS
+
+let ladiesimageUrlArray = [];
+let ladiesProducts = [];
+let combinedLadiesProducts = [];
+
+router.get("/ladies", async (req, res) => {
+  try {
+    ladiesimageUrlArray = [];
+    ladiesProducts = [];
+    combinedLadiesProducts = [];
+    const fetchLadiesProducts = await Product.find({
+      category: "Ladies",
+    }).exec();
+    for (let singleProduct of fetchLadiesProducts) {
+      const getObjectParams = {
+        Bucket: bucketName,
+        Key: singleProduct.image,
+      };
+
+      const command = new GetObjectCommand(getObjectParams);
+      const url = await getSignedUrl(s3, command, { expiresIn: 604800 });
+      singleProduct.imageUrl = url;
+      ladiesimageUrlArray.push(singleProduct.imageUrl);
+      ladiesProducts.push(singleProduct);
+    }
+
+    for (let i = 0; i < ladiesimageUrlArray.length; i++) {
+      ladiesProducts[i].url = ladiesimageUrlArray[i];
+      combinedLadiesProducts.push(ladiesProducts[i]);
+    }
+    res.status(200).send(combinedLadiesProducts);
   } catch (error) {
     return res.status(400).json({
       data: "",
@@ -150,6 +161,24 @@ router.get("/men/:params", async (req, res) => {
     const fetchIndividualMenProduct = await Product.findById(params);
     res.status(200).json({
       data: fetchIndividualMenProduct,
+      error: "",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      data: "",
+      error: error.message,
+    });
+  }
+});
+
+// GET SPECIFIC LADIES PRODUCT FROM SEARCH
+
+router.get("/ladies/:params", async (req, res) => {
+  try {
+    const { params } = req.params;
+    const fetchIndividualLadiesProduct = await Product.findById(params);
+    res.status(200).json({
+      data: fetchIndividualLadiesProduct,
       error: "",
     });
   } catch (error) {
