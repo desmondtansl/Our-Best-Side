@@ -85,22 +85,17 @@ router.get("/men", async (req, res) => {
     menProducts = [];
     combinedMenProducts = [];
     const fetchMenProducts = await Product.find({ category: "Men" }).exec();
-    // console.log(fetchMenProducts);
     for (let singleProduct of fetchMenProducts) {
       const getObjectParams = {
         Bucket: bucketName,
         Key: singleProduct.image,
       };
 
-      // console.log(fetchMenProducts[0].image);
       const command = new GetObjectCommand(getObjectParams);
       const url = await getSignedUrl(s3, command, { expiresIn: 604800 });
       singleProduct.imageUrl = url;
       imageUrlArray.push(singleProduct.imageUrl);
       menProducts.push(singleProduct);
-      console.log(fetchMenProducts);
-      console.log(imageUrlArray);
-      console.log(menProducts);
     }
 
     for (let i = 0; i < imageUrlArray.length; i++) {
@@ -110,7 +105,6 @@ router.get("/men", async (req, res) => {
     console.log(combinedMenProducts[0], "TEST 1234");
     console.log(combinedMenProducts[0].url);
     res.status(200).send(combinedMenProducts);
-    // console.log(combinedMenProducts);
   } catch (error) {
     return res.status(400).json({
       data: "",
@@ -133,32 +127,24 @@ router.get("/ladies", async (req, res) => {
     const fetchLadiesProducts = await Product.find({
       category: "Ladies",
     }).exec();
-    // console.log(fetchMenProducts);
     for (let singleProduct of fetchLadiesProducts) {
       const getObjectParams = {
         Bucket: bucketName,
         Key: singleProduct.image,
       };
 
-      // console.log(fetchMenProducts[0].image);
       const command = new GetObjectCommand(getObjectParams);
       const url = await getSignedUrl(s3, command, { expiresIn: 604800 });
       singleProduct.imageUrl = url;
       ladiesimageUrlArray.push(singleProduct.imageUrl);
       ladiesProducts.push(singleProduct);
-      console.log(fetchLadiesProducts);
-      console.log(ladiesimageUrlArray);
-      console.log(ladiesProducts);
     }
 
     for (let i = 0; i < ladiesimageUrlArray.length; i++) {
       ladiesProducts[i].url = ladiesimageUrlArray[i];
       combinedLadiesProducts.push(ladiesProducts[i]);
     }
-    console.log(combinedLadiesProducts[0], "TEST 1234");
-    console.log(combinedLadiesProducts[0].url);
     res.status(200).send(combinedLadiesProducts);
-    // console.log(combinedMenProducts);
   } catch (error) {
     return res.status(400).json({
       data: "",
