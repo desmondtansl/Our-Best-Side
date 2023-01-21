@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import Footer from "../components/Footer";
@@ -61,7 +61,7 @@ const FilterTitle = styled.span`
   font-weight: 200;
 `;
 
-const FilterColor = styled.div`
+const FilterColor = styled.button`
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -115,8 +115,10 @@ const Button = styled.button`
 `;
 
 function IndividualMenProduct() {
-  const [data, setData] = useState("");
+  const [data, setData] = useState({});
   const [quantity, setQuantity] = useState(1);
+  const [color, setColor] = useState("");
+  const [size, setSize] = useState("");
   const { params } = useParams();
   const dispatch = useDispatch();
 
@@ -127,7 +129,7 @@ function IndividualMenProduct() {
     console.log(response.data);
     setData(response.data);
   };
-
+  console.log(data);
   const handleQty = (type) => {
     if (type === "decrease") {
       quantity > 1 && setQuantity(quantity - 1);
@@ -136,13 +138,24 @@ function IndividualMenProduct() {
     }
   };
 
-  const handleClick = () => {
-    dispatch(addProduct({ ...data, quantity, data: Price }));
+  const sizeSelect = () => {
+    const select = document.getElementById("size");
+    const selectedIndex = select.selectedIndex;
+    const optionValue = select.options[selectedIndex].value;
+    setSize(optionValue);
+    console.log(size);
   };
+
+  const handleClick = () => {
+    sizeSelect();
+    dispatch(addProduct({ ...data.data, quantity, color, size }));
+  };
+  console.log(size);
 
   useEffect(() => {
     fetchIndividualMenProduct();
   }, []);
+  console.log(data?.data?.size.toString().split(","));
 
   return (
     <Container>
@@ -160,16 +173,24 @@ function IndividualMenProduct() {
           <FilterContainer>
             <Filter>
               <FilterTitle>Color</FilterTitle>
-              <FilterColor>{data?.data?.color}</FilterColor>
+              <FilterColor
+                value={data?.data?.color}
+                onClick={(e) => setColor(e.target.value)}
+              >
+                {data?.data?.color}
+              </FilterColor>
             </Filter>
             <Filter>
               <FilterTitle>Size</FilterTitle>
-              <FilterSize>
-                {data?.size?.map((size) => (
-                  <FilterSizeOption key={size}>
-                    {data?.data?.size}
-                  </FilterSizeOption>
-                ))}
+              <FilterSize id="size" name="size">
+                {data?.data?.size
+                  .toString()
+                  .split(",")
+                  .map((element) => (
+                    <FilterSizeOption value={element} key={element}>
+                      {element}
+                    </FilterSizeOption>
+                  ))}
               </FilterSize>
             </Filter>
           </FilterContainer>
