@@ -115,20 +115,20 @@ const Button = styled.button`
 `;
 
 function IndividualLadiesProduct() {
-  const [data, setData] = useState({});
+  const [data, setData] = useState([]);
   const [quantity, setQuantity] = useState(1);
   const [color, setColor] = useState("");
   const [size, setSize] = useState("");
   const { params } = useParams();
   const dispatch = useDispatch();
 
-  const fetchIndividualLadiesProduct = async () => {
-    const response = await axios.get(
-      `${import.meta.env.VITE_BASE_URL}/products/ladies/${params}`
-    );
-    console.log(response.data);
-    setData(response.data);
-  };
+  // const fetchIndividualLadiesProduct = async () => {
+  //   const response = await axios.get(
+  //     `${import.meta.env.VITE_BASE_URL}/products/ladies/${params}`
+  //   );
+  //   console.log(response.data);
+  //   setData(response.data);
+  // };
 
   const handleQty = (type) => {
     if (type === "decrease") {
@@ -138,12 +138,12 @@ function IndividualLadiesProduct() {
     }
   };
 
-  const sizeSelect = () => {
+  const sizeSelect = (e) => {
     const select = document.getElementById("size");
     const selectedIndex = select.selectedIndex;
     const optionValue = select.options[selectedIndex].value;
     setSize(optionValue);
-    console.log(size);
+    console.log(optionValue);
   };
 
   const handleClick = () => {
@@ -151,12 +151,23 @@ function IndividualLadiesProduct() {
     dispatch(addProduct({ ...data.data, quantity, color, size }));
   };
 
-  console.log(size);
-
   useEffect(() => {
+    const fetchIndividualLadiesProduct = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/products/ladies/${params}`
+        );
+        setData(response.data);
+      } catch (error) {
+        console.log(error.msg);
+      }
+    };
     fetchIndividualLadiesProduct();
   }, []);
-  console.log(data?.data?.size.toString().split(","));
+
+  console.log(size);
+
+  // console.log(data?.data?.size.toString().split(","));
 
   return (
     <Container>
@@ -184,6 +195,10 @@ function IndividualLadiesProduct() {
             <Filter>
               <FilterTitle>Size</FilterTitle>
               <FilterSize id="size" name="size">
+                <FilterSizeOption
+                  value="Select Size"
+                  key="Select Size"
+                ></FilterSizeOption>
                 {data?.data?.size
                   .toString()
                   .split(",")
