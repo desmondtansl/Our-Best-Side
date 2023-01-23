@@ -153,6 +153,46 @@ router.get("/ladies", async (req, res) => {
   }
 });
 
+// GET ALL PRODUCTS
+
+let combinedimageUrlArray = [];
+let combineProducts = [];
+let combinedAllProducts = [];
+
+router.get("/combined", async (req, res) => {
+  try {
+    combinedimageUrlArray = [];
+    combineProducts = [];
+    combinedAllProducts = [];
+    const fetchMenWomenProducts = await Product.find({
+      $or: [{ category: "Men" }, { category: "Women" }],
+    }).exec();
+    for (let singleProduct of fetchMenWomenProducts) {
+      const getObjectParams = {
+        Bucket: bucketName,
+        Key: singleProduct.image,
+      };
+
+      const command = new GetObjectCommand(getObjectParams);
+      const url = await getSignedUrl(s3, command, { expiresIn: 604800 });
+      singleProduct.imageUrl = url;
+      combinedimageUrlArray.push(singleProduct.imageUrl);
+      combineProducts.push(singleProduct);
+    }
+
+    for (let i = 0; i < combinedimageUrlArray.length; i++) {
+      combineProducts[i].url = combinedimageUrlArray[i];
+      combinedAllProducts.push(combineProducts[i]);
+    }
+    res.status(200).send(combinedAllProducts);
+  } catch (error) {
+    return res.status(400).json({
+      data: "",
+      error: error.message,
+    });
+  }
+});
+
 // GET SPECIFIC MEN PRODUCT FROM SEARCH
 
 router.get("/men/:params", async (req, res) => {

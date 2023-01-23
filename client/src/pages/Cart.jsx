@@ -3,9 +3,10 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import axios from "axios";
 import { Link, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
+import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
 
 const Container = styled.div``;
 
@@ -41,7 +42,7 @@ const Bottom = styled.div`
 `;
 
 const Info = styled.div`
-  flex: 3;
+  flex: 2;
 `;
 
 const Product = styled.div`
@@ -52,10 +53,10 @@ const Product = styled.div`
 const ProductDetails = styled.div`
   display: flex;
   justify-content: space-between;
+  flex: 2;
 `;
 
 const Details = styled.div`
-  flex: 2;
   display: flex;
   padding: 20px;
   flex-direction: column;
@@ -84,7 +85,6 @@ const ProductQtyContainer = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: 20px;
-  cursor: pointer;
 `;
 
 const ProductQty = styled.div`
@@ -98,7 +98,7 @@ const ProductPrice = styled.div`
 `;
 
 const Hr = styled.hr`
-  background-color: #eee;
+  background-color: red;
   border: none;
   height: 1px;
 `;
@@ -141,6 +141,19 @@ const SummaryButton = styled.button`
 `;
 
 function Cart() {
+  const [combinedData, setCombinedData] = useState({});
+  const cart = useSelector((state) => state.cart);
+
+  const fetchIndividualCombinedProduct = async () => {
+    const response = await axios.get(
+      `${import.meta.env.VITE_BASE_URL}/products/combined`
+    );
+    setCombinedData(response);
+  };
+
+  useEffect(() => {
+    fetchIndividualCombinedProduct();
+  }, []);
   return (
     <Container>
       <Navbar />
@@ -150,44 +163,52 @@ function Cart() {
           <Link to="/">
             <TopButton>Continue Shopping</TopButton>
           </Link>
-          <TopButton type="filled">Checkout Now</TopButton>
         </Top>
         <Bottom>
           <Info>
-            <Product>
-              <ProductDetails>
-                <Image src="https://static.nike.com/a/images/t_PDP_864_v1/f_auto,b_rgb:f5f5f5/742ff2a5-582f-400b-898f-1d3e9c65f70e/t-shirt-qjtHZd.png" />
-                <Details>
-                  <ProductTitle>
-                    <b>Product: </b>
-                    Nike Tee
-                  </ProductTitle>
-                  <ProductColor>
-                    <b>Color: </b>
-                    Red
-                  </ProductColor>
-                  <ProductSize>
-                    <b>Size: </b>L
-                  </ProductSize>
-                </Details>
-              </ProductDetails>
-              <PriceDetails>
-                <ProductQtyContainer>
-                  <RemoveIcon />
-                  <ProductQty>2</ProductQty>
-                  <AddIcon />
-                </ProductQtyContainer>
-                <ProductPrice>
-                  <b>Price: </b> $ 50
-                </ProductPrice>
-              </PriceDetails>
-            </Product>
+            {cart.products.map((product) => (
+              <Product key={product?.id}>
+                <ProductDetails>
+                  <Image
+                    src={`https://desmondecommercesite.s3.ap-southeast-1.amazonaws.com/${product.image}`}
+                  />
+                  <Details>
+                    <ProductTitle>
+                      <b>Product: </b>
+                      {product?.title}
+                    </ProductTitle>
+                    <ProductColor>
+                      <b>Color: </b>
+                      {product?.color}
+                    </ProductColor>
+                    <ProductSize>
+                      <b>Size: </b>
+                      {product?.size}
+                    </ProductSize>
+                  </Details>
+                </ProductDetails>
+                <PriceDetails>
+                  <ProductQtyContainer>
+                    {/* <RemoveIcon /> */}
+                    <ProductQty>
+                      <b>Qty: </b>
+                      {product?.quantity}
+                    </ProductQty>
+                    {/* <AddIcon /> */}
+                  </ProductQtyContainer>
+                  <ProductPrice>
+                    <b>Price: </b> $ {product?.price * product?.quantity}
+                  </ProductPrice>
+                </PriceDetails>
+              </Product>
+            ))}
           </Info>
+          <Hr />
           <Summary>
             <SummaryTitle>Order Summary</SummaryTitle>
             <SummaryItem>
               <SummaryItemText>Subtotal</SummaryItemText>
-              <SummaryItemPrice>$100</SummaryItemPrice>
+              <SummaryItemPrice>$ {cart.totalPrice}</SummaryItemPrice>
             </SummaryItem>
             <SummaryItem>
               <SummaryItemText>Shipping</SummaryItemText>
@@ -195,7 +216,7 @@ function Cart() {
             </SummaryItem>
             <SummaryItem type="total">
               <SummaryItemText>Total</SummaryItemText>
-              <SummaryItemPrice>$100</SummaryItemPrice>
+              <SummaryItemPrice>$ {cart.totalPrice}</SummaryItemPrice>
             </SummaryItem>
             <SummaryButton>Checkout Now</SummaryButton>
           </Summary>

@@ -4,6 +4,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import productsRoutes from "./routes/products.js";
 import authRoutes from "./routes/auth.js";
+import checkoutRoutes from "./routes/checkout.js";
 
 dotenv.config();
 mongoose.set("strictQuery", false);
@@ -26,6 +27,7 @@ const main = async () => {
   );
   app.use("/products", productsRoutes);
   app.use("/auth", authRoutes);
+  app.use("/checkout", checkoutRoutes);
 
   app.listen(PORT, () => {
     console.log(`Now listening to port ${PORT}`);
