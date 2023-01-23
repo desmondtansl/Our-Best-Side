@@ -2,11 +2,10 @@ import styled from "styled-components";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import axios from "axios";
-import { Link, useParams } from "react-router-dom";
-import AddIcon from "@mui/icons-material/Add";
-import RemoveIcon from "@mui/icons-material/Remove";
+import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
+import { loadStripe } from "@stripe/stripe-js";
 
 const Container = styled.div``;
 
@@ -93,7 +92,7 @@ const ProductQty = styled.div`
 `;
 
 const ProductPrice = styled.div`
-  font-size: 30px;
+  font-size: 24px;
   font-weight: 200;
 `;
 
@@ -141,7 +140,8 @@ const SummaryButton = styled.button`
 `;
 
 function Cart() {
-  const [combinedData, setCombinedData] = useState({});
+  // const [stripeData, setStripeData] = useState({});
+  const [combinedData, setCombinedData] = useState([]);
   const cart = useSelector((state) => state.cart);
 
   const fetchIndividualCombinedProduct = async () => {
@@ -149,6 +149,48 @@ function Cart() {
       `${import.meta.env.VITE_BASE_URL}/products/combined`
     );
     setCombinedData(response);
+  };
+
+  // const handleClick = async () => {
+  //   const stripeResponse = await axios.post(
+  //     `${import.meta.env.VITE_BASE_URL}/checkout/create-checkout-session`
+  //   );
+  //   setStripeData(stripeResponse);
+  //   await Stripe.redirectToCheckout({
+  //     items: [{ sku: "sku_1MTTbCLBLPex7nyMX33f2D5d", quantity: 1 }],
+  //     successUrl: `${import.meta.env.VITE_BASE_URL}/success`,
+  //     cancelUrl: `${import.meta.env.VITE_BASE_URL}/cart`,
+  //   });
+  // };
+
+  // const stripe = stripe(
+  //   `${import.meta.env.VITE_STRIPE_NEXT_PUBLIC_STRIPE_PUBLIC_KEY}`
+  // );
+
+  const handleClick = async () => {
+    try {
+      // Make a POST request to your server
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/checkout/create-checkout-session`,
+        {
+          items: [{ sku: "sku_1MTTbCLBLPex7nyMX33f2D5d", quantity: 1 }],
+        }
+      );
+
+      // Get the checkout session ID from the server response
+      const checkoutSessionId = response.data.checkoutSessionId;
+
+      // Use the checkout session ID to redirect the user to Stripe's checkout page
+      const result = await stripe.redirectToCheckout({
+        sessionId: checkoutSessionId,
+      });
+
+      if (result.error) {
+        console.log(result.error.message);
+      }
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   useEffect(() => {
@@ -218,7 +260,7 @@ function Cart() {
               <SummaryItemText>Total</SummaryItemText>
               <SummaryItemPrice>$ {cart.totalPrice}</SummaryItemPrice>
             </SummaryItem>
-            <SummaryButton>Checkout Now</SummaryButton>
+            <SummaryButton onClick={handleClick}>Checkout Now</SummaryButton>
           </Summary>
         </Bottom>
       </Wrapper>
