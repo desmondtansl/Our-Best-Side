@@ -150,6 +150,7 @@ function IndividualLadiesProduct() {
     sizeSelect();
     dispatch(addProduct({ ...data.data, quantity, color, size }));
   };
+  console.log(handleClick);
 
   useEffect(() => {
     const fetchIndividualLadiesProduct = async () => {
