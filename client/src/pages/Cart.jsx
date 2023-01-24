@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
+import Stripe from "stripe";
 
 const Container = styled.div``;
 
@@ -140,9 +141,10 @@ const SummaryButton = styled.button`
 `;
 
 function Cart() {
-  // const [stripeData, setStripeData] = useState({});
   const [combinedData, setCombinedData] = useState([]);
+  const [body, setBody] = useState();
   const cart = useSelector((state) => state.cart);
+  console.log(cart);
 
   const fetchIndividualCombinedProduct = async () => {
     const response = await axios.get(
@@ -151,43 +153,39 @@ function Cart() {
     setCombinedData(response);
   };
 
-  // const handleClick = async () => {
-  //   const stripeResponse = await axios.post(
-  //     `${import.meta.env.VITE_BASE_URL}/checkout/create-checkout-session`
-  //   );
-  //   setStripeData(stripeResponse);
-  //   await Stripe.redirectToCheckout({
-  //     items: [{ sku: "sku_1MTTbCLBLPex7nyMX33f2D5d", quantity: 1 }],
-  //     successUrl: `${import.meta.env.VITE_BASE_URL}/success`,
-  //     cancelUrl: `${import.meta.env.VITE_BASE_URL}/cart`,
-  //   });
-  // };
-
-  // const stripe = stripe(
-  //   `${import.meta.env.VITE_STRIPE_NEXT_PUBLIC_STRIPE_PUBLIC_KEY}`
-  // );
-
+  let quantity = [];
   const handleClick = async () => {
     try {
+      // GET request to server for unique product ID
+      const productId = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/checkout/get-product-info`
+      );
+
+      const results = (description) => {
+        const productInfo = productId.data.data.filter(
+          (item) => item.description === description
+        );
+        return productInfo;
+      };
+
+      for (let i = 0; i < cart.products.length; i++) {
+        let bodyTransform = results(cart.products[i].description);
+        setBody(bodyTransform);
+        quantity.push(bodyTransform);
+        // const newObject = {
+        //   ...bodyTransform[0],
+        //   quantity: cart.products[i].quantity,
+        // };
+        quantity[i][0].quantity = cart.products[i].quantity;
+      }
+      console.log(quantity);
+
       // Make a POST request to your server
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/checkout/create-checkout-session`,
-        {
-          items: [{ sku: "sku_1MTTbCLBLPex7nyMX33f2D5d", quantity: 1 }],
-        }
+        quantity
       );
-
-      // Get the checkout session ID from the server response
-      const checkoutSessionId = response.data.checkoutSessionId;
-
-      // Use the checkout session ID to redirect the user to Stripe's checkout page
-      const result = await stripe.redirectToCheckout({
-        sessionId: checkoutSessionId,
-      });
-
-      if (result.error) {
-        console.log(result.error.message);
-      }
+      window.location.assign(response.data.data);
     } catch (err) {
       console.log(err);
     }
