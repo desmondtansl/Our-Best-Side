@@ -67,9 +67,15 @@ function Navbar() {
           <Logo>PLACEHOLDER</Logo>
         </Center>
         <Right>
-          <NavLink to="/login" style={{ textDecoration: "none" }}>
-            <MenuItems>Login</MenuItems>
-          </NavLink>
+          {localStorage.getItem("token") ? (
+            <NavLink to="/" style={{ textDecoration: "none" }}>
+              <MenuItems>Logout</MenuItems>
+            </NavLink>
+          ) : (
+            <NavLink to="/login" style={{ textDecoration: "none" }}>
+              <MenuItems>Login</MenuItems>
+            </NavLink>
+          )}
           <NavLink to="/cart" style={{ textDecoration: "none" }}>
             <MenuItems>
               <Badge badgeContent={quantity}>
