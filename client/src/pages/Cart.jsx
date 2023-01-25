@@ -172,10 +172,6 @@ function Cart() {
         let bodyTransform = results(cart.products[i].description);
         setBody(bodyTransform);
         quantity.push(bodyTransform);
-        // const newObject = {
-        //   ...bodyTransform[0],
-        //   quantity: cart.products[i].quantity,
-        // };
         quantity[i][0].quantity = cart.products[i].quantity;
       }
       console.log(quantity);

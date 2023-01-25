@@ -60,9 +60,13 @@ const SpareContainer = styled.div``;
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  // const [user, setUser] = UserAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/auth/login`,
@@ -71,9 +75,20 @@ function Login() {
           password,
         }
       );
+      // if (response.data) {
+      //   setUser({
+      //     data: {
+      //       id: response.data.user.id,
+      //       email: response.data.user.email,
+      //     },
+      //     error: null,
+      //     loading: false,
+      //   });
+      // }
       console.log(response);
     } catch (error) {
-      console.log(error.message);
+      setError(error.response.data.error[0].message);
+      alert(error.response.data.error[0].message);
     }
   };
   return (

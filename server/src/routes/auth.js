@@ -16,7 +16,7 @@ router.post(
     if (!validationErrors.isEmpty()) {
       const errors = validationErrors.array().map((error) => {
         return {
-          msg: error.msg,
+          message: error.msg,
         };
       });
       return res.status(400).json({
@@ -76,7 +76,7 @@ router.post("/login", async (req, res) => {
       data: "",
       error: [
         {
-          msg: "Invalid credentials",
+          message: "Invalid credentials",
         },
       ],
     });
@@ -89,7 +89,7 @@ router.post("/login", async (req, res) => {
         data: "",
         error: [
           {
-            msg: "Invalid credentials",
+            message: "Invalid credentials",
           },
         ],
       });
