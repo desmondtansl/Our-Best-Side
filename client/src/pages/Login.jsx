@@ -78,7 +78,6 @@ function Login() {
           isAdmin: true,
         }
       );
-      console.log(response.data.data.user);
 
       localStorage.setItem("token", response.data.data.token);
       if (response.data) {
@@ -86,6 +85,7 @@ function Login() {
           data: {
             id: response.data.data.user.id,
             email: response.data.data.user.email,
+            isAdmin: response.data.data.user.isAdmin,
           },
           error: null,
           loading: false,

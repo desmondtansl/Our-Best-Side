@@ -11,8 +11,10 @@ import EditProduct from "./pages/AdminEditProduct.jsx";
 import Dashboard from "./pages/AdminDashboard.jsx";
 import IndividualMenProduct from "./pages/IndividualMenProduct.jsx";
 import IndividualLadiesProduct from "./pages/IndividualLadiesProduct.jsx";
+import { UserAuth } from "./context/Auth.jsx";
 
 function App() {
+  const [user] = UserAuth();
   return (
     <Routes>
       <Route path="/" element={<Homepage />} />
