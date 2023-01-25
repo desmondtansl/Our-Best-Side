@@ -86,6 +86,11 @@ function Navbar() {
               <MenuItems>Login</MenuItems>
             </NavLink>
           )}
+          {user.data && user.data.isAdmin && (
+            <NavLink to="/dashboard" style={{ textDecoration: "none" }}>
+              Dashboard
+            </NavLink>
+          )}
           <NavLink to="/cart" style={{ textDecoration: "none" }}>
             <MenuItems>
               <Badge badgeContent={quantity}>

@@ -10,7 +10,7 @@ const ProtectedRoute = () => {
     return <HourglassBottomIcon />;
   }
 
-  return user.data ? <Outlet /> : <Navigate to="/" />;
+  return user.data.isAdmin ? <Outlet /> : <Navigate to="/" />;
 };
 
 export default ProtectedRoute;

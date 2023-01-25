@@ -122,13 +122,19 @@ function IndividualLadiesProduct() {
   const { params } = useParams();
   const dispatch = useDispatch();
 
-  // const fetchIndividualLadiesProduct = async () => {
-  //   const response = await axios.get(
-  //     `${import.meta.env.VITE_BASE_URL}/products/ladies/${params}`
-  //   );
-  //   console.log(response.data);
-  //   setData(response.data);
-  // };
+  useEffect(() => {
+    const fetchIndividualLadiesProduct = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/products/ladies/${params}`
+        );
+        setData(response.data);
+      } catch (error) {
+        console.log(error.msg);
+      }
+    };
+    fetchIndividualLadiesProduct();
+  }, []);
 
   const handleQty = (type) => {
     if (type === "decrease") {
@@ -150,24 +156,6 @@ function IndividualLadiesProduct() {
     sizeSelect();
     dispatch(addProduct({ ...data.data, quantity, color, size }));
   };
-
-  useEffect(() => {
-    const fetchIndividualLadiesProduct = async () => {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_BASE_URL}/products/ladies/${params}`
-        );
-        setData(response.data);
-      } catch (error) {
-        console.log(error.msg);
-      }
-    };
-    fetchIndividualLadiesProduct();
-  }, []);
-
-  console.log(size);
-
-  // console.log(data?.data?.size.toString().split(","));
 
   return (
     <Container>
