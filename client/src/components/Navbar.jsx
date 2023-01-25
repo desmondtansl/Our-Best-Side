@@ -2,9 +2,10 @@ import styled from "styled-components";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useContext } from "react";
-import { UserContext } from "../context/Auth";
+import React, { useContext, Fragment, useEffect } from "react";
+import { UserAuth } from "../context/Auth";
 import { Badge } from "@mui/material";
+import axios from "axios";
 
 const Container = styled.div`
   height: 60px;
@@ -50,8 +51,9 @@ const MenuItems = styled.div`
 
 function Navbar() {
   const quantity = useSelector((state) => state.cart.quantity);
-  const [user, setUser] = useContext(UserContext);
-  console.log(user);
+  const [user, setUser] = UserAuth();
+
+  useEffect(() => {}, [user]);
 
   return (
     <Container>
@@ -71,7 +73,7 @@ function Navbar() {
           <Logo>PLACEHOLDER</Logo>
         </Center>
         <Right>
-          {localStorage.getItem("token") ? (
+          {user.data ? (
             <NavLink to="/" style={{ textDecoration: "none" }}>
               <MenuItems>Logout</MenuItems>
             </NavLink>

@@ -1,4 +1,3 @@
-import express from "express";
 import JWT from "jsonwebtoken";
 
 const checkAuth = async (req, res, next) => {
@@ -19,6 +18,17 @@ const checkAuth = async (req, res, next) => {
 
   try {
     const user = await JWT.verify(token, process.env.JWT_SECRET);
+    console.log(user);
+    // if (!user.isAdmin) {
+    //   return res.status(403).json({
+    //     data: "",
+    //     errors: [
+    //       {
+    //         message: "Unauthorized",
+    //       },
+    //     ],
+    //   });
+    // }
     req.user = user.email;
     next();
   } catch (error) {

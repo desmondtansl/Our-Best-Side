@@ -76,8 +76,8 @@ function Login() {
         set;
       }
     } catch (error) {
-      setError(error.response.data.error[0].message);
-      alert(error.response.data.error[0].message);
+      setError(error?.response?.data?.error[0].message);
+      alert(error?.response?.data?.error[0].message);
     }
   };
   return (

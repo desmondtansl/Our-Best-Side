@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useContext } from "react";
 import axios from "axios";
 
 const UserContext = createContext();
@@ -17,22 +17,27 @@ export const UserProvider = ({ children }) => {
   }
 
   const fetchUser = async () => {
-    const { data: response } = await axios.get(
-      `${import.meta.env.VITE_BASE_URL}/auth/user`
-    );
-    if (response.data && response.data.user) {
-      setUser({
-        data: {
-          email: response.data.user.email,
-        },
-        loading: false,
-        error: null,
-      });
-    } else if (response.data && response.data.errors.length) {
-      setUser({
+    try {
+      const { data: response } = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/auth/user`
+      );
+      if (response.data.user) {
+        setUser({
+          data: {
+            email: response.data.user.email,
+            // isAdmin: response.data.user.isAdmin,
+          },
+          loading: false,
+          error: null,
+        });
+      }
+    } catch (error) {
+      console.log(error.message);
+      console.log(error.response.data.error);
+      return setUser({
         data: null,
+        error: error.response.data.error,
         loading: false,
-        error: response.errors[0].message,
       });
     }
   };
@@ -55,4 +60,6 @@ export const UserProvider = ({ children }) => {
     </UserContext.Provider>
   );
 };
-export { UserContext };
+export const UserAuth = () => {
+  return useContext(UserContext);
+};

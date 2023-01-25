@@ -17,7 +17,7 @@ router.post(
     if (!validationErrors.isEmpty()) {
       const errors = validationErrors.array().map((error) => {
         return {
-          message: error.msg,
+          message: error.message,
         };
       });
       return res.status(400).json({
@@ -97,7 +97,7 @@ router.post("/login", async (req, res) => {
     }
 
     const token = await JWT.sign(
-      { email: user.email },
+      { email: user.email, isAdmin: user.isAdmin },
       process.env.JWT_SECRET,
       {
         expiresIn: 86400,
@@ -110,6 +110,7 @@ router.post("/login", async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
+          isAdmin: user.isAdmin,
         },
       },
       error: "",
@@ -129,7 +130,7 @@ router.post("/login", async (req, res) => {
 router.get("/user", checkAuth, async (req, res) => {
   try {
     const user = await User.findOne({ email: req.user });
-
+    console.log(user.email);
     return res.status(200).json({
       data: {
         user: {

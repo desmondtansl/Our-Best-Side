@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { UserAuth } from "../context/Auth";
 
 const Container = styled.div`
   overflow: hidden;
@@ -61,7 +62,7 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  // const [user, setUser] = UserAuth();
+  const [user, setUser] = UserAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -74,21 +75,24 @@ function Login() {
         {
           email,
           password,
+          isAdmin: true,
         }
       );
+      console.log(response.data.data.user);
 
       localStorage.setItem("token", response.data.data.token);
+      if (response.data) {
+        setUser({
+          data: {
+            id: response.data.data.user.id,
+            email: response.data.data.user.email,
+          },
+          error: null,
+          loading: false,
+        });
+      }
       navigate("/");
-      // if (response.data) {
-      //   setUser({
-      //     data: {
-      //       id: response.data.user.id,
-      //       email: response.data.user.email,
-      //     },
-      //     error: null,
-      //     loading: false,
-      //   });
-      // }
+
       console.log(response);
     } catch (error) {
       setError(error.response.data.error[0].message);
