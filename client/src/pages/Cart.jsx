@@ -156,7 +156,6 @@ function Cart() {
   let quantity = [];
   const handleClick = async () => {
     try {
-      // GET request to server for unique product ID
       const productId = await axios.get(
         `${import.meta.env.VITE_BASE_URL}/checkout/get-product-info`
       );
@@ -172,15 +171,9 @@ function Cart() {
         let bodyTransform = results(cart.products[i].description);
         setBody(bodyTransform);
         quantity.push(bodyTransform);
-        // const newObject = {
-        //   ...bodyTransform[0],
-        //   quantity: cart.products[i].quantity,
-        // };
         quantity[i][0].quantity = cart.products[i].quantity;
       }
-      console.log(quantity);
 
-      // Make a POST request to your server
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/checkout/create-checkout-session`,
         quantity

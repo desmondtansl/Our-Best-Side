@@ -3,6 +3,7 @@ import { body, validationResult } from "express-validator";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import JWT from "jsonwebtoken";
+import checkAuth from "../middleware/checkAuth.js";
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router.post(
     if (!validationErrors.isEmpty()) {
       const errors = validationErrors.array().map((error) => {
         return {
-          msg: error.msg,
+          message: error.message,
         };
       });
       return res.status(400).json({
@@ -76,7 +77,7 @@ router.post("/login", async (req, res) => {
       data: "",
       error: [
         {
-          msg: "Invalid credentials",
+          message: "Invalid credentials",
         },
       ],
     });
@@ -89,14 +90,14 @@ router.post("/login", async (req, res) => {
         data: "",
         error: [
           {
-            msg: "Invalid credentials",
+            message: "Invalid credentials",
           },
         ],
       });
     }
 
     const token = await JWT.sign(
-      { email: user.email },
+      { email: user.email, isAdmin: user.isAdmin },
       process.env.JWT_SECRET,
       {
         expiresIn: 86400,
@@ -109,6 +110,7 @@ router.post("/login", async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
+          isAdmin: user.isAdmin,
         },
       },
       error: "",
@@ -118,9 +120,29 @@ router.post("/login", async (req, res) => {
       data: "",
       error: [
         {
-          msg: error.message,
+          message: error.message,
         },
       ],
+    });
+  }
+});
+
+router.get("/user", checkAuth, async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.user });
+    console.log(user.email);
+    return res.status(200).json({
+      data: {
+        user: {
+          email: user.email,
+        },
+      },
+      errors: "",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      data: "",
+      error: error.message,
     });
   }
 });

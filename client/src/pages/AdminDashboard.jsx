@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { UserAuth } from "../context/Auth";
 
 const Container = styled.div`
   display: flex;
@@ -33,6 +34,15 @@ const MenuItems = styled.div`
 `;
 
 function AdminDashboard() {
+  const [user, setUser] = UserAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    setUser({ data: null, loading: false, error: null });
+    localStorage.removeItem("token");
+    navigate("/");
+  };
+
   return (
     <Container>
       <Wrapper>
@@ -47,7 +57,7 @@ function AdminDashboard() {
           <MenuItems>Delete Products</MenuItems>
         </Link>
         <Link to="/" style={{ textDecoration: "none" }}>
-          <MenuItems>Logout</MenuItems>
+          <MenuItems onClick={handleLogout}>Logout</MenuItems>
         </Link>
       </Wrapper>
     </Container>

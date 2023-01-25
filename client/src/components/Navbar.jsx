@@ -1,7 +1,9 @@
 import styled from "styled-components";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import React from "react";
+import { UserAuth } from "../context/Auth";
 import { Badge } from "@mui/material";
 
 const Container = styled.div`
@@ -48,6 +50,14 @@ const MenuItems = styled.div`
 
 function Navbar() {
   const quantity = useSelector((state) => state.cart.quantity);
+  const [user, setUser] = UserAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    setUser({ data: null, loading: false, error: null });
+    localStorage.removeItem("token");
+    navigate("/");
+  };
 
   return (
     <Container>
@@ -67,9 +77,20 @@ function Navbar() {
           <Logo>PLACEHOLDER</Logo>
         </Center>
         <Right>
-          <NavLink to="/login" style={{ textDecoration: "none" }}>
-            <MenuItems>Login</MenuItems>
-          </NavLink>
+          {user.data ? (
+            <NavLink to="/" style={{ textDecoration: "none" }}>
+              <MenuItems onClick={handleLogout}>Logout</MenuItems>
+            </NavLink>
+          ) : (
+            <NavLink to="/login" style={{ textDecoration: "none" }}>
+              <MenuItems>Login</MenuItems>
+            </NavLink>
+          )}
+          {user.data && user.data.isAdmin && (
+            <NavLink to="/dashboard" style={{ textDecoration: "none" }}>
+              Dashboard
+            </NavLink>
+          )}
           <NavLink to="/cart" style={{ textDecoration: "none" }}>
             <MenuItems>
               <Badge badgeContent={quantity}>

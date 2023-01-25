@@ -11,8 +11,12 @@ import EditProduct from "./pages/AdminEditProduct.jsx";
 import Dashboard from "./pages/AdminDashboard.jsx";
 import IndividualMenProduct from "./pages/IndividualMenProduct.jsx";
 import IndividualLadiesProduct from "./pages/IndividualLadiesProduct.jsx";
+import { UserAuth } from "./context/Auth.jsx";
+import ProtectedRoutes from "./routes/ProtectedRoutes.jsx";
 
 function App() {
+  const [user] = UserAuth();
+
   return (
     <Routes>
       <Route path="/" element={<Homepage />} />
@@ -20,13 +24,15 @@ function App() {
       <Route path="/men/:params" element={<IndividualMenProduct />} />
       <Route path="/ladies/:params" element={<IndividualLadiesProduct />} />
       <Route path="/ladies" element={<LadiesProducts />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/upload" element={<UploadProduct />} />
-      <Route path="/search" element={<SearchProduct />} />
-      <Route path="/search/:params" element={<EditProduct />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/login" element={<Login />} />
+      <Route element={<ProtectedRoutes />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/upload" element={<UploadProduct />} />
+        <Route path="/search" element={<SearchProduct />} />
+        <Route path="/search/:params" element={<EditProduct />} />
+      </Route>
     </Routes>
   );
 }

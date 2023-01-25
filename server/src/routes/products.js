@@ -9,6 +9,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import multer from "multer";
 import dotenv from "dotenv";
 import crypto from "crypto";
+import checkAuth from "../middleware/checkAuth.js";
 
 dotenv.config();
 const router = express.Router();

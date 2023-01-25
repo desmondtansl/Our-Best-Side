@@ -2,8 +2,9 @@ import { useState } from "react";
 import styled from "styled-components";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { UserAuth } from "../context/Auth";
 
 const Container = styled.div`
   overflow: hidden;
@@ -60,20 +61,42 @@ const SpareContainer = styled.div``;
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const [user, setUser] = UserAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/auth/login`,
         {
           email,
           password,
+          isAdmin: true,
         }
       );
+
+      localStorage.setItem("token", response.data.data.token);
+      if (response.data) {
+        setUser({
+          data: {
+            id: response.data.data.user.id,
+            email: response.data.data.user.email,
+            isAdmin: response.data.data.user.isAdmin,
+          },
+          error: null,
+          loading: false,
+        });
+      }
+      navigate("/");
+
       console.log(response);
     } catch (error) {
-      console.log(error.message);
+      setError(error.response.data.error[0].message);
+      alert(error.response.data.error[0].message);
     }
   };
   return (
