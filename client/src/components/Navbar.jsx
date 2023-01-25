@@ -2,6 +2,8 @@ import styled from "styled-components";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useContext } from "react";
+import { UserContext } from "../context/Auth";
 import { Badge } from "@mui/material";
 
 const Container = styled.div`
@@ -48,6 +50,8 @@ const MenuItems = styled.div`
 
 function Navbar() {
   const quantity = useSelector((state) => state.cart.quantity);
+  const [user, setUser] = useContext(UserContext);
+  console.log(user);
 
   return (
     <Container>
