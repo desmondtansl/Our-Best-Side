@@ -118,7 +118,7 @@ function IndividualMenProduct() {
   const [data, setData] = useState({});
   const [quantity, setQuantity] = useState(1);
   const [color, setColor] = useState("");
-  const [size, setSize] = useState("");
+  const [size, setSize] = useState("S");
   const { params } = useParams();
   const dispatch = useDispatch();
 
@@ -138,25 +138,24 @@ function IndividualMenProduct() {
     }
   };
 
-  const sizeSelect = () => {
-    const select = document.getElementById("size");
-    const selectedIndex = select.selectedIndex;
-    const optionValue = select.options[selectedIndex].value;
-    setSize(optionValue);
-    console.log(size);
-  };
+  // const sizeSelect = () => {
+  //   const select = document.getElementById("size");
+  //   const selectedIndex = select.selectedIndex;
+  //   const optionValue = select.options[selectedIndex].value;
+  //   setSize(optionValue);
+  //   console.log(size, "sizeSelect");
+  // };
 
   const handleClick = () => {
-    sizeSelect();
+    console.log(size);
+
+    // sizeSelect();
     dispatch(addProduct({ ...data.data, quantity, color, size }));
   };
-
-  console.log(size);
 
   useEffect(() => {
     fetchIndividualMenProduct();
   }, []);
-  console.log(data?.data?.size.toString().split(","));
 
   return (
     <Container>
@@ -183,7 +182,12 @@ function IndividualMenProduct() {
             </Filter>
             <Filter>
               <FilterTitle>Size</FilterTitle>
-              <FilterSize id="size" name="size">
+              <FilterSize
+                id="size"
+                name="size"
+                onChange={(e) => setSize(e.target.value)}
+                defaultValue="S"
+              >
                 {data?.data?.size
                   .toString()
                   .split(",")

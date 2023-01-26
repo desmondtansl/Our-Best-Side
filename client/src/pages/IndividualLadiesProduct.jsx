@@ -122,6 +122,18 @@ function IndividualLadiesProduct() {
   const { params } = useParams();
   const dispatch = useDispatch();
 
+  const handleQty = (type) => {
+    if (type === "decrease") {
+      quantity > 1 && setQuantity(quantity - 1);
+    } else {
+      setQuantity(quantity + 1);
+    }
+  };
+
+  const handleClick = () => {
+    dispatch(addProduct({ ...data.data, quantity, color, size }));
+  };
+
   useEffect(() => {
     const fetchIndividualLadiesProduct = async () => {
       try {
@@ -135,27 +147,6 @@ function IndividualLadiesProduct() {
     };
     fetchIndividualLadiesProduct();
   }, []);
-
-  const handleQty = (type) => {
-    if (type === "decrease") {
-      quantity > 1 && setQuantity(quantity - 1);
-    } else {
-      setQuantity(quantity + 1);
-    }
-  };
-
-  const sizeSelect = (e) => {
-    const select = document.getElementById("size");
-    const selectedIndex = select.selectedIndex;
-    const optionValue = select.options[selectedIndex].value;
-    setSize(optionValue);
-    console.log(optionValue);
-  };
-
-  const handleClick = () => {
-    sizeSelect();
-    dispatch(addProduct({ ...data.data, quantity, color, size }));
-  };
 
   return (
     <Container>
@@ -182,7 +173,12 @@ function IndividualLadiesProduct() {
             </Filter>
             <Filter>
               <FilterTitle>Size</FilterTitle>
-              <FilterSize id="size" name="size">
+              <FilterSize
+                id="size"
+                name="size"
+                onChange={(e) => setSize(e.target.value)}
+                defaultValue="S"
+              >
                 <FilterSizeOption
                   value="Select Size"
                   key="Select Size"
