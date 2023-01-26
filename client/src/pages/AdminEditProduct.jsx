@@ -158,6 +158,7 @@ function AdminEditProduct() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     editProduct();
+    alert("Product successfully edited");
   };
 
   return (
@@ -171,8 +172,8 @@ function AdminEditProduct() {
             type="text"
             name="title"
             id="title"
-            placeholder="e.g. Nike SB Tee, Moncler Swim Shorts"
             required
+            placeholder="e.g. Nike SB Tee, Moncler Swim Shorts"
             onChange={(e) => setTitle(e.target.value)}
           />
           <ProductDescHeader>Edit Product Description</ProductDescHeader>
@@ -199,8 +200,8 @@ function AdminEditProduct() {
             defaultValue={data?.data?.category}
             name="category"
             id="category"
-            placeholder="Men or Ladies"
             required
+            placeholder="Men or Ladies"
             onChange={(e) => setCategory(e.target.value)}
           />
           <ProductSizesHeader>Edit Product Sizes</ProductSizesHeader>
@@ -208,17 +209,17 @@ function AdminEditProduct() {
             defaultValue={data?.data?.size}
             name="size"
             id="size"
-            placeholder="separated by commas - e.g. S, M or US 6, US 7"
             required
+            placeholder="separated by commas - e.g. S, M or US 6, US 7"
             onChange={(e) => setSize(e.target.value)}
           />
           <ProductColorsHeader>Edit Product Colors</ProductColorsHeader>
           <Input
             defaultValue={data?.data?.color}
             name="color"
+            required
             id="color"
             placeholder="separated by commas - e.g. Black, Navy"
-            required
             onChange={(e) => setColor(e.target.value)}
           />
           <ProductPricesHeader>Edit Product Price</ProductPricesHeader>
@@ -226,8 +227,8 @@ function AdminEditProduct() {
             defaultValue={data?.data?.price}
             name="price"
             id="price"
-            placeholder="enter ONLY numbers w/o $ sign - e.g. 30, 40"
             required
+            placeholder="enter ONLY numbers w/o $ sign - e.g. 30, 40"
             onChange={(e) => setPrice(e.target.value)}
           />
           <ProductQtyHeader>Edit Product Inventory Qty</ProductQtyHeader>
@@ -235,14 +236,14 @@ function AdminEditProduct() {
             defaultValue={data?.data?.inStock}
             name="inStock"
             id="inStock"
-            placeholder="enter ONLY numbers"
             required
+            placeholder="enter ONLY numbers"
             onChange={(e) => setInStock(e.target.value)}
           />
           <Button type="submit">Edit Product</Button>
-          {editedProduct && (
+          {/* {editedProduct && (
             <SuccessContainer>Product Successfully Edited</SuccessContainer>
-          )}
+          )} */}
         </Form>
       </Wrapper>
     </Container>

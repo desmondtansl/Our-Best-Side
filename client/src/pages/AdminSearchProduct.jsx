@@ -69,7 +69,6 @@ function AdminSearchProduct() {
     const response = await axios.get(
       `${import.meta.env.VITE_BASE_URL}/products/search/${query}`
     );
-    console.log(query);
     setData(response.data);
     console.log(response);
   };
@@ -103,22 +102,16 @@ function AdminSearchProduct() {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                {data?.data?.map((product, index) => (
-                  <td key={index}>
+              {data?.data?.map((product, index) => (
+                <tr key={index}>
+                  <td>
                     <NavLink to={`/search/${product?._id}`}>
                       {product.title}
                     </NavLink>
                   </td>
-                ))}
-                {data?.data?.map((product, index) => (
-                  <td key={index}>
-                    <NavLink to={`/search/${product?._id}`}>
-                      {product.description}
-                    </NavLink>
-                  </td>
-                ))}
-              </tr>
+                  <td>{product.description}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </InfoContainer>

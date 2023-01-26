@@ -33,7 +33,7 @@ const s3 = new S3Client({
   region: bucketRegion,
 });
 
-router.post("/upload", upload.single("image"), async (req, res) => {
+router.post("/upload", checkAuth, upload.single("image"), async (req, res) => {
   try {
     console.log("req.body", req.body);
     console.log("req.file", req.file);
@@ -278,7 +278,7 @@ router.get("/:params", async (req, res) => {
 
 // EDIT 1 PRODUCT
 
-router.put("/:params", async (req, res) => {
+router.put("/:params", checkAuth, async (req, res) => {
   try {
     const { params } = req.params;
     const getEditedProduct = await Product.findByIdAndUpdate(

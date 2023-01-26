@@ -1,5 +1,6 @@
 import axios from "axios";
 import styled from "styled-components";
+import { useState } from "react";
 
 const Container = styled.div`
   display: flex;
@@ -98,6 +99,7 @@ function AdminUploadProduct() {
         formData
       );
       console.log(response);
+      alert("Product has been successfully uploaded");
     } catch (error) {
       console.log(error.message);
     }
@@ -163,7 +165,7 @@ function AdminUploadProduct() {
             placeholder="enter ONLY numbers"
             required
           />
-          <Button onClick={() => setUpload(e.tar)} type="submit">
+          <Button onClick={(e) => setUpload(e.target.value)} type="submit">
             Upload Product
           </Button>
         </Form>

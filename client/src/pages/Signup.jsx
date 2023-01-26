@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Container = styled.div`
   overflow: hidden;
@@ -60,6 +61,7 @@ function Login() {
   // const [user, setUser] = UserAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -73,7 +75,8 @@ function Login() {
         }
       );
       if (response.data) {
-        set;
+        alert("Thank you for signing up!");
+        navigate("/login");
       }
     } catch (error) {
       setError(error?.response?.data?.error[0].message);

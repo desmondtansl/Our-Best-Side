@@ -80,7 +80,7 @@ const FilterColor = styled.button`
 const FilterSize = styled.select`
   margin-left: 10px;
   padding: 5px;
-  width: 50px;
+  width: 70px;
 `;
 
 const FilterSizeOption = styled.option``;
