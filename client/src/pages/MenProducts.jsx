@@ -5,15 +5,9 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 
-const MainContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-`;
+const Container = styled.div``;
 
-const Container = styled.div`
+const Container2 = styled.div`
   display: flex;
   flex-wrap: wrap;
   height: 100%;
@@ -21,7 +15,7 @@ const Container = styled.div`
   padding: 200px;
 `;
 
-const Container2 = styled.div`
+const Container3 = styled.div`
   display: flex;
   flex-direction: column;
   width: 30%;
@@ -73,11 +67,11 @@ function MenProducts() {
   }, []);
 
   return (
-    <MainContainer>
+    <Container>
       <Navbar />
-      <Container>
+      <Container2>
         {data?.map((product) => (
-          <Container2 key={product?._id}>
+          <Container3 key={product?._id}>
             <NavLink to={`/men/${product?._id}`}>
               <ImageCard
                 src={`https://desmondecommercesite.s3.ap-southeast-1.amazonaws.com/${product.image}`}
@@ -87,11 +81,11 @@ function MenProducts() {
               <Text> {product.title}</Text>
               <Price>$ {product.price}</Price>
             </InfoContainer>
-          </Container2>
+          </Container3>
         ))}
-      </Container>
+      </Container2>
       <Footer />
-    </MainContainer>
+    </Container>
   );
 }
 

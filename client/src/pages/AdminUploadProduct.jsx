@@ -85,6 +85,8 @@ const ProductQtyHeader = styled.p`
 `;
 
 function AdminUploadProduct() {
+  const [upload, setUpload] = useState();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -161,7 +163,9 @@ function AdminUploadProduct() {
             placeholder="enter ONLY numbers"
             required
           />
-          <Button type="submit">Upload Product</Button>
+          <Button onClick={() => setUpload(e.tar)} type="submit">
+            Upload Product
+          </Button>
         </Form>
       </Wrapper>
     </Container>

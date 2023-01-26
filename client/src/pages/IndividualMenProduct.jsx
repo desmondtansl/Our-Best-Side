@@ -33,10 +33,12 @@ const InfoContainer = styled.div`
 
 const Title = styled.h1`
   font-weight: 200;
+  font-size: 40px;
 `;
 
 const Description = styled.p`
   margin: 20px 0px;
+  font-size: 20px;
 `;
 
 const Price = styled.span`
@@ -62,11 +64,17 @@ const FilterTitle = styled.span`
 `;
 
 const FilterColor = styled.button`
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  margin: 0px 5px;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  margin-left: 10px;
+  padding: 5px;
+  border: 2px solid teal;
+  background: white;
   cursor: pointer;
+  &:hover {
+    background-color: #f8f4f4;
+  }
 `;
 
 const FilterSize = styled.select`
@@ -126,7 +134,6 @@ function IndividualMenProduct() {
     const response = await axios.get(
       `${import.meta.env.VITE_BASE_URL}/products/men/${params}`
     );
-    console.log(response.data);
     setData(response.data);
   };
 
@@ -161,7 +168,7 @@ function IndividualMenProduct() {
           <Price>${data?.data?.price}</Price>
           <FilterContainer>
             <Filter>
-              <FilterTitle>Color</FilterTitle>
+              <FilterTitle>Color: </FilterTitle>
               <FilterColor
                 value={data?.data?.color}
                 onClick={(e) => setColor(e.target.value)}
@@ -175,7 +182,6 @@ function IndividualMenProduct() {
                 id="size"
                 name="size"
                 onChange={(e) => setSize(e.target.value)}
-                defaultValue="S"
               >
                 {data?.data?.size
                   .toString()
