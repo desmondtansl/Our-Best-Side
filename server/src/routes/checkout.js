@@ -6,6 +6,8 @@ const router = express.Router();
 dotenv.config();
 const stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY);
 
+// DISPLAY PRODUCTS IN CART FOR USER TO SEE
+
 router.get("/get-product-info", async (req, res) => {
   let productArray = [];
   try {
@@ -31,6 +33,8 @@ router.get("/get-product-info", async (req, res) => {
   }
 });
 
+// RETURN STRIPE CHECKOUT PAGE WHEN USER CLICKS CHECKOUT NOW
+
 router.post("/create-checkout-session", async (req, res) => {
   try {
     const defaultPrices = req.body.map((subArray) => {
@@ -45,8 +49,8 @@ router.post("/create-checkout-session", async (req, res) => {
       payment_method_types: ["card"],
       mode: "payment",
       line_items: defaultPrices.flat(),
-      success_url: `${process.env.BASE_URL}/success.hmtl`,
-      cancel_url: `${process.env.BASE_URL}/cancel.hmtl`,
+      success_url: `${process.env.BASE_URL}/success`,
+      cancel_url: `${process.env.BASE_URL}/cart`,
     });
 
     res.status(200).json({
@@ -60,5 +64,19 @@ router.post("/create-checkout-session", async (req, res) => {
     });
   }
 });
+
+router.get(
+  "/success/success?session_id={CHECKOUT_SESSION_ID}",
+  async (req, res) => {
+    const { params } = req.params;
+    const session = await stripe.checkout.sessions.retrieve(params);
+    // const customer = await stripe.customers.retrieve(session.customer);
+
+    res.status(200).json({
+      data: session,
+      error: "",
+    });
+  }
+);
 
 export default router;
