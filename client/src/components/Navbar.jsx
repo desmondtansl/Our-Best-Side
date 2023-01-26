@@ -74,7 +74,7 @@ function Navbar() {
           </NavLink>
         </Left>
         <Center>
-          <Logo>PLACEHOLDER</Logo>
+          <Logo>Our Best Side</Logo>
         </Center>
         <Right>
           {user.data ? (

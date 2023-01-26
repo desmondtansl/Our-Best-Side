@@ -71,7 +71,7 @@ function Footer() {
           </SocialMediaContainer>
         </Left>
         <Center>
-          <Logo>PLACEHOLDER</Logo>
+          <Logo>Our Best Side</Logo>
         </Center>
         <Right>
           <PaymentIcon src="https://i.ibb.co/Qfvn4z6/payment.png" />
