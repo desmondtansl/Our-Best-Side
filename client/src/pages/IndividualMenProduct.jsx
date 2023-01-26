@@ -138,18 +138,7 @@ function IndividualMenProduct() {
     }
   };
 
-  // const sizeSelect = () => {
-  //   const select = document.getElementById("size");
-  //   const selectedIndex = select.selectedIndex;
-  //   const optionValue = select.options[selectedIndex].value;
-  //   setSize(optionValue);
-  //   console.log(size, "sizeSelect");
-  // };
-
   const handleClick = () => {
-    console.log(size);
-
-    // sizeSelect();
     dispatch(addProduct({ ...data.data, quantity, color, size }));
   };
 
