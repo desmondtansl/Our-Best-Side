@@ -62,17 +62,23 @@ const FilterTitle = styled.span`
 `;
 
 const FilterColor = styled.button`
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  margin: 0px 5px;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  margin-left: 10px;
+  padding: 5px;
+  border: 2px solid teal;
+  background: white;
   cursor: pointer;
+  &:hover {
+    background-color: #f8f4f4;
+  }
 `;
 
 const FilterSize = styled.select`
   margin-left: 10px;
   padding: 5px;
-  width: 50px;
+  width: 70px;
 `;
 
 const FilterSizeOption = styled.option``;
@@ -163,7 +169,7 @@ function IndividualLadiesProduct() {
           <Price>${data?.data?.price}</Price>
           <FilterContainer>
             <Filter>
-              <FilterTitle>Color</FilterTitle>
+              <FilterTitle>Color: </FilterTitle>
               <FilterColor
                 value={data?.data?.color}
                 onClick={(e) => setColor(e.target.value)}
@@ -177,12 +183,7 @@ function IndividualLadiesProduct() {
                 id="size"
                 name="size"
                 onChange={(e) => setSize(e.target.value)}
-                defaultValue="S"
               >
-                <FilterSizeOption
-                  value="Select Size"
-                  key="Select Size"
-                ></FilterSizeOption>
                 {data?.data?.size
                   .toString()
                   .split(",")

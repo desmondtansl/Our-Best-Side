@@ -53,9 +53,6 @@ function AdminDashboard() {
         <Link to="/search" style={{ textDecoration: "none" }}>
           <MenuItems>Search and Edit Products</MenuItems>
         </Link>
-        <Link to="/delete" style={{ textDecoration: "none" }}>
-          <MenuItems>Delete Products</MenuItems>
-        </Link>
         <Link to="/" style={{ textDecoration: "none" }}>
           <MenuItems onClick={handleLogout}>Logout</MenuItems>
         </Link>

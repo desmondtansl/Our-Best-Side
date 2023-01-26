@@ -7,11 +7,15 @@ import { NavLink } from "react-router-dom";
 
 const Container = styled.div``;
 
-const Title = styled.h1`
-  margin: 20px;
+const Container2 = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  height: 100%;
+  justify-content: space-between;
+  padding: 200px;
 `;
 
-const Container2 = styled.div`
+const Container3 = styled.div`
   display: flex;
   flex-direction: column;
   width: 30%;
@@ -65,10 +69,9 @@ function LadiesProducts() {
   return (
     <Container>
       <Navbar />
-      <Title>Ladies Collection</Title>
-      <Container>
+      <Container2>
         {data?.map((product) => (
-          <Container2 key={product?._id}>
+          <Container3 key={product?._id}>
             <NavLink to={`/ladies/${product?._id}`}>
               <ImageCard
                 src={`https://desmondecommercesite.s3.ap-southeast-1.amazonaws.com/${product.image}`}
@@ -78,9 +81,9 @@ function LadiesProducts() {
               <Text> {product.title}</Text>
               <Price>$ {product.price}</Price>
             </InfoContainer>
-          </Container2>
+          </Container3>
         ))}
-      </Container>
+      </Container2>
       <Footer />
     </Container>
   );

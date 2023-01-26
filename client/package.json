@@ -25,7 +25,8 @@
     "react-router-dom": "^6.6.1",
     "react-stripe-checkout": "^2.6.3",
     "stripe": "^11.7.0",
-    "styled-components": "^5.3.6"
+    "styled-components": "^5.3.6",
+    "validator": "^13.7.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.26",

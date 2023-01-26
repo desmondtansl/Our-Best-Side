@@ -1,5 +1,6 @@
 import axios from "axios";
 import styled from "styled-components";
+import { useState } from "react";
 
 const Container = styled.div`
   display: flex;
@@ -85,6 +86,8 @@ const ProductQtyHeader = styled.p`
 `;
 
 function AdminUploadProduct() {
+  const [upload, setUpload] = useState();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -96,6 +99,7 @@ function AdminUploadProduct() {
         formData
       );
       console.log(response);
+      alert("Product has been successfully uploaded");
     } catch (error) {
       console.log(error.message);
     }
@@ -161,7 +165,9 @@ function AdminUploadProduct() {
             placeholder="enter ONLY numbers"
             required
           />
-          <Button type="submit">Upload Product</Button>
+          <Button onClick={(e) => setUpload(e.target.value)} type="submit">
+            Upload Product
+          </Button>
         </Form>
       </Wrapper>
     </Container>

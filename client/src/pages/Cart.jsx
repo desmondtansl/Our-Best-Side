@@ -52,8 +52,9 @@ const Product = styled.div`
 
 const ProductDetails = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: start;
   flex: 2;
+  margin: 20px;
 `;
 
 const Details = styled.div`
@@ -79,6 +80,7 @@ const PriceDetails = styled.div`
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  margin-right: 150px;
 `;
 
 const ProductQtyContainer = styled.div`

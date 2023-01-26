@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import SendIcon from "@mui/icons-material/Send";
 import { useState } from "react";
+import validator from "validator";
 
 const Container = styled.div`
   height: 30vh;
@@ -40,7 +41,11 @@ function Newsletter() {
   const [email, setEmail] = useState("");
 
   const handleClick = () => {
-    alert("Thank you for signing up!");
+    if (!validator.isEmail(email)) {
+      alert("Invalid email address");
+    } else {
+      alert("Thank you for signing up!");
+    }
   };
 
   return (
