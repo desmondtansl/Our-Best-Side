@@ -34,21 +34,21 @@ const InfoContainer = styled.div`
 `;
 
 const Text = styled.p`
-  align-items: center;
-  padding: 15px;
+  align-items: left;
+  padding: 5px;
   justify-content: center;
   display: flex;
   font-weight: 500;
-  font-size: 20px;
+  font-size: 16px;
 `;
 
 const Price = styled.p`
   align-items: center;
-  padding: 15px;
+  padding: 5px;
   justify-content: center;
   display: flex;
   font-weight: 500;
-  font-size: 20px;
+  font-size: 16px;
 `;
 
 function LadiesProducts() {
