@@ -13,6 +13,7 @@ import IndividualMenProduct from "./pages/IndividualMenProduct.jsx";
 import IndividualLadiesProduct from "./pages/IndividualLadiesProduct.jsx";
 import { UserAuth } from "./context/Auth.jsx";
 import ProtectedRoutes from "./routes/ProtectedRoutes.jsx";
+import Success from "./pages/Success.jsx";
 
 function App() {
   const [user] = UserAuth();
@@ -25,6 +26,7 @@ function App() {
       <Route path="/ladies/:params" element={<IndividualLadiesProduct />} />
       <Route path="/ladies" element={<LadiesProducts />} />
       <Route path="/cart" element={<Cart />} />
+      <Route path="/success" element={<Success />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/login" element={<Login />} />
       <Route element={<ProtectedRoutes />}>

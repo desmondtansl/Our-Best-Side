@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import SendIcon from "@mui/icons-material/Send";
+import { useState } from "react";
 
 const Container = styled.div`
   height: 30vh;
@@ -36,12 +37,22 @@ const Button = styled.button`
 `;
 
 function Newsletter() {
+  const [email, setEmail] = useState("");
+
+  const handleClick = () => {
+    alert("Thank you for signing up!");
+  };
+
   return (
     <Container>
       <Title>Subscribe to get latest updates!</Title>
       <InputContainer>
-        <Input type="email" placeholder="e.g. example@example.com" />
-        <Button>
+        <Input
+          type="email"
+          placeholder="e.g. example@example.com"
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Button onClick={handleClick}>
           <SendIcon />
         </Button>
       </InputContainer>
