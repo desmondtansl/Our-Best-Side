@@ -1,0 +1,26 @@
+{
+  "name": "e-commerce",
+  "version": "1.0.0",
+  "description": "E-Commerce site built using MERN stack and integrated with Stripe checkout API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm run start"
+  },
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/desmondtansl/E-Commerce.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/desmondtansl/E-Commerce/issues"
+  },
+  "homepage": "https://github.com/desmondtansl/E-Commerce#readme"
+}
