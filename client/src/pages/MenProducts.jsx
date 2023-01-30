@@ -70,19 +70,20 @@ function MenProducts() {
     <Container>
       <Navbar />
       <Container2>
-        {data?.map((product) => (
-          <Container3 key={product?._id}>
-            <NavLink to={`/men/${product?._id}`}>
-              <ImageCard
-                src={`https://desmondecommercesite.s3.ap-southeast-1.amazonaws.com/${product.image}`}
-              />
-            </NavLink>
-            <InfoContainer>
-              <Text> {product.title}</Text>
-              <Price>$ {product.price}</Price>
-            </InfoContainer>
-          </Container3>
-        ))}
+        {data.length &&
+          data?.map((product) => (
+            <Container3 key={product?._id}>
+              <NavLink to={`/men/${product?._id}`}>
+                <ImageCard
+                  src={`https://desmondecommercesite.s3.ap-southeast-1.amazonaws.com/${product.image}`}
+                />
+              </NavLink>
+              <InfoContainer>
+                <Text> {product.title}</Text>
+                <Price>$ {product.price}</Price>
+              </InfoContainer>
+            </Container3>
+          ))}
       </Container2>
       <Footer />
     </Container>

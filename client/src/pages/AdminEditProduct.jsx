@@ -190,8 +190,8 @@ function AdminEditProduct() {
               name="image"
               accept="image/*"
               id="image"
-              type="file"
               required
+              type="file"
               onChange={(e) => setImage(e.target.value)}
             />
           </ImageContainer>
