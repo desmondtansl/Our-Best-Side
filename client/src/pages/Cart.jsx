@@ -176,6 +176,8 @@ function Cart() {
         quantity[i][0].quantity = cart.products[i].quantity;
       }
 
+      console.log(quantity);
+
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/checkout/create-checkout-session`,
         quantity
