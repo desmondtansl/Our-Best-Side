@@ -17,7 +17,7 @@ router.post(
     if (!validationErrors.isEmpty()) {
       const errors = validationErrors.array().map((error) => {
         return {
-          message: error.message,
+          msg: error.msg,
         };
       });
       return res.status(400).json({
@@ -34,7 +34,7 @@ router.post(
         data: "",
         error: [
           {
-            message: "Email already in use",
+            msg: "Email already in use",
           },
         ],
       });

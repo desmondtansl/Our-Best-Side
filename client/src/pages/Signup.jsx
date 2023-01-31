@@ -79,8 +79,9 @@ function Login() {
         navigate("/login");
       }
     } catch (error) {
-      setError(error?.response?.data?.error[0].message);
-      alert(error?.response?.data?.error[0].message);
+      console.log(error);
+      setError(error?.response?.data?.error[0].msg);
+      alert(error?.response?.data?.error[0].msg);
     }
   };
   return (
