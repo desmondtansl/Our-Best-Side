@@ -155,7 +155,6 @@ function Cart() {
     setCombinedData(response);
   };
 
-  let quantity = [];
   const handleClick = async () => {
     try {
       const productId = await axios.get(
@@ -163,24 +162,26 @@ function Cart() {
       );
 
       const results = (description) => {
-        const productInfo = productId.data.data.filter(
+        const productInfo = productId.data.data.find(
           (item) => item.description === description
         );
         return productInfo;
       };
 
+      let checkoutCart = [];
       for (let i = 0; i < cart.products.length; i++) {
-        let bodyTransform = results(cart.products[i].description);
-        setBody(bodyTransform);
-        quantity.push(bodyTransform);
-        quantity[i][0].quantity = cart.products[i].quantity;
+        checkoutCart.push({});
       }
 
-      console.log(quantity);
+      for (let i = 0; i < cart.products.length; i++) {
+        checkoutCart[i].priceId = results(cart.products[i].description);
+        checkoutCart[i].quantity = cart.products[i].quantity;
+        checkoutCart[i].price = cart.products[i].price;
+      }
 
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/checkout/create-checkout-session`,
-        quantity
+        checkoutCart
       );
       window.location.assign(response.data.data);
     } catch (err) {

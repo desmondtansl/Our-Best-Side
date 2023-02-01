@@ -103,8 +103,6 @@ router.get("/men", async (req, res) => {
       menProducts[i].url = imageUrlArray[i];
       combinedMenProducts.push(menProducts[i]);
     }
-    console.log(combinedMenProducts[0], "TEST 1234");
-    console.log(combinedMenProducts[0].url);
     res.status(200).send(combinedMenProducts);
   } catch (error) {
     return res.status(400).json({
