@@ -36,19 +36,19 @@ router.get("/get-product-info", async (req, res) => {
 // RETURN STRIPE CHECKOUT PAGE WHEN USER CLICKS CHECKOUT NOW
 
 router.post("/create-checkout-session", async (req, res) => {
+  console.log(req.body);
   try {
     const defaultPrices = req.body.map((subArray) => {
-      return subArray.map((subsubArray) => {
-        return {
-          price: subsubArray.default_price,
-          quantity: subsubArray.quantity,
-        };
-      });
+      return {
+        price: subArray.priceId.default_price,
+        quantity: subArray.quantity,
+      };
     });
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
-      line_items: defaultPrices.flat(),
+      line_items: defaultPrices,
       success_url: `${process.env.BASE_URL}/success`,
       cancel_url: `${process.env.BASE_URL}/cart`,
     });
