@@ -8,6 +8,50 @@ import { Badge } from "@mui/material";
 
 const Container = styled.div`
   height: 60px;
+
+  @media (max-width: 820px) {
+    height: auto;
+  }
+
+  @media (max-width: 768px) {
+    height: auto;
+  }
+
+  @media (max-width: 540px) {
+    height: auto;
+  }
+
+  @media (max-width: 414px) {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 375px) {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 360px) {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 280px) {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
 `;
 
 const Wrapper = styled.div`
@@ -15,6 +59,56 @@ const Wrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  @media (max-width: 820px) {
+    width: 100%;
+    padding: 10px 1px;
+    align-items: center;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 10px;
+    align-items: center;
+  }
+
+  @media (max-width: 540px) {
+    width: 100%;
+    padding: 10px;
+    flex-direction: column;
+  }
+
+  @media (max-width: 414px) {
+    width: 100%;
+    padding: 10px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 375px) {
+    width: 100%;
+    padding: 10px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 360px) {
+    width: 100%;
+    padding: 10px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+  }
+
+  @media (max-width: 280px) {
+    width: 100%;
+    padding: 10px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+  }
 `;
 
 const Left = styled.div`
@@ -22,11 +116,59 @@ const Left = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-start;
+
+  @media (max-width: 414px) {
+    width: 100%;
+    margin-bottom: 10px;
+    justify-content: center;
+    display: flex;
+    justify-content: space-around;
+  }
+
+  @media (max-width: 375px) {
+    width: 100%;
+    margin-bottom: 10px;
+    justify-content: center;
+    display: flex;
+    justify-content: space-around;
+  }
+
+  @media (max-width: 360px) {
+    width: 100%;
+    margin-bottom: 10px;
+    justify-content: center;
+    display: flex;
+    justify-content: space-around;
+  }
+
+  @media (max-width: 280px) {
+    width: 100%;
+    margin-bottom: 10px;
+    justify-content: center;
+    display: flex;
+    justify-content: space-around;
+  }
 `;
 
 const Center = styled.div`
   text-align: center;
   flex: 1;
+
+  @media (max-width: 768px) {
+    flex: 1;
+    text-align: center;
+    font-size: 13px;
+  }
+
+  @media (max-width: 360px) {
+    flex: 1;
+    text-align: center;
+  }
+
+  @media (max-width: 280px) {
+    flex: 1;
+    text-align: center;
+  }
 `;
 
 const Right = styled.div`
@@ -34,6 +176,37 @@ const Right = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
+
+  @media (max-width: 768px) {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 414px) {
+    width: 100%;
+    margin-top: 10px;
+    justify-content: space-around;
+  }
+
+  @media (max-width: 375px) {
+    width: 100%;
+    margin-top: 10px;
+    justify-content: space-around;
+  }
+
+  @media (max-width: 360px) {
+    width: 100%;
+    margin-top: 10px;
+    justify-content: space-around;
+  }
+
+  @media (max-width: 280px) {
+    width: 100%;
+    margin-top: 10px;
+    justify-content: space-around;
+  }
 `;
 
 const Logo = styled.h1`
@@ -46,6 +219,20 @@ const MenuItems = styled.div`
   cursor: pointer;
   margin-left: 25px;
   padding: 10px 30px;
+
+  @media (max-width: 360px) {
+    margin: 10px 0px;
+    padding: 10px 0px;
+    width: 100%;
+    text-align: center;
+  }
+
+  @media (max-width: 280px) {
+    margin: 10px 0px;
+    padding: 10px 0px;
+    width: 100%;
+    text-align: center;
+  }
 `;
 
 function Navbar() {

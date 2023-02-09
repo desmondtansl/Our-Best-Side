@@ -12,6 +12,14 @@ const Container = styled.div`
   flex-direction: column;
   justify-content: space-between;
   display: flex;
+
+  @media (max-width: 1024px) {
+    height: 90vh;
+  }
+
+  @media (max-width: 280px) {
+    height: auto;
+  }
 `;
 
 const Wrapper = styled.div`
@@ -33,6 +41,30 @@ const Form = styled.form`
   display: flex;
   flex-direction: column;
   width: 15%;
+
+  @media (max-width: 1024px) {
+    width: auto;
+  }
+
+  @media (max-width: 820px) {
+    width: auto;
+  }
+
+  @media (max-width: 414px) {
+    width: auto;
+  }
+
+  @media (max-width: 375px) {
+    width: auto;
+  }
+
+  @media (max-width: 360px) {
+    width: auto;
+  }
+
+  @media (max-width: 280px) {
+    width: auto;
+  }
 `;
 
 const Input = styled.input`

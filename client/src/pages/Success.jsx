@@ -8,11 +8,23 @@ const MainContainer = styled.div`
   flex-direction: column;
   justify-content: space-between;
   height: 100vh;
+
+  @media (max-width: 280px) {
+    height: auto;
+  }
 `;
 
 const Container = styled.div`
   max-height: 90vh;
   align-items: center;
+
+  @media (max-width: 820px) {
+    max-height: none;
+  }
+
+  @media (max-width: 280px) {
+    max-height: none;
+  }
 `;
 
 const Wrapper = styled.div`
@@ -20,18 +32,34 @@ const Wrapper = styled.div`
   overflow-y: auto;
   justify-content: center;
   flex-direction: column;
+
+  @media (max-width: 820px) {
+    overflow-y: hidden;
+  }
+
+  @media (max-width: 280px) {
+    overflow-y: hidden;
+  }
 `;
 
 const Title = styled.h1`
   font-size: 30px;
   font-weight: 600;
   padding: 20px;
+
+  @media (max-width: 280px) {
+    font-size: 14px;
+  }
 `;
 
 const Description = styled.p`
   font-size: 24px;
   font-weight: 400;
   padding: 20px;
+
+  @media (max-width: 280px) {
+    font-size: 14px;
+  }
 `;
 
 const SpareContainer = styled.div``;
