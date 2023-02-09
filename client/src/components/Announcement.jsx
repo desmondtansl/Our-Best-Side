@@ -10,6 +10,26 @@ const Container = styled.div`
   font-size: 14px;
   font-weight: 500;
   padding: 0px;
+
+  @media (min-width: 768px) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 414px) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 375px) {
+    font-size: 12px;
+  }
+
+  @media (max-width: 360px) {
+    font-size: 12px;
+  }
+
+  @media (max-width: 280px) {
+    font-size: 10px;
+  }
 `;
 
 function Annoucement() {

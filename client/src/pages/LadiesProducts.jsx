@@ -13,6 +13,34 @@ const Container2 = styled.div`
   height: 100%;
   justify-content: space-between;
   padding: 200px;
+
+  @media (max-width: 912px) {
+    padding: 50px;
+  }
+
+  @media (max-width: 820px) {
+    padding: 50px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 50px;
+  }
+
+  @media (max-width: 414px) {
+    padding: 50px;
+  }
+
+  @media (max-width: 375px) {
+    padding: 50px;
+  }
+
+  @media (max-width: 360px) {
+    padding: 50px;
+  }
+
+  @media (max-width: 280px) {
+    padding: 50px;
+  }
 `;
 
 const Container3 = styled.div`
@@ -21,6 +49,34 @@ const Container3 = styled.div`
   width: 30%;
   padding: 10px;
   justify-content: center;
+
+  @media (max-width: 912px) {
+    width: 20%;
+  }
+
+  @media (max-width: 820px) {
+    width: 40%;
+  }
+
+  @media (max-width: 768px) {
+    width: 40%;
+  }
+
+  @media (max-width: 414px) {
+    width: 80%;
+  }
+
+  @media (max-width: 375px) {
+    width: 80%;
+  }
+
+  @media (max-width: 360px) {
+    width: 80%;
+  }
+
+  @media (max-width: 280px) {
+    width: 80%;
+  }
 `;
 
 const ImageCard = styled.img`
@@ -40,6 +96,38 @@ const Text = styled.p`
   display: flex;
   font-weight: 500;
   font-size: 16px;
+
+  @media (max-width: 1024px) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 912px) {
+    font-size: 13px;
+  }
+
+  @media (max-width: 820px) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 414px) {
+    font-size: 12px;
+  }
+
+  @media (max-width: 375px) {
+    font-size: 12px;
+  }
+
+  @media (max-width: 360px) {
+    font-size: 11px;
+  }
+
+  @media (max-width: 280px) {
+    font-size: 10px;
+  }
 `;
 
 const Price = styled.p`
@@ -49,6 +137,38 @@ const Price = styled.p`
   display: flex;
   font-weight: 500;
   font-size: 16px;
+
+  @media (max-width: 1024px) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 912px) {
+    font-size: 13px;
+  }
+
+  @media (max-width: 820px) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 414px) {
+    font-size: 12px;
+  }
+
+  @media (max-width: 375px) {
+    font-size: 12px;
+  }
+
+  @media (max-width: 360px) {
+    font-size: 11px;
+  }
+
+  @media (max-width: 280px) {
+    font-size: 10px;
+  }
 `;
 
 function LadiesProducts() {

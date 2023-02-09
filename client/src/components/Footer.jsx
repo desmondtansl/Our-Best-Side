@@ -10,6 +10,38 @@ const Wrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-around;
+
+  @media (max-width: 414px) {
+    width: auto;
+    padding: 10px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 375px) {
+    width: auto;
+    padding: 10px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 360px) {
+    width: auto;
+    padding: 10px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 280px) {
+    width: auto;
+    padding: 10px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+  }
 `;
 
 const Left = styled.div`
@@ -18,6 +50,27 @@ const Left = styled.div`
   align-items: center;
   justify-content: flex-start;
   padding: 0px 20px;
+
+  @media (max-width: 414px) {
+    width: auto;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-around;
+  }
+
+  @media (max-width: 375px) {
+    width: auto;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-around;
+  }
+
+  @media (max-width: 280px) {
+    width: auto;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-around;
+  }
 `;
 
 const SocialMediaContainer = styled.div`
@@ -38,6 +91,11 @@ const Center = styled.div`
   flex: 1;
   padding: 20px;
   text-align: center;
+
+  @media (max-width: 280px) {
+    flex: 1;
+    text-align: center;
+  }
 `;
 
 const Logo = styled.h1`
@@ -50,10 +108,73 @@ const Right = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
+
+  @media (max-width: 820px) {
+    width: auto;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 768px) {
+    width: auto;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 540px) {
+    width: auto;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 414px) {
+    width: auto;
+    justify-content: space-around;
+  }
+
+  @media (max-width: 375px) {
+    width: auto;
+    justify-content: space-around;
+  }
+
+  @media (max-width: 360px) {
+    width: auto;
+    justify-content: space-around;
+  }
+
+  @media (max-width: 280px) {
+    width: auto;
+    justify-content: space-around;
+  }
 `;
 
 const PaymentIcon = styled.img`
   width: 40%;
+
+  @media (max-width: 820px) {
+    width: 60%;
+  }
+
+  @media (max-width: 768px) {
+    width: 60%;
+  }
+
+  @media (max-width: 540px) {
+    width: 60%;
+  }
+
+  @media (max-width: 414px) {
+    width: auto;
+  }
+
+  @media (max-width: 375px) {
+    width: auto;
+  }
+
+  @media (max-width: 360px) {
+    width: auto;
+  }
+
+  @media (max-width: 280px) {
+    width: auto;
+  }
 `;
 
 function Footer() {
