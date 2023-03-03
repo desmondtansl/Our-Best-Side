@@ -5,11 +5,6 @@ const MasterContainer = styled.div`
   height: 100%;
   display: flex;
   flex-wrap: wrap;
-
-  /* @media (max-width: 360px) {
-    flex-direction: column;
-    height: auto;
-  } */
 `;
 
 const Container = styled.div`

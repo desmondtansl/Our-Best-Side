@@ -25,7 +25,6 @@ export const UserProvider = ({ children }) => {
         setUser({
           data: {
             email: response.data.user.email,
-            // isAdmin: response.data.user.isAdmin,
           },
           loading: false,
           error: null,

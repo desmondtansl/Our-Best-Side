@@ -130,13 +130,23 @@ const Button = styled.button`
   cursor: pointer;
 `;
 
+const ErrorText = styled.p`
+  font-size: 15px;
+  color: red;
+  font-style: italic;
+  padding: 6px;
+  text-align: left;
+`;
+
 function Newsletter() {
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   const handleClick = () => {
     if (!validator.isEmail(email)) {
-      alert("Invalid email address");
+      setEmailError("Invalid email address");
     } else {
+      setEmailError("");
       alert("Thank you for signing up!");
     }
   };
@@ -154,6 +164,7 @@ function Newsletter() {
           <SendIcon />
         </Button>
       </InputContainer>
+      {emailError && <ErrorText>{emailError}</ErrorText>}
     </Container>
   );
 }
