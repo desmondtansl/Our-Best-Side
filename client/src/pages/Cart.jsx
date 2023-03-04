@@ -3,8 +3,9 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
+import { resetCart } from "../redux/cartRedux";
 
 const Container = styled.div``;
 
@@ -615,9 +616,48 @@ const SummaryButton = styled.button`
   }
 `;
 
+const SummaryButton2 = styled.button`
+  width: 100%;
+  padding: 10px;
+  background-color: red;
+  color: black;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 350px;
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+  }
+
+  @media (max-width: 540px) {
+    font-size: 18px;
+  }
+
+  @media (max-width: 414px) {
+    font-size: 18px;
+  }
+
+  @media (max-width: 390px) {
+    font-size: 18px;
+  }
+
+  @media (max-width: 375px) {
+    font-size: 18px;
+  }
+
+  @media (max-width: 360px) {
+    font-size: 18px;
+  }
+
+  @media (max-width: 280px) {
+    font-size: 18px;
+  }
+`;
+
 function Cart() {
   const [combinedData, setCombinedData] = useState([]);
   const [body, setBody] = useState();
+  const dispatch = useDispatch();
   const cart = useSelector((state) => state.cart);
   console.log(cart);
 
@@ -700,12 +740,10 @@ function Cart() {
                 </ProductDetails>
                 <PriceDetails>
                   <ProductQtyContainer>
-                    {/* <RemoveIcon /> */}
                     <ProductQty>
                       <b>Qty: </b>
                       {product?.quantity}
                     </ProductQty>
-                    {/* <AddIcon /> */}
                   </ProductQtyContainer>
                   <ProductPrice>
                     <b>Price: </b> $ {product?.price * product?.quantity}
@@ -730,6 +768,9 @@ function Cart() {
               <SummaryItemPrice>$ {cart.totalPrice}</SummaryItemPrice>
             </SummaryItem>
             <SummaryButton onClick={handleClick}>Checkout Now</SummaryButton>
+            <SummaryButton2 onClick={() => dispatch(resetCart())}>
+              Reset Cart
+            </SummaryButton2>
           </Summary>
         </Bottom>
       </Wrapper>
