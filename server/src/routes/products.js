@@ -10,6 +10,7 @@ import multer from "multer";
 import dotenv from "dotenv";
 import crypto from "crypto";
 import checkAuth from "../middleware/checkAuth.js";
+import requireAdmin from "../middleware/requireAdmin.js";
 
 dotenv.config();
 const router = express.Router();
@@ -33,24 +34,38 @@ const s3 = new S3Client({
   region: bucketRegion,
 });
 
-router.post("/upload", checkAuth, upload.single("image"), async (req, res) => {
+const uploadImageToS3 = async (file) => {
+  const imageName = hashedImageName();
+  const command = new PutObjectCommand({
+    Bucket: bucketName,
+    Key: imageName,
+    Body: file.buffer,
+    ContentType: file.mimetype,
+  });
+  await s3.send(command);
+  return imageName;
+};
+
+const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const EDITABLE_FIELDS = [
+  "title",
+  "description",
+  "category",
+  "size",
+  "color",
+  "price",
+  "inStock",
+];
+
+const uploadMiddleware = [checkAuth, requireAdmin, upload.single("image")];
+
+router.post("/upload", uploadMiddleware, async (req, res) => {
   try {
     console.log("req.body", req.body);
     console.log("req.file", req.file);
 
-    req.file.buffer;
-
-    const imageName = hashedImageName();
-
-    const params = {
-      Bucket: bucketName,
-      Key: imageName,
-      Body: req.file.buffer,
-      ContentType: req.file.mimetype,
-    };
-
-    const command = new PutObjectCommand(params);
-    await s3.send(command);
+    const imageName = await uploadImageToS3(req.file);
 
     const product = await Product.create({
       title: req.body.title,
@@ -234,7 +249,7 @@ router.get("/search/:params", async (req, res) => {
   try {
     const { params } = req.params;
     const fetchAllProducts = await Product.find({
-      title: { $regex: "^" + params, $options: "i" },
+      title: { $regex: "^" + escapeRegex(params), $options: "i" },
     });
     res.status(200).json({
       data: fetchAllProducts,
@@ -276,23 +291,33 @@ router.get("/:params", async (req, res) => {
 
 // EDIT 1 PRODUCT
 
-router.put("/:params", checkAuth, async (req, res) => {
+router.put("/:params", uploadMiddleware, async (req, res) => {
   try {
     const { params } = req.params;
+
+    const update = {};
+    for (const field of EDITABLE_FIELDS) {
+      if (req.body[field] !== undefined) {
+        update[field] = req.body[field];
+      }
+    }
+    if (req.file) {
+      update.image = await uploadImageToS3(req.file);
+    }
+
     const getEditedProduct = await Product.findByIdAndUpdate(
       params,
       {
-        $set: req.body,
+        $set: update,
       },
-      { new: true }
+      { new: true, runValidators: true }
     );
-    const getObjectParams = {
-      Bucket: bucketName,
-      Key: getEditedProduct.image,
-    };
-    const command = new PutObjectCommand(getObjectParams);
-    const url = await getSignedUrl(s3, command, { expiresIn: 604800 });
-    Product.imageUrl = url;
+    if (!getEditedProduct) {
+      return res.status(404).json({
+        data: "",
+        error: "Product not found",
+      });
+    }
 
     res.status(200).json({
       data: getEditedProduct,

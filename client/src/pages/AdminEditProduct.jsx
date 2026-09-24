@@ -94,14 +94,16 @@ const ProductQtyHeader = styled.p`
 function AdminEditProduct() {
   const [data, setData] = useState({});
   const { params } = useParams();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [image, setImage] = useState("");
-  const [category, setCategory] = useState([""]);
-  const [size, setSize] = useState([""]);
-  const [color, setColor] = useState([""]);
-  const [price, setPrice] = useState(0);
-  const [inStock, setInStock] = useState(0);
+  // Fields stay undefined until edited, so untouched fields are not sent
+  // and keep their saved values.
+  const [title, setTitle] = useState();
+  const [description, setDescription] = useState();
+  const [image, setImage] = useState(null);
+  const [category, setCategory] = useState();
+  const [size, setSize] = useState();
+  const [color, setColor] = useState();
+  const [price, setPrice] = useState();
+  const [inStock, setInStock] = useState();
   const [editedProduct, setEditedProduct] = useState("");
 
   const fetchProduct = async () => {
@@ -115,50 +117,40 @@ function AdminEditProduct() {
     fetchProduct();
   }, []);
 
-  const categoryStringSplitter = (category) => {
-    return category.toString().split(/[,\s]+/);
+  const stringSplitter = (value) => {
+    return value.toString().split(/[,\s]+/);
   };
-
-  const categoryArray = categoryStringSplitter(category);
-
-  const sizeStringSplitter = (size) => {
-    return size.toString().split(/[,\s]+/);
-  };
-
-  const sizeArray = sizeStringSplitter(size);
-
-  const colorStringSplitter = (color) => {
-    return color.toString().split(/[,\s]+/);
-  };
-
-  const colorArray = colorStringSplitter(color);
 
   const editProduct = async () => {
-    try {
-      const newResponse = await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/products/${params}`,
-        {
-          title: title,
-          description: description,
-          image: image,
-          category: categoryArray,
-          size: sizeArray,
-          color: colorArray,
-          price: price,
-          inStock: inStock,
-        }
-      );
-      setEditedProduct("success");
-      return editedProduct;
-    } catch (error) {
-      console.log(error.message);
+    const formData = new FormData();
+    const fields = { title, description, price, inStock };
+    for (const [key, value] of Object.entries(fields)) {
+      if (value !== undefined) formData.append(key, value);
     }
+    const listFields = { category, size, color };
+    for (const [key, value] of Object.entries(listFields)) {
+      if (value !== undefined) {
+        stringSplitter(value).forEach((item) => formData.append(key, item));
+      }
+    }
+    if (image) formData.append("image", image);
+
+    await axios.put(
+      `${import.meta.env.VITE_BASE_URL}/products/${params}`,
+      formData
+    );
+    setEditedProduct("success");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    editProduct();
-    alert("Product successfully edited");
+    try {
+      await editProduct();
+      alert("Product successfully edited");
+    } catch (error) {
+      console.log(error.message);
+      alert("Failed to edit product");
+    }
   };
 
   return (
@@ -190,9 +182,8 @@ function AdminEditProduct() {
               name="image"
               accept="image/*"
               id="image"
-              required
               type="file"
-              onChange={(e) => setImage(e.target.value)}
+              onChange={(e) => setImage(e.target.files[0] || null)}
             />
           </ImageContainer>
           <ProductCategoryHeader>Edit Product Category</ProductCategoryHeader>

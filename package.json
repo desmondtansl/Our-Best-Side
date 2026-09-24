@@ -4,7 +4,7 @@
   "description": "E-Commerce site built using MERN stack and integrated with Stripe checkout API",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm test -ws",
     "build": "cd client && npm run build",
     "start": "cd server && npm run start"
   },

@@ -1,0 +1,33 @@
+# Render Blueprint for the Express API (server/).
+# Deploy: Render dashboard → New → Blueprint → select this repo.
+# Values marked `sync: false` are entered in the dashboard, never committed.
+# See docs/deploying-to-render.md.
+services:
+  - type: web
+    name: ourbestside-api
+    runtime: node
+    plan: free
+    rootDir: server
+    # --omit=dev skips test-only packages (mongodb-memory-server downloads
+    # a MongoDB binary on install).
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: STRIPE_PRIVATE_KEY
+        sync: false
+      - key: BASE_URL
+        value: https://ourbestside.netlify.app
+      - key: BUCKET_NAME
+        value: desmondecommercesite
+      - key: AWS_REGION
+        value: ap-southeast-1
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_ACCESS_KEY_SECRET
+        sync: false

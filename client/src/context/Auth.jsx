@@ -24,7 +24,9 @@ export const UserProvider = ({ children }) => {
       if (response.data.user) {
         setUser({
           data: {
+            id: response.data.user.id,
             email: response.data.user.email,
+            isAdmin: response.data.user.isAdmin,
           },
           loading: false,
           error: null,

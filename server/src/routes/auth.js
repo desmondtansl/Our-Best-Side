@@ -134,7 +134,9 @@ router.get("/user", checkAuth, async (req, res) => {
     return res.status(200).json({
       data: {
         user: {
+          id: user.id,
           email: user.email,
+          isAdmin: user.isAdmin,
         },
       },
       errors: "",
