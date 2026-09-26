@@ -7,7 +7,8 @@
   "scripts": {
     "test": "node --test \"test/**/*.test.js\"",
     "start": "node src/server.js",
-    "seed": "node scripts/seed-products.js"
+    "seed": "node scripts/seed-products.js",
+    "dev": "nodemon src/server.js"
   },
   "keywords": [],
   "author": "",
@@ -23,13 +24,12 @@
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^6.8.3",
     "multer": "^1.4.5-lts.1",
-    "nodemon": "^2.0.20",
-    "react-stripe-checkout": "^2.6.3",
     "stripe": "^11.7.0"
   },
   "devDependencies": {
     "aws-sdk-client-mock": "^4.1.0",
     "mongodb-memory-server": "^11.3.0",
-    "supertest": "^7.3.0"
+    "supertest": "^7.3.0",
+    "nodemon": "^3.1.14"
   }
 }
