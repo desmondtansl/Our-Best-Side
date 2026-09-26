@@ -100,6 +100,31 @@ describe("ProductDetails", () => {
     expect(await screen.findByText("Out of Stock")).toBeDisabled();
   });
 
+  it("warns when only a few are left, but not when stock is plentiful or untracked", async () => {
+    axios.get.mockResolvedValue({ data: { data: loafers } });
+    renderPage();
+    expect(await screen.findByText("Only 3 left")).toBeInTheDocument();
+  });
+
+  it.each([[{ inStock: 20 }], [{ inStock: undefined }], [{ inStock: 0 }]])(
+    "shows no low-stock warning for %o",
+    async (overrides) => {
+      axios.get.mockResolvedValue({ data: { data: { ...loafers, ...overrides } } });
+      renderPage();
+      await screen.findByText("Suede Loafers");
+      expect(screen.queryByText(/left$/)).not.toBeInTheDocument();
+    }
+  );
+
+  it("shows the delivery and returns policies", async () => {
+    axios.get.mockResolvedValue({ data: { data: loafers } });
+    renderPage();
+    await screen.findByText("Suede Loafers");
+    expect(screen.getByText(/Free delivery in Singapore/)).toBeInTheDocument();
+    expect(screen.getByText(/Free returns within 14 days/)).toBeInTheDocument();
+    expect(document.title).toBe("Suede Loafers | Our Best Side");
+  });
+
   it("shows 'not found' with a link back to the category", async () => {
     axios.get.mockRejectedValue({ response: { status: 404 } });
     renderPage("ladies", "missing");

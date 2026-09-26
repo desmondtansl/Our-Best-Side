@@ -1,5 +1,6 @@
 import stripe from "../stripe.js";
 import Order from "../models/Order.js";
+import { adjustStock } from "../inventory.js";
 
 const toShippingAddress = (shipping) => {
   if (!shipping?.address) return undefined;
@@ -46,6 +47,7 @@ const markOrderPaid = async (session) => {
 
   order.status = "paid";
   await order.save();
+  await adjustStock(order.items, -1);
 };
 
 // POST /checkout/webhook

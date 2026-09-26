@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Order, { ORDER_STATUSES } from "../models/Order.js";
 import checkAuth from "../middleware/checkAuth.js";
 import requireAdmin from "../middleware/requireAdmin.js";
+import { adjustStock } from "../inventory.js";
 
 const router = express.Router();
 
@@ -45,14 +46,21 @@ router.patch("/:orderId", async (req, res) => {
     if (!mongoose.isValidObjectId(orderId)) {
       return res.status(404).json({ data: "", error: "Order not found" });
     }
-    const order = await Order.findOneAndUpdate(
+    // Returns the order as it was, so stock can follow the status change.
+    const previous = await Order.findOneAndUpdate(
       { _id: orderId, status: { $ne: "pending" } },
-      { $set: { status } },
-      { new: true }
+      { $set: { status } }
     );
-    if (!order) {
+    if (!previous) {
       return res.status(404).json({ data: "", error: "Order not found" });
     }
+    // Cancelling puts items back in stock; un-cancelling takes them out again.
+    if (status === "cancelled" && previous.status !== "cancelled") {
+      await adjustStock(previous.items, 1);
+    } else if (status !== "cancelled" && previous.status === "cancelled") {
+      await adjustStock(previous.items, -1);
+    }
+    const order = await Order.findById(orderId);
     return res.status(200).json({ data: order, error: "" });
   } catch (error) {
     return res.status(400).json({ data: "", error: error.message });

@@ -5,6 +5,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { productImageUrl } from "../utils/products";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 // Product listing shared by /men and /ladies.
 
@@ -181,6 +182,7 @@ const Message = styled.p`
 `;
 
 function ProductGrid({ category }) {
+  useDocumentTitle(category === "ladies" ? "Ladies" : "Men");
   const [products, setProducts] = useState(null);
   const [error, setError] = useState(false);
 

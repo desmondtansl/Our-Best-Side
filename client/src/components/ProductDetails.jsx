@@ -9,6 +9,10 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import { addProduct } from "../redux/cartRedux";
 import { useDispatch } from "react-redux";
 import { productImageUrl, toOptions } from "../utils/products";
+import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
+import AssignmentReturnOutlinedIcon from "@mui/icons-material/AssignmentReturnOutlined";
+import { DELIVERY, RETURNS, LOW_STOCK_THRESHOLD } from "../config/store";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 // Product page shared by /men/:params and /ladies/:params.
 
@@ -480,6 +484,35 @@ const Message = styled.div`
   gap: 16px;
 `;
 
+const LowStock = styled.p`
+  margin: 10px 0px 0px;
+  font-size: 15px;
+  color: red;
+`;
+
+// Delivery and returns summary shown under "Add to Cart".
+const Policies = styled.div`
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 0.5px solid lightgray;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 480px;
+`;
+
+const Policy = styled.div`
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 14px;
+  font-weight: 300;
+
+  b {
+    font-weight: 500;
+  }
+`;
+
 const Notice = styled.p`
   margin: 10px 0px;
   font-size: 16px;
@@ -532,7 +565,14 @@ function ProductDetails({ category }) {
 
   const sizes = toOptions(product?.size);
   const colors = toOptions(product?.color);
+  useDocumentTitle(
+    product?.title || (status === "notFound" ? "Product not found" : undefined),
+    product?.description
+  );
+
   const outOfStock = product?.inStock === 0;
+  const lowStock =
+    product?.inStock > 0 && product.inStock <= LOW_STOCK_THRESHOLD;
   const maxQuantity = product?.inStock > 0 ? product.inStock : Infinity;
 
   const handleQty = (type) => {
@@ -579,6 +619,7 @@ function ProductDetails({ category }) {
           <Title>{product.title}</Title>
           <Description>{product.description}</Description>
           <Price>${product.price}</Price>
+          {lowStock && <LowStock>Only {product.inStock} left</LowStock>}
           <FilterContainer>
             {colors.length > 0 && (
               <Filter>
@@ -644,6 +685,20 @@ function ProductDetails({ category }) {
               Added to cart. <Link to="/cart">View cart</Link>
             </Notice>
           )}
+          <Policies>
+            <Policy>
+              <LocalShippingOutlinedIcon fontSize="small" />
+              <span>
+                <b>{DELIVERY.headline}.</b> {DELIVERY.detail}
+              </span>
+            </Policy>
+            <Policy>
+              <AssignmentReturnOutlinedIcon fontSize="small" />
+              <span>
+                <b>{RETURNS.headline}.</b> {RETURNS.detail}
+              </span>
+            </Policy>
+          </Policies>
         </InfoContainer>
       </Wrapper>
       <Footer />

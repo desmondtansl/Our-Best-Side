@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import InstagramIcon from "@mui/icons-material/Instagram";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 
 // min-height (not height) so the footer grows to fit its content instead of
 // letting it spill below the page.
@@ -147,37 +148,39 @@ const Right = styled.div`
   }
 `;
 
-const PaymentIcon = styled.img`
-  width: 40%;
-
-  @media (max-width: 820px) {
-    width: 60%;
-  }
-
-  @media (max-width: 768px) {
-    width: 60%;
-  }
-
-  @media (max-width: 540px) {
-    width: 60%;
-  }
+// Cards accepted by Stripe Checkout, drawn as text badges so nothing is
+// loaded from other websites.
+const Payments = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0px 20px;
+  font-size: 12px;
 
   @media (max-width: 414px) {
-    width: auto;
-  }
-
-  @media (max-width: 375px) {
-    width: auto;
-  }
-
-  @media (max-width: 360px) {
-    width: auto;
-  }
-
-  @media (max-width: 280px) {
-    width: auto;
+    justify-content: center;
+    padding: 0px;
   }
 `;
+
+const Badge = styled.span`
+  border: 1px solid lightgray;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+`;
+
+const Secure = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 300;
+`;
+
+const ACCEPTED_CARDS = ["VISA", "Mastercard", "AMEX"];
 
 function Footer() {
   return (
@@ -197,7 +200,14 @@ function Footer() {
           <Logo>Our Best Side</Logo>
         </Center>
         <Right>
-          <PaymentIcon src="https://i.ibb.co/Qfvn4z6/payment.png" />
+          <Payments aria-label="Accepted payment methods">
+            <Secure>
+              <LockOutlinedIcon fontSize="inherit" /> Secure checkout
+            </Secure>
+            {ACCEPTED_CARDS.map((card) => (
+              <Badge key={card}>{card}</Badge>
+            ))}
+          </Payments>
         </Right>
       </Wrapper>
     </Container>

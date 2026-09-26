@@ -6,6 +6,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { UserAuth } from "../context/Auth";
 import { errorMessage } from "../utils/format";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const Container = styled.div`
   overflow: hidden;
@@ -90,6 +91,7 @@ const Button = styled.button`
 const SpareContainer = styled.div``;
 
 function Login() {
+  useDocumentTitle("Sign Up");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [user, setUser] = UserAuth();

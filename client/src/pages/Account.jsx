@@ -6,6 +6,7 @@ import OrderHistory from "../components/account/OrderHistory";
 import SavedAddresses from "../components/account/SavedAddresses";
 import PaymentMethods from "../components/account/PaymentMethods";
 import { UserAuth } from "../context/Auth";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -60,6 +61,7 @@ const TABS = [
 ];
 
 function Account() {
+  useDocumentTitle("My Account");
   const [user] = UserAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const active = TABS.find((tab) => tab.id === searchParams.get("tab")) || TABS[0];

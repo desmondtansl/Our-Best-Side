@@ -3,6 +3,7 @@ import { useState } from "react";
 import styled from "styled-components";
 import { NavLink } from "react-router-dom";
 import BackToDashboard from "../components/BackToDashboard";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const Container = styled.div`
   display: flex;
@@ -63,6 +64,7 @@ const InfoContainer = styled.div`
 `;
 
 function AdminSearchProduct() {
+  useDocumentTitle("Search Products");
   const [data, setData] = useState({});
   const [query, setQuery] = useState("");
 

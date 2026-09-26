@@ -17,6 +17,7 @@ import { UserAuth } from "./context/Auth.jsx";
 import ProtectedRoutes from "./routes/ProtectedRoutes.jsx";
 import UserRoutes from "./routes/UserRoutes.jsx";
 import Success from "./pages/Success.jsx";
+import NotFound from "./pages/NotFound.jsx";
 
 function App() {
   const [user] = UserAuth();
@@ -42,6 +43,7 @@ function App() {
         <Route path="/search/:params" element={<EditProduct />} />
         <Route path="/admin/orders" element={<AdminOrders />} />
       </Route>
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

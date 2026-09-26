@@ -434,7 +434,7 @@ function Carousel() {
         {carouselPhotos.map((item) => (
           <Slide bg={item.bg} key={item.id}>
             <ImageContainer>
-              <Image src={item.img} />
+              <Image src={item.img} alt={item.alt} />
             </ImageContainer>
             <InfoContainer>
               <Title>{item.title}</Title>

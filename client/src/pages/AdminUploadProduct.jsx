@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import BackToDashboard from "../components/BackToDashboard";
 import { errorMessage } from "../utils/format";
 import { productPath } from "../utils/products";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const Container = styled.div`
   display: flex;
@@ -104,6 +105,7 @@ const ProductQtyHeader = styled.p`
 `;
 
 function AdminUploadProduct() {
+  useDocumentTitle("Upload Product");
   const formRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   // { type: "success", product } or { type: "error", text }
