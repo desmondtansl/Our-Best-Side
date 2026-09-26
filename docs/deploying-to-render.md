@@ -74,23 +74,15 @@ Put the `whsec_...` it prints into `server/.env` as `STRIPE_WEBHOOK_SECRET`.
 
 An old secret key can't be recovered or paired with a new key ID. If it's lost, create a new access key under **IAM → Users → Security credentials**.
 
-**Public images.** The site loads product images directly from `https://desmondecommercesite.s3.ap-southeast-1.amazonaws.com/<key>`, so the bucket must allow public reads. If images don't show:
-1. Check the bucket's **Permissions** tab: **Block public access** must allow a bucket policy.
-2. The bucket policy should let anyone read objects:
+**Private bucket, signed image links.** The bucket does **not** need to be public; leave **Block all public access** turned on. Every product image on the site loads from the API (`GET /products/image/<key>`), which answers with a redirect to a signed S3 link valid for 1 hour. Browsers cache that redirect for 55 minutes. Stripe's checkout page gets links valid for 24 hours. This uses the key's `s3:GetObject` permission.
 
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": "*",
-      "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::desmondecommercesite/*"
-    }
-  ]
-}
-```
+If images don't show:
+1. Open `https://<render-service>.onrender.com/products/image/<key>` in the browser, using the `image` value of a product from MongoDB.
+   - **A photo:** the backend and S3 are fine. Check that Netlify's `VITE_BASE_URL` points at Render, and redeploy Netlify.
+   - **`AccessDenied`:** the IAM user is missing `s3:GetObject` on `desmondecommercesite/*`.
+   - **`NoSuchKey`:** the upload didn't reach S3. Check the Render logs for the upload.
+   - **`SignatureDoesNotMatch` or `InvalidAccessKeyId`:** `AWS_ACCESS_KEY_ID` and `AWS_ACCESS_KEY_SECRET` on Render don't belong together.
+2. Changed a key or permission? Save on Render and wait for the redeploy.
 
 **Restoring products.** An empty database means blank product pages. Run the seed script from your computer; it recreates the 8 featured products. See `docs/product-catalogue.md`.
 

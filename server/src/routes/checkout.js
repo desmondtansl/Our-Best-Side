@@ -5,7 +5,7 @@ import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import User from "../models/User.js";
 import optionalAuth from "../middleware/optionalAuth.js";
-import { imageUrl } from "../s3.js";
+import { signedImageUrl, isValidImageKey } from "../s3.js";
 
 const router = express.Router();
 
@@ -116,14 +116,22 @@ router.post("/create-checkout-session", optionalAuth, async (req, res) => {
       currency,
     });
 
+    // Stripe shows product photos on its checkout page; a checkout session
+    // lasts up to 24 hours, so sign the links for that long.
+    const images = await Promise.all(
+      orderItems.map((item) =>
+        isValidImageKey(item.image) ? signedImageUrl(item.image, 24 * 60 * 60) : undefined
+      )
+    );
+
     const sessionParams = {
       mode: "payment",
-      line_items: orderItems.map((item) => {
+      line_items: orderItems.map((item, index) => {
         const details = [
           item.size && `Size: ${item.size}`,
           item.color && `Color: ${item.color}`,
         ].filter(Boolean);
-        const image = imageUrl(item.image);
+        const image = images[index];
         return {
           quantity: item.quantity,
           price_data: {

@@ -165,7 +165,7 @@ The Men and Ladies pages were near-identical copies, so each bug had to be fixed
 - [ ] Put the Render values for `MONGO_URI`, `BUCKET_NAME`, `AWS_REGION`, `AWS_ACCESS_KEY_ID` and `AWS_ACCESS_KEY_SECRET` in `server/.env` on your computer.
 - [ ] Run `npm run seed -w server -- --dry-run`, then `npm run seed -w server`.
 - [ ] Open the site. The homepage should show 8 featured products, and the product pages should show photos, sizes and colours.
-- [ ] Check the S3 bucket still allows public reads. Product images are loaded straight from `https://desmondecommercesite.s3.ap-southeast-1.amazonaws.com/<key>`. If images don't appear, see the note in `docs/deploying-to-render.md`.
+- [ ] Images: since `docs/admin-upload-and-images.md`, product images load through signed links, so the bucket can stay private. If images don't appear, see "Private bucket, signed image links" in `docs/deploying-to-render.md`.
 
 ## Known limitations
 

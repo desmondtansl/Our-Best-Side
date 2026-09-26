@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
-import { Link } from "react-router-dom";
+import BackToDashboard from "../components/BackToDashboard";
 import {
   formatDate,
   formatMoney,
@@ -98,7 +98,7 @@ function AdminOrders() {
     <Container>
       <Header>
         <Title>Orders</Title>
-        <Link to="/dashboard">Back to dashboard</Link>
+        <BackToDashboard />
       </Header>
       <label>
         Show:{" "}

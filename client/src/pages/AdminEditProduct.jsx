@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import BackToDashboard from "../components/BackToDashboard";
 import { toOptions } from "../utils/products";
 
 const Container = styled.div`
@@ -169,6 +170,10 @@ function AdminEditProduct() {
   return (
     <Container>
       <Wrapper>
+        <BackToDashboard />
+        <Link to="/search" style={{ fontSize: "14px", margin: "10px" }}>
+          ← Back to search
+        </Link>
         <Title>Product Edit Form</Title>
         <Form onSubmit={handleSubmit} id="form" encType="multipart/form-data">
           <TitleHeader>Edit Product Title</TitleHeader>

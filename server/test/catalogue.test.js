@@ -112,6 +112,29 @@ describe("product catalogue routes", () => {
     });
   });
 
+  describe("GET /products/image/:key", () => {
+    it("redirects to a signed, time-limited S3 link", async () => {
+      const res = await request(app).get("/products/image/abc123.jfif");
+      assert.equal(res.status, 302);
+      assert.ok(
+        res.headers.location.startsWith(
+          "https://test-bucket.s3.ap-southeast-1.amazonaws.com/abc123.jfif?"
+        ),
+        res.headers.location
+      );
+      assert.match(res.headers.location, /X-Amz-Signature=/);
+      assert.match(res.headers.location, /X-Amz-Expires=3600/);
+      assert.equal(res.headers["cache-control"], "public, max-age=3300");
+    });
+
+    it("refuses keys that aren't plain file names", async () => {
+      for (const key of ["..%2Fsecret", ".hidden", "a%20b", "x".repeat(201)]) {
+        const res = await request(app).get(`/products/image/${key}`);
+        assert.equal(res.status, 404, key);
+      }
+    });
+  });
+
   describe("GET /products/featured", () => {
     it("returns only featured products, at most 8", async () => {
       await make({ title: "Hidden" });
