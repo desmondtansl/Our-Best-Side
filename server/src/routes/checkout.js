@@ -1,6 +1,11 @@
 import express from "express";
 import mongoose from "mongoose";
-import stripe, { ensureStripeCustomer } from "../stripe.js";
+import stripe, {
+  ensureStripeCustomer,
+  isStripeConfigured,
+  paymentErrorResponse,
+  paymentsNotConfigured,
+} from "../stripe.js";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import User from "../models/User.js";
@@ -69,6 +74,7 @@ const toStripeShipping = (address) => ({
 // CREATE A STRIPE CHECKOUT SESSION FOR THE CART
 
 router.post("/create-checkout-session", optionalAuth, async (req, res) => {
+  if (!isStripeConfigured()) return paymentsNotConfigured(res);
   let order;
   try {
     const { items, error } = parseCartItems(req.body?.items);
@@ -179,9 +185,13 @@ router.post("/create-checkout-session", optionalAuth, async (req, res) => {
     if (order && !order.stripeSessionId) {
       await Order.deleteOne({ _id: order._id }).catch(() => {});
     }
+    if (error?.type?.startsWith("Stripe")) {
+      return paymentErrorResponse(res, error, "start checkout");
+    }
+    console.error("Checkout failed:", error.message);
     return res.status(500).json({
       data: "",
-      error: error.message,
+      error: "Checkout failed. Please try again.",
     });
   }
 });

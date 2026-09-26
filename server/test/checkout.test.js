@@ -202,17 +202,38 @@ describe("checkout", () => {
       assert.equal(await Order.countDocuments(), 0);
     });
 
-    it("removes the pending order if Stripe fails", async () => {
+    it("removes the pending order and hides Stripe's message if Stripe fails", async () => {
       const original = fake.stripe.checkout.sessions.create;
       fake.stripe.checkout.sessions.create = async () => {
-        throw new Error("Stripe is down");
+        const error = new Error("You did not provide an API key. See https://stripe.com/docs");
+        error.type = "StripeAuthenticationError";
+        throw error;
       };
       try {
         const res = await checkout({ items: [{ productId: shoes.id, quantity: 1 }] });
-        assert.equal(res.status, 500);
+        assert.equal(res.status, 502);
+        assert.equal(
+          res.body.error,
+          "We couldn't reach our payment provider. Please try again in a moment."
+        );
+        assert.doesNotMatch(JSON.stringify(res.body), /API key|stripe\.com/);
         assert.equal(await Order.countDocuments(), 0);
       } finally {
         fake.stripe.checkout.sessions.create = original;
+      }
+    });
+
+    it("explains that payments aren't set up when the Stripe key is missing", async () => {
+      const key = process.env.STRIPE_PRIVATE_KEY;
+      delete process.env.STRIPE_PRIVATE_KEY;
+      try {
+        const res = await checkout({ items: [{ productId: shoes.id, quantity: 1 }] });
+        assert.equal(res.status, 503);
+        assert.equal(res.body.error, "Payments aren't set up yet. Please try again later.");
+        assert.equal(await Order.countDocuments(), 0);
+        assert.equal(fake.calls["sessions.create"], undefined);
+      } finally {
+        process.env.STRIPE_PRIVATE_KEY = key;
       }
     });
   });
