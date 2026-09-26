@@ -12,6 +12,8 @@ const productSchema = new Schema(
     color: [{ type: String }],
     price: { type: Number },
     inStock: { type: Number },
+    // Shown in the homepage "Featured Products" section.
+    featured: { type: Boolean, default: false, index: true },
   },
   { timestamps: true }
 );

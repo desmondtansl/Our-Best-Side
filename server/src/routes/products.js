@@ -1,245 +1,123 @@
 import express from "express";
+import mongoose from "mongoose";
 import Product from "../models/Product.js";
-import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
-} from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import multer from "multer";
-import dotenv from "dotenv";
-import crypto from "crypto";
 import checkAuth from "../middleware/checkAuth.js";
 import requireAdmin from "../middleware/requireAdmin.js";
+import { uploadImageToS3 } from "../s3.js";
+import { parseProductFields } from "../productFields.js";
 
-dotenv.config();
 const router = express.Router();
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-const hashedImageName = (bytes = 32) =>
-  crypto.randomBytes(bytes).toString("hex");
-
-const bucketName = process.env.BUCKET_NAME;
-const bucketRegion = process.env.AWS_REGION;
-const accessKey = process.env.AWS_ACCESS_KEY_ID;
-const secretAccessKey = process.env.AWS_ACCESS_KEY_SECRET;
-
-const s3 = new S3Client({
-  credentials: {
-    accessKeyId: accessKey,
-    secretAccessKey: secretAccessKey,
-  },
-  region: bucketRegion,
-});
-
-const uploadImageToS3 = async (file) => {
-  const imageName = hashedImageName();
-  const command = new PutObjectCommand({
-    Bucket: bucketName,
-    Key: imageName,
-    Body: file.buffer,
-    ContentType: file.mimetype,
-  });
-  await s3.send(command);
-  return imageName;
-};
-
 const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-const EDITABLE_FIELDS = [
-  "title",
-  "description",
-  "category",
-  "size",
-  "color",
-  "price",
-  "inStock",
-];
 
 const uploadMiddleware = [checkAuth, requireAdmin, upload.single("image")];
 
+const FEATURED_LIMIT = 8;
+
+const notFound = (res) =>
+  res.status(404).json({ data: "", error: "Product not found" });
+
+const serverError = (res, error) =>
+  res.status(400).json({ data: "", error: error.message });
+
+// Each request builds its own result, so concurrent visitors never share or
+// overwrite each other's product lists.
+const listProducts = (filter) => Product.find(filter).sort({ createdAt: -1, _id: -1 });
+
+const findProduct = async (id, category) => {
+  if (!mongoose.isValidObjectId(id)) return null;
+  return Product.findOne(category ? { _id: id, category } : { _id: id });
+};
+
+// UPLOAD A NEW PRODUCT
+
 router.post("/upload", uploadMiddleware, async (req, res) => {
   try {
-    console.log("req.body", req.body);
-    console.log("req.file", req.file);
+    if (!req.file) {
+      return res.status(400).json({ data: "", error: "Product image is required" });
+    }
+    const { fields, error } = parseProductFields(req.body, { requireAll: true });
+    if (error) return res.status(400).json({ data: "", error });
 
     const imageName = await uploadImageToS3(req.file);
-
-    const product = await Product.create({
-      title: req.body.title,
-      description: req.body.description,
-      image: imageName,
-      category: req.body.category,
-      size: req.body.size,
-      color: req.body.color,
-      price: req.body.price,
-      inStock: req.body.inStock,
-    });
+    const product = await Product.create({ ...fields, image: imageName });
     res.status(200).json({
       data: product,
       error: "",
     });
   } catch (error) {
-    return res.status(400).json({
-      data: "",
-      error: error.message,
-    });
+    return serverError(res, error);
   }
 });
 
 // GET ALL MEN PRODUCTS
 
-let imageUrlArray = [];
-let menProducts = [];
-let combinedMenProducts = [];
-
 router.get("/men", async (req, res) => {
   try {
-    imageUrlArray = [];
-    menProducts = [];
-    combinedMenProducts = [];
-    const fetchMenProducts = await Product.find({ category: "Men" }).exec();
-    for (let singleProduct of fetchMenProducts) {
-      const getObjectParams = {
-        Bucket: bucketName,
-        Key: singleProduct.image,
-      };
-
-      const command = new GetObjectCommand(getObjectParams);
-      const url = await getSignedUrl(s3, command, { expiresIn: 604800 });
-      singleProduct.imageUrl = url;
-      imageUrlArray.push(singleProduct.imageUrl);
-      menProducts.push(singleProduct);
-    }
-
-    for (let i = 0; i < imageUrlArray.length; i++) {
-      menProducts[i].url = imageUrlArray[i];
-      combinedMenProducts.push(menProducts[i]);
-    }
-    res.status(200).send(combinedMenProducts);
+    res.status(200).send(await listProducts({ category: "Men" }));
   } catch (error) {
-    return res.status(400).json({
-      data: "",
-      error: error.message,
-    });
+    return serverError(res, error);
   }
 });
 
 // GET ALL LADIES PRODUCTS
 
-let ladiesimageUrlArray = [];
-let ladiesProducts = [];
-let combinedLadiesProducts = [];
-
 router.get("/ladies", async (req, res) => {
   try {
-    ladiesimageUrlArray = [];
-    ladiesProducts = [];
-    combinedLadiesProducts = [];
-    const fetchLadiesProducts = await Product.find({
-      category: "Ladies",
-    }).exec();
-    for (let singleProduct of fetchLadiesProducts) {
-      const getObjectParams = {
-        Bucket: bucketName,
-        Key: singleProduct.image,
-      };
-
-      const command = new GetObjectCommand(getObjectParams);
-      const url = await getSignedUrl(s3, command, { expiresIn: 604800 });
-      singleProduct.imageUrl = url;
-      ladiesimageUrlArray.push(singleProduct.imageUrl);
-      ladiesProducts.push(singleProduct);
-    }
-
-    for (let i = 0; i < ladiesimageUrlArray.length; i++) {
-      ladiesProducts[i].url = ladiesimageUrlArray[i];
-      combinedLadiesProducts.push(ladiesProducts[i]);
-    }
-    res.status(200).send(combinedLadiesProducts);
+    res.status(200).send(await listProducts({ category: "Ladies" }));
   } catch (error) {
-    return res.status(400).json({
-      data: "",
-      error: error.message,
-    });
+    return serverError(res, error);
   }
 });
 
 // GET ALL PRODUCTS
 
-let combinedimageUrlArray = [];
-let combineProducts = [];
-let combinedAllProducts = [];
-
 router.get("/combined", async (req, res) => {
   try {
-    combinedimageUrlArray = [];
-    combineProducts = [];
-    combinedAllProducts = [];
-    const fetchMenWomenProducts = await Product.find({
-      $or: [{ category: "Men" }, { category: "Women" }],
-    }).exec();
-    for (let singleProduct of fetchMenWomenProducts) {
-      const getObjectParams = {
-        Bucket: bucketName,
-        Key: singleProduct.image,
-      };
-
-      const command = new GetObjectCommand(getObjectParams);
-      const url = await getSignedUrl(s3, command, { expiresIn: 604800 });
-      singleProduct.imageUrl = url;
-      combinedimageUrlArray.push(singleProduct.imageUrl);
-      combineProducts.push(singleProduct);
-    }
-
-    for (let i = 0; i < combinedimageUrlArray.length; i++) {
-      combineProducts[i].url = combinedimageUrlArray[i];
-      combinedAllProducts.push(combineProducts[i]);
-    }
-    res.status(200).send(combinedAllProducts);
+    res
+      .status(200)
+      .send(await listProducts({ category: { $in: ["Men", "Ladies"] } }));
   } catch (error) {
-    return res.status(400).json({
-      data: "",
-      error: error.message,
-    });
+    return serverError(res, error);
   }
 });
 
-// GET SPECIFIC MEN PRODUCT FROM SEARCH
+// GET PRODUCTS FEATURED ON THE HOMEPAGE
+
+router.get("/featured", async (req, res) => {
+  try {
+    const products = await listProducts({ featured: true }).limit(FEATURED_LIMIT);
+    res.status(200).json({ data: products, error: "" });
+  } catch (error) {
+    return serverError(res, error);
+  }
+});
+
+// GET SPECIFIC MEN PRODUCT
 
 router.get("/men/:params", async (req, res) => {
   try {
-    const { params } = req.params;
-    const fetchIndividualMenProduct = await Product.findById(params);
-    res.status(200).json({
-      data: fetchIndividualMenProduct,
-      error: "",
-    });
+    const product = await findProduct(req.params.params, "Men");
+    if (!product) return notFound(res);
+    res.status(200).json({ data: product, error: "" });
   } catch (error) {
-    return res.status(400).json({
-      data: "",
-      error: error.message,
-    });
+    return serverError(res, error);
   }
 });
 
-// GET SPECIFIC LADIES PRODUCT FROM SEARCH
+// GET SPECIFIC LADIES PRODUCT
 
 router.get("/ladies/:params", async (req, res) => {
   try {
-    const { params } = req.params;
-    const fetchIndividualLadiesProduct = await Product.findById(params);
-    res.status(200).json({
-      data: fetchIndividualLadiesProduct,
-      error: "",
-    });
+    const product = await findProduct(req.params.params, "Ladies");
+    if (!product) return notFound(res);
+    res.status(200).json({ data: product, error: "" });
   } catch (error) {
-    return res.status(400).json({
-      data: "",
-      error: error.message,
-    });
+    return serverError(res, error);
   }
 });
 
@@ -256,10 +134,7 @@ router.get("/search/:params", async (req, res) => {
       error: "",
     });
   } catch (error) {
-    return res.status(400).json({
-      data: "",
-      error: error.message,
-    });
+    return serverError(res, error);
   }
 });
 
@@ -267,25 +142,11 @@ router.get("/search/:params", async (req, res) => {
 
 router.get("/:params", async (req, res) => {
   try {
-    const { params } = req.params;
-    const getProduct = await Product.findById(params);
-    const getObjectParams = {
-      Bucket: bucketName,
-      Key: getProduct.image,
-    };
-    const command = new GetObjectCommand(getObjectParams);
-    const url = await getSignedUrl(s3, command, { expiresIn: 604800 });
-    Product.imageUrl = url;
-
-    res.status(200).json({
-      data: getProduct,
-      error: "",
-    });
+    const product = await findProduct(req.params.params);
+    if (!product) return notFound(res);
+    res.status(200).json({ data: product, error: "" });
   } catch (error) {
-    return res.status(400).json({
-      data: "",
-      error: error.message,
-    });
+    return serverError(res, error);
   }
 });
 
@@ -294,13 +155,10 @@ router.get("/:params", async (req, res) => {
 router.put("/:params", uploadMiddleware, async (req, res) => {
   try {
     const { params } = req.params;
+    if (!mongoose.isValidObjectId(params)) return notFound(res);
 
-    const update = {};
-    for (const field of EDITABLE_FIELDS) {
-      if (req.body[field] !== undefined) {
-        update[field] = req.body[field];
-      }
-    }
+    const { fields: update, error } = parseProductFields(req.body);
+    if (error) return res.status(400).json({ data: "", error });
     if (req.file) {
       update.image = await uploadImageToS3(req.file);
     }
@@ -312,22 +170,14 @@ router.put("/:params", uploadMiddleware, async (req, res) => {
       },
       { new: true, runValidators: true }
     );
-    if (!getEditedProduct) {
-      return res.status(404).json({
-        data: "",
-        error: "Product not found",
-      });
-    }
+    if (!getEditedProduct) return notFound(res);
 
     res.status(200).json({
       data: getEditedProduct,
       error: "",
     });
   } catch (error) {
-    return res.status(400).json({
-      data: "",
-      error: error.message,
-    });
+    return serverError(res, error);
   }
 });
 export default router;

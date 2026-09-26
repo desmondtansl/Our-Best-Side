@@ -89,22 +89,22 @@ These issues were found in the same review but are out of scope for Phase 1.
 **Phase 2: Checkout & products API**
 - ~~Checkout matches Stripe products by description and trusts price IDs sent by the client.~~ **Done:** line items are now built on the server from MongoDB prices (see `docs/user-accounts-and-orders.md`).
 - ~~The Stripe success route (`checkout.js`) has an invalid path and can never match.~~ **Done:** replaced by `GET /checkout/order/:sessionId` and the Stripe webhook.
-- `/men`, `/ladies` and `/combined` share module-level arrays, so concurrent requests can mix up each other's results. `/combined` queries `"Women"` instead of `"Ladies"`.
-- `GET /products/:id` crashes on an unknown ID.
+- ~~`/men`, `/ladies` and `/combined` share module-level arrays, so concurrent requests can mix up each other's results. `/combined` queries `"Women"` instead of `"Ladies"`.~~ **Done** (see `docs/product-catalogue.md`).
+- ~~`GET /products/:id` crashes on an unknown ID.~~ **Done:** returns 404.
 
 **Phase 3: Client UX bugs**
-- Colour is never selectable. The ladies page defaults size to an empty string.
-- Sizes and colours are split on whitespace as well as commas, so `"US 8"` becomes `["US", "8"]`.
+- ~~Colour is never selectable. The ladies page defaults size to an empty string.~~ **Done** (see `docs/product-catalogue.md`).
+- ~~Sizes and colours are split on whitespace as well as commas, so `"US 8"` becomes `["US", "8"]`.~~ **Done.**
 - The cart is not persisted and has no way to remove an item.
 - Pages crash on network errors in Login and Auth.
-- `MenProducts` renders a literal `0` when there are no products.
-- Logout doesn't clear the axios auth header.
-- Featured product links are absolute Netlify URLs.
+- ~~`MenProducts` renders a literal `0` when there are no products.~~ **Done.**
+- ~~Logout doesn't clear the axios auth header.~~ **Done** (user accounts build).
+- ~~Featured product links are absolute Netlify URLs.~~ **Done:** Featured Products now load from the database.
 - The announcement and carousel copy is out of date (CNY '23).
 
 **Phase 4: Hygiene**
 - Remove unused dependencies (`stripe`, `dotenv` and `react-stripe-checkout` on the client; `react-stripe-checkout` on the server; `nodemon` belongs in dev dependencies) and the orphan Tailwind config.
-- Add `.env.example` and ESLint.
+- Add ESLint. (`.env.example` files were added in PR #50.)
 - Strip debug `console.log`s, including one that logs decoded JWTs.
 - Unify the error response shape.
 - Tighten CORS.

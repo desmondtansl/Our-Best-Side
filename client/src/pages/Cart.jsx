@@ -9,6 +9,7 @@ import { resetCart } from "../redux/cartRedux";
 import { UserAuth } from "../context/Auth";
 import { errorMessage } from "../utils/format";
 import { redirectTo } from "../utils/redirect";
+import { productImageUrl } from "../utils/products";
 
 const Container = styled.div``;
 
@@ -754,7 +755,7 @@ function Cart() {
               >
                 <ProductDetails>
                   <Image
-                    src={`https://desmondecommercesite.s3.ap-southeast-1.amazonaws.com/${product.image}`}
+                    src={productImageUrl(product.image)}
                   />
                   <Details>
                     <ProductTitle>

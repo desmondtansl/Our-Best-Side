@@ -6,7 +6,8 @@
   "main": "server.js",
   "scripts": {
     "test": "node --test \"test/**/*.test.js\"",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "seed": "node scripts/seed-products.js"
   },
   "keywords": [],
   "author": "",

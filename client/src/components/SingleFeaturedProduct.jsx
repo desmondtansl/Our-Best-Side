@@ -85,7 +85,7 @@ function SingleFeaturedProduct({ item }) {
     <MasterContainer>
       <Container>
         <StyledLink to={item.page} style={{ textDecoration: "none" }}>
-          <Image src={item.img} />
+          <Image src={item.img} alt={item.text} />
           <InfoContainer>
             <Text>{item.text}</Text>
             <Price>{item.price}</Price>

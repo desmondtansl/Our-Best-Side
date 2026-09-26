@@ -97,6 +97,33 @@ describe("AdminEditProduct", () => {
     expect(image.name).toBe("new.png");
   });
 
+  it("keeps multi-word sizes intact and shows saved lists as text", async () => {
+    axios.put.mockResolvedValue({ data: { data: product } });
+    const { container } = await renderPage();
+    expect(container.querySelector("#size")).toHaveValue("S, M");
+
+    fireEvent.change(container.querySelector("#size"), {
+      target: { value: "US 8, US 9" },
+    });
+    submit(container);
+
+    await waitFor(() => expect(axios.put).toHaveBeenCalled());
+    expect(sentFormData().getAll("size")).toEqual(["US 8", "US 9"]);
+  });
+
+  it("sends the featured flag only when it is changed", async () => {
+    axios.put.mockResolvedValue({ data: { data: product } });
+    const { container } = await renderPage();
+    const checkbox = screen.getByLabelText("Featured on homepage");
+    expect(checkbox).not.toBeChecked();
+
+    fireEvent.click(checkbox);
+    submit(container);
+
+    await waitFor(() => expect(axios.put).toHaveBeenCalled());
+    expect(sentFormData().get("featured")).toBe("true");
+  });
+
   it("does not require an image to submit", async () => {
     const { container } = await renderPage();
     expect(container.querySelector("#image")).not.toBeRequired();

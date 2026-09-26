@@ -5,6 +5,7 @@ import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import User from "../models/User.js";
 import optionalAuth from "../middleware/optionalAuth.js";
+import { imageUrl } from "../s3.js";
 
 const router = express.Router();
 
@@ -18,12 +19,6 @@ const getShippingCountries = () =>
     .split(",")
     .map((country) => country.trim().toUpperCase())
     .filter(Boolean);
-
-const imageUrl = (key) => {
-  const { BUCKET_NAME, AWS_REGION } = process.env;
-  if (!key || !BUCKET_NAME || !AWS_REGION) return undefined;
-  return `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key}`;
-};
 
 const toCents = (amount) => Math.round(amount * 100);
 

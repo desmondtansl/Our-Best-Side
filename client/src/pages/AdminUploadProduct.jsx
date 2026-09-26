@@ -80,6 +80,15 @@ const ProductPricesHeader = styled.p`
   font-weight: 600;
 `;
 
+const FeaturedLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 14px 0px;
+`;
+
 const ProductQtyHeader = styled.p`
   font-size: 14px;
   font-weight: 600;
@@ -165,6 +174,10 @@ function AdminUploadProduct() {
             placeholder="enter ONLY numbers"
             required
           />
+          <FeaturedLabel>
+            <input type="checkbox" name="featured" value="true" />
+            Featured on homepage
+          </FeaturedLabel>
           <Button onClick={(e) => setUpload(e.target.value)} type="submit">
             Upload Product
           </Button>
