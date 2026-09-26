@@ -4,6 +4,8 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { UserAuth } from "../context/Auth";
+import { errorMessage } from "../utils/format";
 
 const Container = styled.div`
   overflow: hidden;
@@ -90,7 +92,7 @@ const SpareContainer = styled.div``;
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // const [user, setUser] = UserAuth();
+  const [user, setUser] = UserAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -106,14 +108,22 @@ function Login() {
           password,
         }
       );
-      if (response.data) {
-        alert("Thank you for signing up!");
-        navigate("/login");
-      }
+      // Sign the new user straight in and take them to their account.
+      const { token, user: newUser } = response.data.data;
+      localStorage.setItem("token", token);
+      setUser({
+        data: { id: newUser.id, email: newUser.email, isAdmin: false },
+        error: null,
+        loading: false,
+      });
+      navigate("/account");
     } catch (error) {
       console.log(error);
-      setError(error?.response?.data?.error[0].msg);
-      alert(error?.response?.data?.error[0].msg);
+      const message = errorMessage(error, "Sign up failed");
+      setError(message);
+      alert(message);
+    } finally {
+      setLoading(false);
     }
   };
   return (

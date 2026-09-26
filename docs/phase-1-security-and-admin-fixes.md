@@ -87,8 +87,8 @@ Each fix was checked by running the tests against the original code: 10 of the 1
 These issues were found in the same review but are out of scope for Phase 1.
 
 **Phase 2: Checkout & products API**
-- Checkout matches Stripe products by description and trusts price IDs sent by the client. Store `stripePriceId` on `Product` and build line items on the server.
-- The Stripe success route (`checkout.js`) has an invalid path and can never match.
+- ~~Checkout matches Stripe products by description and trusts price IDs sent by the client.~~ **Done:** line items are now built on the server from MongoDB prices (see `docs/user-accounts-and-orders.md`).
+- ~~The Stripe success route (`checkout.js`) has an invalid path and can never match.~~ **Done:** replaced by `GET /checkout/order/:sessionId` and the Stripe webhook.
 - `/men`, `/ladies` and `/combined` share module-level arrays, so concurrent requests can mix up each other's results. `/combined` queries `"Women"` instead of `"Ladies"`.
 - `GET /products/:id` crashes on an unknown ID.
 

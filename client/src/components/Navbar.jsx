@@ -265,9 +265,14 @@ function Navbar() {
         </Center>
         <Right>
           {user.data ? (
-            <NavLink to="/" style={{ textDecoration: "none" }}>
-              <MenuItems onClick={handleLogout}>Logout</MenuItems>
-            </NavLink>
+            <>
+              <NavLink to="/account" style={{ textDecoration: "none" }}>
+                <MenuItems>Account</MenuItems>
+              </NavLink>
+              <NavLink to="/" style={{ textDecoration: "none" }}>
+                <MenuItems onClick={handleLogout}>Logout</MenuItems>
+              </NavLink>
+            </>
           ) : (
             <NavLink to="/login" style={{ textDecoration: "none" }}>
               <MenuItems>Login</MenuItems>

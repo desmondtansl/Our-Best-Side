@@ -6,6 +6,9 @@ import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { resetCart } from "../redux/cartRedux";
+import { UserAuth } from "../context/Auth";
+import { errorMessage } from "../utils/format";
+import { redirectTo } from "../utils/redirect";
 
 const Container = styled.div``;
 
@@ -654,57 +657,85 @@ const SummaryButton2 = styled.button`
   }
 `;
 
+const ShipTo = styled.div`
+  margin: 20px 0px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+`;
+
+const ShipToSelect = styled.select`
+  padding: 8px;
+  max-width: 100%;
+`;
+
+const CheckoutError = styled.p`
+  color: red;
+  font-size: 14px;
+`;
+
+const addressLabel = (address) =>
+  [
+    address.label,
+    `${address.fullName}, ${address.line1}`,
+    `${address.city} ${address.postalCode}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
 function Cart() {
-  const [combinedData, setCombinedData] = useState([]);
-  const [body, setBody] = useState();
   const dispatch = useDispatch();
   const cart = useSelector((state) => state.cart);
-  console.log(cart);
-
-  const fetchIndividualCombinedProduct = async () => {
-    const response = await axios.get(
-      `${import.meta.env.VITE_BASE_URL}/products/combined`
-    );
-    setCombinedData(response);
-  };
-
-  const handleClick = async () => {
-    try {
-      const productId = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/checkout/get-product-info`
-      );
-
-      const results = (description) => {
-        const productInfo = productId.data.data.find(
-          (item) => item.description === description
-        );
-        return productInfo;
-      };
-
-      let checkoutCart = [];
-      for (let i = 0; i < cart.products.length; i++) {
-        checkoutCart.push({});
-      }
-
-      for (let i = 0; i < cart.products.length; i++) {
-        checkoutCart[i].priceId = results(cart.products[i].description);
-        checkoutCart[i].quantity = cart.products[i].quantity;
-        checkoutCart[i].price = cart.products[i].price;
-      }
-
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/checkout/create-checkout-session`,
-        checkoutCart
-      );
-      window.location.assign(response.data.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+  const [user] = UserAuth();
+  const [addresses, setAddresses] = useState([]);
+  const [addressId, setAddressId] = useState("");
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [checkoutError, setCheckoutError] = useState("");
 
   useEffect(() => {
-    fetchIndividualCombinedProduct();
-  }, []);
+    if (!user.data) {
+      setAddresses([]);
+      setAddressId("");
+      return;
+    }
+    const fetchAddresses = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/account/addresses`
+        );
+        const saved = response.data.data;
+        setAddresses(saved);
+        setAddressId(saved.find((a) => a.isDefault)?._id || "");
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
+    fetchAddresses();
+  }, [user.data]);
+
+  const handleClick = async () => {
+    setCheckoutError("");
+    setCheckingOut(true);
+    try {
+      // Only ids and choices are sent; the server looks up current prices.
+      const items = cart.products.map((product) => ({
+        productId: product._id,
+        quantity: product.quantity,
+        size: product.size,
+        color: product.color,
+      }));
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/checkout/create-checkout-session`,
+        { items, ...(addressId && { addressId }) }
+      );
+      redirectTo(response.data.data);
+    } catch (err) {
+      console.log(err);
+      setCheckoutError(errorMessage(err, "Checkout failed, please try again"));
+      setCheckingOut(false);
+    }
+  };
   return (
     <Container>
       <Navbar />
@@ -717,8 +748,10 @@ function Cart() {
         </Top>
         <Bottom>
           <Info>
-            {cart.products.map((product) => (
-              <Product key={product?.id}>
+            {cart.products.map((product, index) => (
+              <Product
+                key={`${product?._id}-${product?.size}-${product?.color}-${index}`}
+              >
                 <ProductDetails>
                   <Image
                     src={`https://desmondecommercesite.s3.ap-southeast-1.amazonaws.com/${product.image}`}
@@ -767,7 +800,38 @@ function Cart() {
               <SummaryItemText>Total</SummaryItemText>
               <SummaryItemPrice>$ {cart.totalPrice}</SummaryItemPrice>
             </SummaryItem>
-            <SummaryButton onClick={handleClick}>Checkout Now</SummaryButton>
+            {user.data ? (
+              <ShipTo>
+                <label htmlFor="ship-to">Ship to</label>
+                <ShipToSelect
+                  id="ship-to"
+                  value={addressId}
+                  onChange={(e) => setAddressId(e.target.value)}
+                >
+                  <option value="">Enter address at checkout</option>
+                  {addresses.map((address) => (
+                    <option key={address._id} value={address._id}>
+                      {addressLabel(address)}
+                    </option>
+                  ))}
+                </ShipToSelect>
+                <Link to="/account?tab=addresses">Manage addresses</Link>
+              </ShipTo>
+            ) : (
+              <ShipTo>
+                <span>
+                  <Link to="/login">Log in</Link> to use saved addresses and
+                  track your orders.
+                </span>
+              </ShipTo>
+            )}
+            {checkoutError && <CheckoutError>{checkoutError}</CheckoutError>}
+            <SummaryButton
+              onClick={handleClick}
+              disabled={checkingOut || cart.products.length === 0}
+            >
+              {checkingOut ? "Redirecting to payment…" : "Checkout Now"}
+            </SummaryButton>
             <SummaryButton2 onClick={() => dispatch(resetCart())}>
               Reset Cart
             </SummaryButton2>
