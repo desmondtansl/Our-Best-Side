@@ -5,43 +5,32 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { resetCart } from "../redux/cartRedux";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
+import {
+  changeQuantity,
+  maxQuantity,
+  removeProduct,
+  resetCart,
+} from "../redux/cartRedux";
 import { UserAuth } from "../context/Auth";
-import { errorMessage } from "../utils/format";
+import { errorMessage, formatMoney } from "../utils/format";
 import { redirectTo } from "../utils/redirect";
 import { productImageUrl } from "../utils/products";
 
-const Container = styled.div``;
+// Full-height column so the footer sits at the bottom even when the cart is short.
+const Container = styled.div`
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+`;
 
 const Wrapper = styled.div`
+  flex: 1;
   padding: 20px;
 
   @media (max-width: 768px) {
-    padding: 16px;
-  }
-
-  @media (max-width: 540px) {
     padding: 12px;
-  }
-
-  @media (max-width: 414px) {
-    padding: 10px;
-  }
-
-  @media (max-width: 390px) {
-    padding: 10px;
-  }
-
-  @media (max-width: 375px) {
-    padding: 10px;
-  }
-
-  @media (max-width: 360px) {
-    padding: 10px;
-  }
-
-  @media (max-width: 280px) {
-    padding: 10px;
   }
 `;
 
@@ -52,30 +41,6 @@ const Title = styled.h1`
   @media (max-width: 768px) {
     font-size: 24px;
   }
-
-  @media (max-width: 540px) {
-    font-size: 18px;
-  }
-
-  @media (max-width: 414px) {
-    font-size: 16px;
-  }
-
-  @media (max-width: 390px) {
-    font-size: 16px;
-  }
-
-  @media (max-width: 375px) {
-    font-size: 16px;
-  }
-
-  @media (max-width: 360px) {
-    font-size: 16px;
-  }
-
-  @media (max-width: 280px) {
-    font-size: 16px;
-  }
 `;
 
 const Top = styled.div`
@@ -85,454 +50,177 @@ const Top = styled.div`
   padding: 20px;
 
   @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  @media (max-width: 540px) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  @media (max-width: 414px) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  @media (max-width: 390px) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  @media (max-width: 375px) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  @media (max-width: 360px) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  @media (max-width: 280px) {
-    flex-direction: column;
-    align-items: flex-start;
+    padding: 10px 0px;
   }
 `;
 
 const TopButton = styled.button`
   padding: 10px;
-  font-weight: 600;
   cursor: pointer;
-  border: ${(props) => props.type === "filled" && "none"};
-  background-color: ${(props) =>
-    props.type === "filled" ? "black" : "transparent"};
-  color: ${(props) => props.type === "filled" && "white"};
-
-  @media (max-width: 768px) {
-    width: 100%;
-    margin-top: 10px;
-  }
-
-  @media (max-width: 540px) {
-    width: 100%;
-    margin-top: 10px;
-  }
-
-  @media (max-width: 414px) {
-    width: 100%;
-    margin-top: 10px;
-  }
-
-  @media (max-width: 390px) {
-    width: 100%;
-    margin-top: 10px;
-  }
-
-  @media (max-width: 375px) {
-    width: 100%;
-    margin-top: 10px;
-  }
-
-  @media (max-width: 360px) {
-    width: 100%;
-    margin-top: 10px;
-  }
-
-  @media (max-width: 280px) {
-    width: 100%;
-    margin-top: 10px;
-  }
 `;
 
 const Bottom = styled.div`
   display: flex;
-  justify-content: space-between;
+  align-items: flex-start;
+  gap: 30px;
+  padding: 0px 20px;
 
   @media (max-width: 768px) {
     flex-direction: column;
-  }
-
-  @media (max-width: 540px) {
-    flex-direction: column;
-  }
-
-  @media (max-width: 414px) {
-    flex-direction: column;
-  }
-
-  @media (max-width: 390px) {
-    flex-direction: column;
-  }
-
-  @media (max-width: 375px) {
-    flex-direction: column;
-  }
-
-  @media (max-width: 360px) {
-    flex-direction: column;
-  }
-
-  @media (max-width: 280px) {
-    flex-direction: column;
+    padding: 0px;
   }
 `;
 
 const Info = styled.div`
   flex: 2;
-
-  @media (max-width: 768px) {
-    width: 100%;
-  }
-
-  @media (max-width: 540px) {
-    width: 100%;
-  }
-
-  @media (max-width: 414px) {
-    width: 100%;
-  }
-
-  @media (max-width: 390px) {
-    width: 100%;
-  }
-
-  @media (max-width: 375px) {
-    width: 100%;
-  }
-
-  @media (max-width: 360px) {
-    width: 100%;
-  }
-
-  @media (max-width: 280px) {
-    width: 100%;
-  }
+  width: 100%;
 `;
 
+// One cart line: photo | details | quantity | price, vertically centred.
 const Product = styled.div`
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr) auto 110px;
+  align-items: center;
+  column-gap: 24px;
+  padding: 20px 0px;
+  border-bottom: 0.5px solid lightgray;
+
+  &:first-child {
+    padding-top: 0px;
+  }
 
   @media (max-width: 768px) {
-    flex-direction: column;
-  }
-
-  @media (max-width: 540px) {
-    flex-direction: column;
-  }
-
-  @media (max-width: 414px) {
-    flex-direction: column;
-  }
-
-  @media (max-width: 390px) {
-    flex-direction: column;
-  }
-
-  @media (max-width: 375px) {
-    flex-direction: column;
-  }
-
-  @media (max-width: 360px) {
-    flex-direction: column;
-  }
-
-  @media (max-width: 280px) {
-    flex-direction: column;
+    grid-template-columns: 100px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "image details details"
+      "image qty price";
+    column-gap: 14px;
+    row-gap: 10px;
   }
 `;
 
-const ProductDetails = styled.div`
-  display: flex;
-  justify-content: start;
-  flex: 2;
-  margin: 20px;
+const Image = styled.img`
+  width: 140px;
+  height: 175px;
+  object-fit: cover;
 
   @media (max-width: 768px) {
-    width: 100%;
-    margin: 14px 0;
-  }
-
-  @media (max-width: 540px) {
-    width: 100%;
-    margin: 10px 0;
-  }
-
-  @media (max-width: 414px) {
-    width: 100%;
-    margin: 10px 0;
-  }
-
-  @media (max-width: 390px) {
-    width: 100%;
-    margin: 10px 0;
-  }
-
-  @media (max-width: 375px) {
-    width: 100%;
-    margin: 10px 0;
-  }
-
-  @media (max-width: 360px) {
-    width: 100%;
-    margin: 10px 0;
-  }
-
-  @media (max-width: 280px) {
-    width: 100%;
-    margin: 10px 0;
+    grid-area: image;
+    width: 100px;
+    height: 125px;
+    align-self: start;
   }
 `;
 
 const Details = styled.div`
   display: flex;
-  padding: 20px;
   flex-direction: column;
-  justify-content: space-around;
+  gap: 6px;
+  min-width: 0;
 
   @media (max-width: 768px) {
-    padding: 14px;
-  }
-
-  @media (max-width: 540px) {
-    padding: 12px;
-  }
-
-  @media (max-width: 414px) {
-    padding: 10px;
-  }
-
-  @media (max-width: 390px) {
-    padding: 10px;
-  }
-
-  @media (max-width: 375px) {
-    padding: 10px;
-  }
-
-  @media (max-width: 360px) {
-    padding: 10px;
-  }
-
-  @media (max-width: 280px) {
-    padding: 10px;
+    grid-area: details;
   }
 `;
 
-const Image = styled.img`
-  width: 400px;
+const ProductTitle = styled.span`
+  font-size: 18px;
+  font-weight: 500;
+`;
 
-  @media (max-width: 768px) {
-    width: 320px;
-  }
+const ProductAttribute = styled.span`
+  font-size: 14px;
+  font-weight: 300;
 
-  @media (max-width: 540px) {
-    width: 250px;
-  }
-
-  @media (max-width: 414px) {
-    width: 200px;
-  }
-
-  @media (max-width: 390px) {
-    width: 200px;
-  }
-
-  @media (max-width: 375px) {
-    width: 200px;
-  }
-
-  @media (max-width: 360px) {
-    width: 200px;
-  }
-
-  @media (max-width: 280px) {
-    width: 200px;
+  b {
+    font-weight: 500;
   }
 `;
 
-const ProductTitle = styled.span``;
+const UnitPrice = styled.span`
+  font-size: 14px;
+  font-weight: 300;
+`;
 
-const ProductColor = styled.span``;
+// Same style as the red "Delete" links on the account page.
+const RemoveButton = styled.button`
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 0px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: red;
+  text-decoration: underline;
+`;
 
-const ProductSize = styled.span``;
+const QtyControl = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
 
-const PriceDetails = styled.div`
-  flex: 1;
+  @media (max-width: 768px) {
+    grid-area: qty;
+  }
+`;
+
+const QtyButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  margin-right: 150px;
+  width: 30px;
+  height: 30px;
+  padding: 0px;
+  border: none;
+  background: none;
+  cursor: pointer;
 
-  @media (max-width: 768px) {
-    margin-right: 0;
-  }
-
-  @media (max-width: 540px) {
-    margin-right: 0;
-  }
-
-  @media (max-width: 414px) {
-    margin-right: 0;
-  }
-
-  @media (max-width: 390px) {
-    margin-right: 0;
-  }
-
-  @media (max-width: 375px) {
-    margin-right: 0;
-  }
-
-  @media (max-width: 360px) {
-    margin-right: 0;
-  }
-
-  @media (max-width: 280px) {
-    margin-right: 0;
+  &:disabled {
+    cursor: default;
+    opacity: 0.3;
   }
 `;
 
-const ProductQtyContainer = styled.div`
+// Same look as the quantity box on the product page.
+const Amount = styled.span`
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: 1px solid teal;
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  justify-content: center;
+  font-weight: 700;
 `;
 
-const ProductQty = styled.div`
-  font-size: 24px;
-  margin: 5px;
-
-  @media (max-width: 768px) {
-    font-size: 22px;
-    margin: 3px;
-  }
-
-  @media (max-width: 540px) {
-    font-size: 20px;
-    margin: 2px;
-  }
-
-  @media (max-width: 414px) {
-    font-size: 18px;
-    margin: 2px;
-  }
-
-  @media (max-width: 390px) {
-    font-size: 18px;
-    margin: 2px;
-  }
-
-  @media (max-width: 375px) {
-    font-size: 18px;
-    margin: 2px;
-  }
-
-  @media (max-width: 360px) {
-    font-size: 18px;
-    margin: 2px;
-  }
-
-  @media (max-width: 280px) {
-    font-size: 18px;
-    margin: 2px;
-  }
-`;
-
-const ProductPrice = styled.div`
-  font-size: 24px;
+const LinePrice = styled.div`
+  font-size: 22px;
   font-weight: 200;
+  text-align: right;
 
   @media (max-width: 768px) {
-    font-size: 22px;
-  }
-
-  @media (max-width: 540px) {
-    font-size: 20px;
-  }
-
-  @media (max-width: 414px) {
-    font-size: 18px;
-  }
-
-  @media (max-width: 390px) {
-    font-size: 18px;
-  }
-
-  @media (max-width: 375px) {
-    font-size: 18px;
-  }
-
-  @media (max-width: 360px) {
-    font-size: 18px;
-  }
-
-  @media (max-width: 280px) {
+    grid-area: price;
     font-size: 18px;
   }
 `;
 
-const Hr = styled.hr`
-  border: none;
-  height: 1px;
+const Empty = styled.div`
+  padding: 20px 0px;
+  font-size: 18px;
+  font-weight: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 `;
 
 const Summary = styled.div`
   flex: 1;
+  width: 100%;
+  box-sizing: border-box;
   border: 0.5px solid lightgray;
   border-radius: 10px;
   padding: 20px;
-  height: 50vh;
-
-  @media (max-width: 768px) {
-    height: auto;
-  }
-
-  @media (max-width: 540px) {
-    height: auto;
-  }
-
-  @media (max-width: 414px) {
-    height: auto;
-  }
-
-  @media (max-width: 390px) {
-    height: auto;
-  }
-
-  @media (max-width: 375px) {
-    height: auto;
-  }
-
-  @media (max-width: 360px) {
-    height: auto;
-  }
-
-  @media (max-width: 280px) {
-    height: auto;
-  }
 `;
 
 const SummaryItem = styled.div`
@@ -544,30 +232,6 @@ const SummaryItem = styled.div`
 
   @media (max-width: 768px) {
     font-size: ${(props) => props.type === "total" && "22px"};
-  }
-
-  @media (max-width: 540px) {
-    font-size: ${(props) => props.type === "total" && "20px"};
-  }
-
-  @media (max-width: 414px) {
-    font-size: ${(props) => props.type === "total" && "18px"};
-  }
-
-  @media (max-width: 390px) {
-    font-size: ${(props) => props.type === "total" && "18px"};
-  }
-
-  @media (max-width: 375px) {
-    font-size: ${(props) => props.type === "total" && "18px"};
-  }
-
-  @media (max-width: 360px) {
-    font-size: ${(props) => props.type === "total" && "18px"};
-  }
-
-  @media (max-width: 280px) {
-    font-size: ${(props) => props.type === "total" && "18px"};
   }
 `;
 
@@ -581,6 +245,7 @@ const SummaryItemText = styled.span`
 
 const SummaryItemPrice = styled.span`
   flex: 1;
+  text-align: right;
 `;
 
 const SummaryButton = styled.button`
@@ -591,32 +256,9 @@ const SummaryButton = styled.button`
   cursor: pointer;
   font-weight: 600;
 
-  @media (max-width: 768px) {
-    font-size: 20px;
-  }
-
-  @media (max-width: 540px) {
-    font-size: 18px;
-  }
-
-  @media (max-width: 414px) {
-    font-size: 18px;
-  }
-
-  @media (max-width: 390px) {
-    font-size: 18px;
-  }
-
-  @media (max-width: 375px) {
-    font-size: 18px;
-  }
-
-  @media (max-width: 360px) {
-    font-size: 18px;
-  }
-
-  @media (max-width: 280px) {
-    font-size: 18px;
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
   }
 `;
 
@@ -627,35 +269,7 @@ const SummaryButton2 = styled.button`
   color: black;
   cursor: pointer;
   font-weight: 600;
-  margin-top: 350px;
-
-  @media (max-width: 768px) {
-    font-size: 20px;
-  }
-
-  @media (max-width: 540px) {
-    font-size: 18px;
-  }
-
-  @media (max-width: 414px) {
-    font-size: 18px;
-  }
-
-  @media (max-width: 390px) {
-    font-size: 18px;
-  }
-
-  @media (max-width: 375px) {
-    font-size: 18px;
-  }
-
-  @media (max-width: 360px) {
-    font-size: 18px;
-  }
-
-  @media (max-width: 280px) {
-    font-size: 18px;
-  }
+  margin-top: 10px;
 `;
 
 const ShipTo = styled.div`
@@ -737,6 +351,17 @@ function Cart() {
       setCheckingOut(false);
     }
   };
+
+  const updateQuantity = (index, delta) => {
+    setCheckoutError("");
+    dispatch(changeQuantity({ index, delta }));
+  };
+
+  const removeItem = (index) => {
+    setCheckoutError("");
+    dispatch(removeProduct({ index }));
+  };
+
   return (
     <Container>
       <Navbar />
@@ -749,49 +374,69 @@ function Cart() {
         </Top>
         <Bottom>
           <Info>
+            {cart.products.length === 0 && (
+              <Empty>
+                <span>Your cart is empty.</span>
+                <Link to="/">Start shopping</Link>
+              </Empty>
+            )}
             {cart.products.map((product, index) => (
               <Product
                 key={`${product?._id}-${product?.size}-${product?.color}-${index}`}
+                data-testid="cart-item"
               >
-                <ProductDetails>
-                  <Image
-                    src={productImageUrl(product.image)}
-                  />
-                  <Details>
-                    <ProductTitle>
-                      <b>Product: </b>
-                      {product?.title}
-                    </ProductTitle>
-                    <ProductColor>
-                      <b>Color: </b>
-                      {product?.color}
-                    </ProductColor>
-                    <ProductSize>
-                      <b>Size: </b>
-                      {product?.size}
-                    </ProductSize>
-                  </Details>
-                </ProductDetails>
-                <PriceDetails>
-                  <ProductQtyContainer>
-                    <ProductQty>
-                      <b>Qty: </b>
-                      {product?.quantity}
-                    </ProductQty>
-                  </ProductQtyContainer>
-                  <ProductPrice>
-                    <b>Price: </b> $ {product?.price * product?.quantity}
-                  </ProductPrice>
-                </PriceDetails>
+                <Image src={productImageUrl(product.image)} alt={product.title} />
+                <Details>
+                  <ProductTitle>{product.title}</ProductTitle>
+                  {product.color && (
+                    <ProductAttribute>
+                      <b>Color:</b> {product.color}
+                    </ProductAttribute>
+                  )}
+                  {product.size && (
+                    <ProductAttribute>
+                      <b>Size:</b> {product.size}
+                    </ProductAttribute>
+                  )}
+                  <UnitPrice>{formatMoney(product.price)} each</UnitPrice>
+                  <RemoveButton
+                    type="button"
+                    aria-label={`Remove ${product.title} from cart`}
+                    onClick={() => removeItem(index)}
+                  >
+                    Remove
+                  </RemoveButton>
+                </Details>
+                <QtyControl>
+                  <QtyButton
+                    type="button"
+                    aria-label={`Decrease quantity of ${product.title}`}
+                    disabled={product.quantity <= 1}
+                    onClick={() => updateQuantity(index, -1)}
+                  >
+                    <RemoveIcon />
+                  </QtyButton>
+                  <Amount aria-label={`Quantity of ${product.title}`}>
+                    {product.quantity}
+                  </Amount>
+                  <QtyButton
+                    type="button"
+                    aria-label={`Increase quantity of ${product.title}`}
+                    disabled={product.quantity >= maxQuantity(product)}
+                    onClick={() => updateQuantity(index, 1)}
+                  >
+                    <AddIcon />
+                  </QtyButton>
+                </QtyControl>
+                <LinePrice>{formatMoney(product.price * product.quantity)}</LinePrice>
               </Product>
             ))}
           </Info>
-          <Hr />
           <Summary>
             <SummaryTitle>Order Summary</SummaryTitle>
             <SummaryItem>
               <SummaryItemText>Subtotal</SummaryItemText>
-              <SummaryItemPrice>$ {cart.totalPrice}</SummaryItemPrice>
+              <SummaryItemPrice>{formatMoney(cart.totalPrice)}</SummaryItemPrice>
             </SummaryItem>
             <SummaryItem>
               <SummaryItemText>Shipping</SummaryItemText>
@@ -799,7 +444,9 @@ function Cart() {
             </SummaryItem>
             <SummaryItem type="total">
               <SummaryItemText>Total</SummaryItemText>
-              <SummaryItemPrice>$ {cart.totalPrice}</SummaryItemPrice>
+              <SummaryItemPrice data-testid="cart-total">
+                {formatMoney(cart.totalPrice)}
+              </SummaryItemPrice>
             </SummaryItem>
             {user.data ? (
               <ShipTo>
@@ -833,9 +480,11 @@ function Cart() {
             >
               {checkingOut ? "Redirecting to payment…" : "Checkout Now"}
             </SummaryButton>
-            <SummaryButton2 onClick={() => dispatch(resetCart())}>
-              Reset Cart
-            </SummaryButton2>
+            {cart.products.length > 0 && (
+              <SummaryButton2 onClick={() => dispatch(resetCart())}>
+                Reset Cart
+              </SummaryButton2>
+            )}
           </Summary>
         </Bottom>
       </Wrapper>

@@ -2,7 +2,12 @@ import express from "express";
 import { body, validationResult } from "express-validator";
 import User from "../models/User.js";
 import Order from "../models/Order.js";
-import stripe, { ensureStripeCustomer } from "../stripe.js";
+import stripe, {
+  ensureStripeCustomer,
+  isStripeConfigured,
+  paymentErrorResponse,
+  paymentsNotConfigured,
+} from "../stripe.js";
 import checkAuth from "../middleware/checkAuth.js";
 
 const router = express.Router();
@@ -204,7 +209,7 @@ router.get("/orders", async (req, res) => {
 router.get("/payment-methods", async (req, res) => {
   try {
     const { stripeCustomerId } = req.account;
-    if (!stripeCustomerId) {
+    if (!stripeCustomerId || !isStripeConfigured()) {
       return res.status(200).json({ data: [], error: "" });
     }
     const methods = await stripe.paymentMethods.list({
@@ -222,11 +227,12 @@ router.get("/payment-methods", async (req, res) => {
       error: "",
     });
   } catch (error) {
-    return res.status(500).json({ data: "", error: error.message });
+    return paymentErrorResponse(res, error, "list saved cards");
   }
 });
 
 router.post("/payment-methods/setup-session", async (req, res) => {
+  if (!isStripeConfigured()) return paymentsNotConfigured(res);
   try {
     const customerId = await ensureStripeCustomer(req.account);
     const returnUrl = `${process.env.BASE_URL}/account?tab=payments`;
@@ -239,7 +245,7 @@ router.post("/payment-methods/setup-session", async (req, res) => {
     });
     return res.status(200).json({ data: session.url, error: "" });
   } catch (error) {
-    return res.status(500).json({ data: "", error: error.message });
+    return paymentErrorResponse(res, error, "start adding a card");
   }
 });
 
@@ -262,7 +268,7 @@ router.delete("/payment-methods/:paymentMethodId", async (req, res) => {
     await stripe.paymentMethods.detach(method.id);
     return res.status(200).json({ data: { id: method.id }, error: "" });
   } catch (error) {
-    return res.status(500).json({ data: "", error: error.message });
+    return paymentErrorResponse(res, error, "remove a card");
   }
 });
 

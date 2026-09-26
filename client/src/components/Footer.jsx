@@ -2,8 +2,10 @@ import styled from "styled-components";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import InstagramIcon from "@mui/icons-material/Instagram";
 
+// min-height (not height) so the footer grows to fit its content instead of
+// letting it spill below the page.
 const Container = styled.div`
-  height: 60px;
+  min-height: 60px;
 `;
 
 const Wrapper = styled.div`
