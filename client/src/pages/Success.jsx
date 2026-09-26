@@ -8,6 +8,7 @@ import Footer from "../components/Footer";
 import { resetCart } from "../redux/cartRedux";
 import { UserAuth } from "../context/Auth";
 import { formatMoney, orderNumber, STATUS_LABELS } from "../utils/format";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const MainContainer = styled.div`
   display: flex;
@@ -86,6 +87,7 @@ const POLL_ATTEMPTS = 5;
 const POLL_INTERVAL_MS = 2000;
 
 function Success() {
+  useDocumentTitle("Order Confirmed");
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get("session_id");

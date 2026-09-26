@@ -1,27 +1,32 @@
+// Homepage carousel slides. Images live in client/public/carousel (hosted with
+// the site, web-sized). Copy is kept evergreen so it doesn't go out of date;
+// edit freely for promotions.
 export const carouselPhotos = [
   {
     id: 1,
-    img: "https://images.pexels.com/photos/842811/pexels-photo-842811.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+    img: "/carousel/menswear.jpg",
+    alt: "Man in a black leather jacket",
     title: "STAY IN TREND",
-    description: "Browse our latest menswear collection",
+    description: "Leather, suede and everyday essentials for him",
     bg: "f5fafd",
     link: "/men",
   },
   {
     id: 2,
-    img: "https://images.pexels.com/photos/247298/pexels-photo-247298.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    title: "GET READY FOR SPRING",
-    description: "Prepare for spring with our latest designs",
+    img: "/carousel/dresses.jpg",
+    alt: "Woman in a blue floral dress",
+    title: "LIGHT & EASY",
+    description: "Printed dresses and rompers made for warm days",
     bg: "fcf1ed",
     link: "/ladies",
   },
   {
     id: 3,
-    img: "https://images.pexels.com/photos/1202446/pexels-photo-1202446.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    title: "NEW YEAR NEW ME",
-    description:
-      "Celebrate the Lunar New Year in style with our latest CNY collection",
-    bg: "fcf1ed",
-    link: "/ladies",
+    img: "/carousel/essentials.jpg",
+    alt: "Man in a white short-sleeve shirt",
+    title: "THE ESSENTIALS",
+    description: "Crisp shirts and tees that go with everything",
+    bg: "f5fafd",
+    link: "/men",
   },
 ];

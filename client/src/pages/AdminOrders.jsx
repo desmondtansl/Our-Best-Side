@@ -9,6 +9,7 @@ import {
   errorMessage,
   STATUS_LABELS,
 } from "../utils/format";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const Container = styled.div`
   padding: 20px;
@@ -59,6 +60,7 @@ const ADMIN_STATUSES = ["paid", "processing", "shipped", "delivered", "cancelled
 const API = () => `${import.meta.env.VITE_BASE_URL}/admin/orders`;
 
 function AdminOrders() {
+  useDocumentTitle("Orders");
   const [orders, setOrders] = useState(null);
   const [filter, setFilter] = useState("");
   const [error, setError] = useState("");

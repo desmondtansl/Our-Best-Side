@@ -10,6 +10,7 @@ import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import User from "../models/User.js";
 import optionalAuth from "../middleware/optionalAuth.js";
+import { findStockProblem } from "../inventory.js";
 import { signedImageUrl, isValidImageKey } from "../s3.js";
 
 const router = express.Router();
@@ -100,6 +101,9 @@ router.post("/create-checkout-session", optionalAuth, async (req, res) => {
         quantity: item.quantity,
       });
     }
+
+    const stockProblem = findStockProblem(orderItems, productsById);
+    if (stockProblem) return badRequest(res, stockProblem);
 
     const user = req.user ? await User.findOne({ email: req.user }) : null;
 

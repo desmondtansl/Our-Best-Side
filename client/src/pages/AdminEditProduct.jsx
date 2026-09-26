@@ -4,6 +4,7 @@ import axios from "axios";
 import { Link, useParams } from "react-router-dom";
 import BackToDashboard from "../components/BackToDashboard";
 import { toOptions } from "../utils/products";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const Container = styled.div`
   display: flex;
@@ -103,6 +104,7 @@ const ProductQtyHeader = styled.p`
 `;
 
 function AdminEditProduct() {
+  useDocumentTitle("Edit Product");
   const [data, setData] = useState({});
   const { params } = useParams();
   // Fields stay undefined until edited, so untouched fields are not sent

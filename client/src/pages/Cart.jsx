@@ -17,6 +17,8 @@ import { UserAuth } from "../context/Auth";
 import { errorMessage, formatMoney } from "../utils/format";
 import { redirectTo } from "../utils/redirect";
 import { productImageUrl } from "../utils/products";
+import { DELIVERY } from "../config/store";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 // Full-height column so the footer sits at the bottom even when the cart is short.
 const Container = styled.div`
@@ -300,6 +302,7 @@ const addressLabel = (address) =>
     .join(" · ");
 
 function Cart() {
+  useDocumentTitle("Your Cart");
   const dispatch = useDispatch();
   const cart = useSelector((state) => state.cart);
   const [user] = UserAuth();
@@ -440,7 +443,7 @@ function Cart() {
             </SummaryItem>
             <SummaryItem>
               <SummaryItemText>Shipping</SummaryItemText>
-              <SummaryItemPrice>Free</SummaryItemPrice>
+              <SummaryItemPrice>{DELIVERY.cartLabel}</SummaryItemPrice>
             </SummaryItem>
             <SummaryItem type="total">
               <SummaryItemText>Total</SummaryItemText>

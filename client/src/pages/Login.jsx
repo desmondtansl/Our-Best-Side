@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { UserAuth } from "../context/Auth";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const Container = styled.div`
   overflow: hidden;
@@ -91,6 +92,7 @@ const InfoContainer = styled.div``;
 const SpareContainer = styled.div``;
 
 function Login() {
+  useDocumentTitle("Login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
