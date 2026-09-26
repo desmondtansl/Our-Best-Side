@@ -124,6 +124,12 @@ describe("AdminEditProduct", () => {
     expect(sentFormData().get("featured")).toBe("true");
   });
 
+  it("links back to the dashboard and to search", async () => {
+    await renderPage();
+    expect(screen.getByText("← Back to Dashboard")).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByText("← Back to search")).toHaveAttribute("href", "/search");
+  });
+
   it("does not require an image to submit", async () => {
     const { container } = await renderPage();
     expect(container.querySelector("#image")).not.toBeRequired();

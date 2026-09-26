@@ -49,9 +49,9 @@ describe("ProductDetails", () => {
 
     expect(await screen.findByText("Suede Loafers")).toBeInTheDocument();
     expect(screen.getByText("$250")).toBeInTheDocument();
-    expect(screen.getByAltText("Suede Loafers")).toHaveAttribute(
-      "src",
-      "https://desmondecommercesite.s3.ap-southeast-1.amazonaws.com/loafers-key"
+    // Images go through the API, which redirects to a signed S3 link.
+    expect(screen.getByAltText("Suede Loafers").getAttribute("src")).toMatch(
+      /\/products\/image\/loafers-key$/
     );
     expect(axios.get.mock.calls[0][0]).toMatch(/\/products\/men\/p1$/);
   });

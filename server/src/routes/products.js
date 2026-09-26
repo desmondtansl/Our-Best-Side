@@ -4,7 +4,7 @@ import Product from "../models/Product.js";
 import multer from "multer";
 import checkAuth from "../middleware/checkAuth.js";
 import requireAdmin from "../middleware/requireAdmin.js";
-import { uploadImageToS3 } from "../s3.js";
+import { uploadImageToS3, signedImageUrl, isValidImageKey } from "../s3.js";
 import { parseProductFields } from "../productFields.js";
 
 const router = express.Router();
@@ -92,6 +92,26 @@ router.get("/featured", async (req, res) => {
   try {
     const products = await listProducts({ featured: true }).limit(FEATURED_LIMIT);
     res.status(200).json({ data: products, error: "" });
+  } catch (error) {
+    return serverError(res, error);
+  }
+});
+
+// PRODUCT IMAGE
+// Redirects to a short-lived signed S3 link, so the bucket can stay private.
+// Browsers cache the redirect for a little less than the link's lifetime.
+
+const IMAGE_LINK_SECONDS = 3600;
+
+router.get("/image/:key", async (req, res) => {
+  try {
+    const { key } = req.params;
+    if (!isValidImageKey(key)) {
+      return res.status(404).json({ data: "", error: "Image not found" });
+    }
+    const url = await signedImageUrl(key, IMAGE_LINK_SECONDS);
+    res.set("Cache-Control", `public, max-age=${IMAGE_LINK_SECONDS - 300}`);
+    return res.redirect(302, url);
   } catch (error) {
     return serverError(res, error);
   }

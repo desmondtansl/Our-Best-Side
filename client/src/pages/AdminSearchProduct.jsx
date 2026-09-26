@@ -2,6 +2,7 @@ import axios from "axios";
 import { useState } from "react";
 import styled from "styled-components";
 import { NavLink } from "react-router-dom";
+import BackToDashboard from "../components/BackToDashboard";
 
 const Container = styled.div`
   display: flex;
@@ -81,6 +82,7 @@ function AdminSearchProduct() {
   return (
     <Container>
       <Wrapper>
+        <BackToDashboard />
         <Title>Search Database</Title>
         <Form onSubmit={handleSubmit}>
           <TitleHeader>Search Products</TitleHeader>

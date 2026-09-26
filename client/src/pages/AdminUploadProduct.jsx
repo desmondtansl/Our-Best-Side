@@ -1,6 +1,10 @@
 import axios from "axios";
 import styled from "styled-components";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import BackToDashboard from "../components/BackToDashboard";
+import { errorMessage } from "../utils/format";
+import { productPath } from "../utils/products";
 
 const Container = styled.div`
   display: flex;
@@ -89,36 +93,56 @@ const FeaturedLabel = styled.label`
   margin: 14px 0px;
 `;
 
+const StatusMessage = styled.p`
+  font-size: 14px;
+  color: ${(props) => (props.error ? "red" : "teal")};
+`;
+
 const ProductQtyHeader = styled.p`
   font-size: 14px;
   font-weight: 600;
 `;
 
 function AdminUploadProduct() {
-  const [upload, setUpload] = useState();
+  const formRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  // { type: "success", product } or { type: "error", text }
+  const [status, setStatus] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setStatus(null);
+    setUploading(true);
 
-    const form = document.getElementById("form");
+    const form = formRef.current;
     const formData = new FormData(form);
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/products/upload`,
         formData
       );
-      console.log(response);
-      alert("Product has been successfully uploaded");
+      // Start the next product with an empty form.
+      form.reset();
+      setStatus({ type: "success", product: response.data.data });
     } catch (error) {
-      console.log(error.message);
+      setStatus({ type: "error", text: errorMessage(error, "Upload failed") });
+    } finally {
+      setUploading(false);
     }
   };
 
   return (
     <Container>
       <Wrapper>
+        <BackToDashboard />
         <Title>Product Upload Form</Title>
-        <Form onSubmit={handleSubmit} encType="multipart/form-data" id="form">
+        <Form
+          ref={formRef}
+          onSubmit={handleSubmit}
+          encType="multipart/form-data"
+          id="form"
+          aria-label="Product upload form"
+        >
           <TitleHeader>Enter Product Title</TitleHeader>
           <Input
             type="text"
@@ -178,9 +202,20 @@ function AdminUploadProduct() {
             <input type="checkbox" name="featured" value="true" />
             Featured on homepage
           </FeaturedLabel>
-          <Button onClick={(e) => setUpload(e.target.value)} type="submit">
-            Upload Product
+          <Button type="submit" disabled={uploading}>
+            {uploading ? "Uploading…" : "Upload Product"}
           </Button>
+          {status?.type === "success" && (
+            <StatusMessage role="status">
+              "{status.product.title}" was uploaded.{" "}
+              <Link to={productPath(status.product)}>View product</Link>
+            </StatusMessage>
+          )}
+          {status?.type === "error" && (
+            <StatusMessage role="alert" error>
+              {status.text}
+            </StatusMessage>
+          )}
         </Form>
       </Wrapper>
     </Container>

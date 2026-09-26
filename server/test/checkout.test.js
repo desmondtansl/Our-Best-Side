@@ -81,9 +81,13 @@ describe("checkout", () => {
         params.line_items[0].price_data.product_data.description,
         "Size: US 9, Color: Brown"
       );
-      assert.deepEqual(params.line_items[0].price_data.product_data.images, [
-        "https://test-bucket.s3.ap-southeast-1.amazonaws.com/loafers-key",
-      ]);
+      const [image] = params.line_items[0].price_data.product_data.images;
+      assert.ok(
+        image.startsWith("https://test-bucket.s3.ap-southeast-1.amazonaws.com/loafers-key?"),
+        image
+      );
+      assert.match(image, /X-Amz-Signature=/);
+      assert.match(image, /X-Amz-Expires=86400/);
       assert.equal(
         params.success_url,
         "https://shop.example.com/success?session_id={CHECKOUT_SESSION_ID}"
