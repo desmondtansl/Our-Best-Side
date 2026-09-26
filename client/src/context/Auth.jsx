@@ -14,6 +14,9 @@ export const UserProvider = ({ children }) => {
 
   if (token) {
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  } else {
+    // After logout, stop sending the old token (e.g. at checkout).
+    delete axios.defaults.headers.common["Authorization"];
   }
 
   const fetchUser = async () => {

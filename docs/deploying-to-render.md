@@ -13,9 +13,12 @@ The React frontend is hosted on Netlify. The Express API in `server/` runs as a 
    |----------|-----------------|
    | `MONGO_URI` | Atlas → cluster **OurBestSide** → **Connect** → **Drivers**. Use the format in `server/.env.example`, with the real password and `/ourbestside` before the `?`. |
    | `STRIPE_PRIVATE_KEY` | Stripe dashboard → Developers → API keys (use the test key `sk_test_...`) |
+   | `STRIPE_WEBHOOK_SECRET` | See [Stripe webhook](#stripe-webhook) below (`whsec_...`) |
    | `AWS_ACCESS_KEY_ID`, `AWS_ACCESS_KEY_SECRET` | AWS IAM user with access to the `desmondecommercesite` S3 bucket |
 
-   `JWT_SECRET` is generated automatically. `BASE_URL`, `BUCKET_NAME` and `AWS_REGION` are set in `render.yaml`.
+   `JWT_SECRET` is generated automatically. `BASE_URL`, `BUCKET_NAME`, `AWS_REGION`, `CURRENCY` and `SHIPPING_COUNTRIES` are set in `render.yaml`.
+
+   If the service already existed before a variable was added to `render.yaml`, add it by hand: **ourbestside-api** → **Environment** → **Add Environment Variable**. Render only prompts for `sync: false` values when a Blueprint is first applied.
 4. Wait for the deploy to finish. The logs should show `Connected to mongoDB` and `Now listening to port ...`.
 5. Copy the service URL, e.g. `https://ourbestside-api.onrender.com`.
 
@@ -25,6 +28,32 @@ The React frontend is hosted on Netlify. The Express API in `server/` runs as a 
 2. Set **Key** `VITE_BASE_URL` and **Value** to the Render URL, with no trailing slash.
 3. **Deploys** → **Trigger deploy** → **Clear cache and deploy site**.
    Vite bakes `VITE_*` values in at build time, so a redeploy is required.
+
+## Stripe webhook
+
+Orders are recorded as **paid** only when Stripe calls the backend's webhook. Without it, checkout still takes payment, but orders stay "Awaiting payment" and never show up in order history.
+
+1. Stripe dashboard (in **Test mode**) → **Developers** → **Webhooks** → **Add endpoint**.
+2. **Endpoint URL:** `https://<your-render-service>.onrender.com/checkout/webhook`
+3. **Events to send:**
+   - `checkout.session.completed`
+   - `checkout.session.async_payment_succeeded`
+   - `checkout.session.expired`
+4. Save, then click **Reveal** under **Signing secret** and copy the `whsec_...` value.
+5. On Render, set `STRIPE_WEBHOOK_SECRET` to that value and save. The service redeploys.
+6. Test: make a purchase with card `4242 4242 4242 4242`, any future expiry and any CVC. The order should appear under **Account → Orders** as **Paid**, and in **Dashboard → Manage Orders**.
+
+Test mode and live mode have separate endpoints and secrets. When you switch to live keys, create the endpoint again in live mode.
+
+### Testing locally
+
+Install the [Stripe CLI](https://docs.stripe.com/stripe-cli), then run:
+
+```bash
+stripe listen --forward-to localhost:8000/checkout/webhook
+```
+
+Put the `whsec_...` it prints into `server/.env` as `STRIPE_WEBHOOK_SECRET`.
 
 ## MongoDB Atlas checklist
 

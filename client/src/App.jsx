@@ -9,10 +9,13 @@ import UploadProduct from "./pages/AdminUploadProduct.jsx";
 import SearchProduct from "./pages/AdminSearchProduct.jsx";
 import EditProduct from "./pages/AdminEditProduct.jsx";
 import Dashboard from "./pages/AdminDashboard.jsx";
+import AdminOrders from "./pages/AdminOrders.jsx";
 import IndividualMenProduct from "./pages/IndividualMenProduct.jsx";
 import IndividualLadiesProduct from "./pages/IndividualLadiesProduct.jsx";
+import Account from "./pages/Account.jsx";
 import { UserAuth } from "./context/Auth.jsx";
 import ProtectedRoutes from "./routes/ProtectedRoutes.jsx";
+import UserRoutes from "./routes/UserRoutes.jsx";
 import Success from "./pages/Success.jsx";
 
 function App() {
@@ -29,11 +32,15 @@ function App() {
       <Route path="/success" element={<Success />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/login" element={<Login />} />
+      <Route element={<UserRoutes />}>
+        <Route path="/account" element={<Account />} />
+      </Route>
       <Route element={<ProtectedRoutes />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/upload" element={<UploadProduct />} />
         <Route path="/search" element={<SearchProduct />} />
         <Route path="/search/:params" element={<EditProduct />} />
+        <Route path="/admin/orders" element={<AdminOrders />} />
       </Route>
     </Routes>
   );

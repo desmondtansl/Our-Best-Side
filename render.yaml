@@ -21,6 +21,14 @@ services:
         generateValue: true
       - key: STRIPE_PRIVATE_KEY
         sync: false
+      # Signing secret of the Stripe webhook endpoint (whsec_...).
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: CURRENCY
+        value: sgd
+      # Comma-separated ISO country codes Stripe Checkout accepts for shipping.
+      - key: SHIPPING_COUNTRIES
+        value: SG
       - key: BASE_URL
         value: https://ourbestside.netlify.app
       - key: BUCKET_NAME
