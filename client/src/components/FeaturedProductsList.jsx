@@ -1,6 +1,9 @@
-import { featuredProducts } from "../assets/featuredProductsPhotos.js";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import styled from "styled-components";
 import SingleFeaturedProduct from "./SingleFeaturedProduct.jsx";
+import FeaturedProductsHeader from "./FeaturedProductsHeader.jsx";
+import { productImageUrl, productPath } from "../utils/products";
 
 const Container = styled.div`
   display: flex;
@@ -82,15 +85,46 @@ const ProductContainer = styled.div`
   display: flex;
 `;
 
+// Products marked "Featured on homepage" in the admin dashboard.
 function FeaturedProducts() {
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/products/featured`
+        );
+        setItems(
+          response.data.data.map((product) => ({
+            id: product._id,
+            img: productImageUrl(product.image),
+            text: product.title,
+            price: `$${product.price}`,
+            page: productPath(product),
+          }))
+        );
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
+    fetchFeatured();
+  }, []);
+
+  // Hide the whole section (header included) until there is something to show.
+  if (items.length === 0) return null;
+
   return (
-    <Container>
-      {featuredProducts.map((item) => (
-        <ProductContainer item={item} key={item.id}>
-          <SingleFeaturedProduct item={item} />
-        </ProductContainer>
-      ))}
-    </Container>
+    <>
+      <FeaturedProductsHeader />
+      <Container>
+        {items.map((item) => (
+          <ProductContainer item={item} key={item.id}>
+            <SingleFeaturedProduct item={item} />
+          </ProductContainer>
+        ))}
+      </Container>
+    </>
   );
 }
 

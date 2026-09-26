@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import { toOptions } from "../utils/products";
 
 const Container = styled.div`
   display: flex;
@@ -86,6 +87,15 @@ const ProductPricesHeader = styled.p`
   font-weight: 600;
 `;
 
+const FeaturedLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 14px 0px;
+`;
+
 const ProductQtyHeader = styled.p`
   font-size: 14px;
   font-weight: 600;
@@ -104,6 +114,7 @@ function AdminEditProduct() {
   const [color, setColor] = useState();
   const [price, setPrice] = useState();
   const [inStock, setInStock] = useState();
+  const [featured, setFeatured] = useState();
   const [editedProduct, setEditedProduct] = useState("");
 
   const fetchProduct = async () => {
@@ -117,13 +128,15 @@ function AdminEditProduct() {
     fetchProduct();
   }, []);
 
-  const stringSplitter = (value) => {
-    return value.toString().split(/[,\s]+/);
-  };
+  // "US 8, US 9" -> ["US 8", "US 9"]: split on commas only.
+  const stringSplitter = (value) => toOptions(value);
+
+  // Show saved lists as editable text, e.g. ["S", "M"] -> "S, M".
+  const listText = (value) => toOptions(value).join(", ");
 
   const editProduct = async () => {
     const formData = new FormData();
-    const fields = { title, description, price, inStock };
+    const fields = { title, description, price, inStock, featured };
     for (const [key, value] of Object.entries(fields)) {
       if (value !== undefined) formData.append(key, value);
     }
@@ -188,7 +201,7 @@ function AdminEditProduct() {
           </ImageContainer>
           <ProductCategoryHeader>Edit Product Category</ProductCategoryHeader>
           <Input
-            defaultValue={data?.data?.category}
+            defaultValue={data?.data ? listText(data.data.category) : undefined}
             name="category"
             id="category"
             required
@@ -197,7 +210,7 @@ function AdminEditProduct() {
           />
           <ProductSizesHeader>Edit Product Sizes</ProductSizesHeader>
           <Input
-            defaultValue={data?.data?.size}
+            defaultValue={data?.data ? listText(data.data.size) : undefined}
             name="size"
             id="size"
             required
@@ -206,7 +219,7 @@ function AdminEditProduct() {
           />
           <ProductColorsHeader>Edit Product Colors</ProductColorsHeader>
           <Input
-            defaultValue={data?.data?.color}
+            defaultValue={data?.data ? listText(data.data.color) : undefined}
             name="color"
             required
             id="color"
@@ -231,6 +244,15 @@ function AdminEditProduct() {
             placeholder="enter ONLY numbers"
             onChange={(e) => setInStock(e.target.value)}
           />
+          <FeaturedLabel>
+            <input
+              type="checkbox"
+              name="featured"
+              checked={featured ?? Boolean(data?.data?.featured)}
+              onChange={(e) => setFeatured(e.target.checked)}
+            />
+            Featured on homepage
+          </FeaturedLabel>
           <Button type="submit">Edit Product</Button>
           {/* {editedProduct && (
             <SuccessContainer>Product Successfully Edited</SuccessContainer>

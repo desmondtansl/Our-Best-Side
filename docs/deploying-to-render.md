@@ -55,6 +55,52 @@ stripe listen --forward-to localhost:8000/checkout/webhook
 
 Put the `whsec_...` it prints into `server/.env` as `STRIPE_WEBHOOK_SECRET`.
 
+## Products and images (S3)
+
+**Access keys.** Render needs `AWS_ACCESS_KEY_ID` and `AWS_ACCESS_KEY_SECRET` for an IAM user limited to the bucket. Recommended inline policy:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:PutObject", "s3:GetObject"],
+      "Resource": "arn:aws:s3:::desmondecommercesite/*"
+    }
+  ]
+}
+```
+
+An old secret key can't be recovered or paired with a new key ID. If it's lost, create a new access key under **IAM → Users → Security credentials**.
+
+**Public images.** The site loads product images directly from `https://desmondecommercesite.s3.ap-southeast-1.amazonaws.com/<key>`, so the bucket must allow public reads. If images don't show:
+1. Check the bucket's **Permissions** tab: **Block public access** must allow a bucket policy.
+2. The bucket policy should let anyone read objects:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::desmondecommercesite/*"
+    }
+  ]
+}
+```
+
+**Restoring products.** An empty database means blank product pages. Run the seed script from your computer; it recreates the 8 featured products. See `docs/product-catalogue.md`.
+
+```bash
+npm run seed -w server -- --dry-run
+npm run seed -w server
+```
+
+**Costs.** A few MB of images costs well under $0.01 a month in S3. Set up **Billing → Budgets → Zero spend budget** to get an email if anything starts charging.
+
 ## MongoDB Atlas checklist
 
 - **Network Access** must include `0.0.0.0/0`. Render's free services don't have fixed outbound IPs.
