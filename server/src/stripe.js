@@ -8,6 +8,16 @@ const stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY);
 
 export const isStripeConfigured = () => Boolean(process.env.STRIPE_PRIVATE_KEY);
 
+// Link to an order's payment in the Stripe Dashboard, where it can be
+// refunded. Test keys link to the Dashboard's test mode. Without a payment id
+// (e.g. an order from before payment ids were saved) it opens the payments
+// list instead.
+export const stripePaymentUrl = (paymentIntentId) => {
+  const testMode = /^(sk|rk)_test_/.test(process.env.STRIPE_PRIVATE_KEY || "");
+  const base = `https://dashboard.stripe.com${testMode ? "/test" : ""}/payments`;
+  return paymentIntentId ? `${base}/${encodeURIComponent(paymentIntentId)}` : base;
+};
+
 // Customers shouldn't see Stripe's internal messages (they can mention API
 // keys and account settings). Log the details for the site owner and return a
 // plain message instead.

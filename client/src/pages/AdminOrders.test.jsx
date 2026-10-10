@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import axios from "axios";
 import AdminOrders from "./AdminOrders";
@@ -20,6 +20,7 @@ const order = {
   subtotal: 250,
   items: [{ title: "Suede Loafers", size: "US 9", price: 250, quantity: 1 }],
   shippingAddress: { name: "Guest", line1: "10 Bayfront Ave", city: "Singapore", country: "SG" },
+  stripeUrl: "https://dashboard.stripe.com/test/payments/pi_123",
 };
 
 const renderPage = (url = "/admin/orders") =>
@@ -93,6 +94,11 @@ describe("AdminOrders", () => {
       expect(dialog).toHaveTextContent("The customer is not refunded automatically");
       expect(dialog).toHaveTextContent("$250.00");
       expect(dialog).toHaveTextContent("The item in it goes back in stock straight away.");
+      // A link to the payment in Stripe, opening in a new tab so the pop-up stays.
+      const stripe = screen.getByRole("link", { name: "Open this payment in Stripe ↗" });
+      expect(stripe).toHaveAttribute("href", "https://dashboard.stripe.com/test/payments/pi_123");
+      expect(stripe).toHaveAttribute("target", "_blank");
+      expect(stripe).toHaveAttribute("rel", "noopener noreferrer");
       // The safe choice has focus, and the order is untouched until confirmed.
       expect(screen.getByRole("button", { name: "No, keep order" })).toHaveFocus();
       expect(select).toHaveValue("paid");
@@ -132,7 +138,25 @@ describe("AdminOrders", () => {
       expect(axios.patch).toHaveBeenCalledTimes(1);
       expect(axios.patch.mock.calls[0][1]).toEqual({ status: "cancelled" });
       expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
-      expect(screen.getByRole("cell", { name: "Cancelled" })).toBeInTheDocument();
+      expect(within(screen.getByRole("table")).getByText("Cancelled")).toBeInTheDocument();
+
+      // A reminder to refund stays on the page, with the Stripe link, until dismissed.
+      const reminder = screen.getByRole("status");
+      expect(reminder).toHaveTextContent("Order #ABCD1234 is cancelled.");
+      expect(reminder).toHaveTextContent("Don't forget to refund $250.00 to the customer");
+      expect(
+        within(reminder).getByRole("link", { name: "Open this payment in Stripe ↗" })
+      ).toHaveAttribute("href", "https://dashboard.stripe.com/test/payments/pi_123");
+      fireEvent.click(screen.getByRole("button", { name: "Dismiss refund reminder" }));
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    });
+
+    it("doesn't show the refund reminder if cancelling fails", async () => {
+      axios.patch.mockRejectedValue({ response: { data: { error: "Order not found" } } });
+      await chooseCancelled();
+      fireEvent.click(screen.getByRole("button", { name: "Yes, cancel order" }));
+      expect(await screen.findByText("Order not found")).toBeInTheDocument();
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
     });
 
     it("never asks again when choosing other statuses", async () => {
@@ -151,6 +175,9 @@ describe("AdminOrders", () => {
     renderPage();
     await screen.findByText("#ABCD1234");
     expect(screen.queryByLabelText("Status for order ABCD1234")).not.toBeInTheDocument();
-    expect(screen.getByRole("cell", { name: "Cancelled" })).toBeInTheDocument();
+    expect(within(screen.getByRole("table")).getByText("Cancelled")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Payment for order ABCD1234 in Stripe" })
+    ).toHaveAttribute("href", "https://dashboard.stripe.com/test/payments/pi_123");
   });
 });

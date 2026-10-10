@@ -4,6 +4,7 @@ import Order, { ORDER_STATUSES } from "../models/Order.js";
 import checkAuth from "../middleware/checkAuth.js";
 import requireAdmin from "../middleware/requireAdmin.js";
 import { adjustStock } from "../inventory.js";
+import { stripePaymentUrl } from "../stripe.js";
 
 const router = express.Router();
 
@@ -11,6 +12,12 @@ const router = express.Router();
 const ADMIN_STATUSES = ORDER_STATUSES.filter((status) => status !== "pending");
 
 router.use(checkAuth, requireAdmin);
+
+// Each order also carries the link to its payment in the Stripe Dashboard.
+const withStripeUrl = (order) => ({
+  ...order.toJSON(),
+  stripeUrl: stripePaymentUrl(order.stripePaymentIntentId),
+});
 
 // LIST ORDERS (optionally filtered by status, or several statuses separated
 // by commas, e.g. "paid,processing" for orders waiting to ship)
@@ -26,7 +33,7 @@ router.get("/", async (req, res) => {
     )
       .sort({ createdAt: -1 })
       .limit(200);
-    return res.status(200).json({ data: orders, error: "" });
+    return res.status(200).json({ data: orders.map(withStripeUrl), error: "" });
   } catch (error) {
     return res.status(400).json({ data: "", error: error.message });
   }
@@ -69,7 +76,7 @@ router.patch("/:orderId", async (req, res) => {
       await adjustStock(previous.items, 1);
     }
     const order = await Order.findById(orderId);
-    return res.status(200).json({ data: order, error: "" });
+    return res.status(200).json({ data: withStripeUrl(order), error: "" });
   } catch (error) {
     return res.status(400).json({ data: "", error: error.message });
   }

@@ -67,6 +67,20 @@ const Details = styled.ul`
   padding-left: 20px;
 `;
 
+// The refund reminder, with the link to the payment in Stripe.
+const Refund = styled.div`
+  padding: 12px 16px;
+  border: 0.5px solid lightgray;
+  border-radius: 10px;
+  background-color: #f8f4f4;
+`;
+
+const StripeLink = styled.a`
+  display: inline-block;
+  margin-top: 6px;
+  font-weight: 700;
+`;
+
 const Buttons = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -110,8 +124,8 @@ function CancelOrderDialog({ order, onConfirm, onClose }) {
   const { close } = useCloseOnBack(open, (value) => {
     if (!value) onClose();
   });
-  // "Keep order" comes first, so it has focus when the pop-up opens and
-  // pressing Enter straight away never cancels anything.
+  // "Keep order" has focus when the pop-up opens, so pressing Enter straight
+  // away never cancels anything.
   const trapFocus = useModal(open, { onClose: close, containerRef: dialogRef });
 
   if (!order) return null;
@@ -141,13 +155,17 @@ function CancelOrderDialog({ order, onConfirm, onClose }) {
             cancelled by mistake, the customer will need to order again.
           </li>
           <li>{itemsBackInStock(order)}</li>
-          <li>
-            <strong>The customer is not refunded automatically.</strong> Refund{" "}
-            {formatMoney(order.subtotal, order.currency)} in Stripe → Payments.
-          </li>
         </Details>
+        <Refund>
+          <strong>The customer is not refunded automatically.</strong> Refund{" "}
+          {formatMoney(order.subtotal, order.currency)} in Stripe.
+          <br />
+          <StripeLink href={order.stripeUrl} target="_blank" rel="noopener noreferrer">
+            Open this payment in Stripe ↗
+          </StripeLink>
+        </Refund>
         <Buttons>
-          <KeepButton type="button" onClick={close}>
+          <KeepButton type="button" data-autofocus onClick={close}>
             No, keep order
           </KeepButton>
           <CancelButton

@@ -135,6 +135,36 @@ describe("admin order routes", () => {
     assert.equal((await Product.findById(tee.id)).inStock, 3);
   });
 
+  it("links each order to its payment in the Stripe Dashboard", async () => {
+    const paid = await Order.create({ ...base, status: "paid", stripePaymentIntentId: "pi_123" });
+    await Order.create({ ...base, status: "paid" }); // no payment id saved
+    const list = await request(app)
+      .get("/admin/orders")
+      .set("Authorization", `Bearer ${adminToken}`);
+    const urls = Object.fromEntries(list.body.data.map((o) => [o._id, o.stripeUrl]));
+    // The tests use a test key, so links open the Dashboard's test mode.
+    assert.equal(urls[paid.id], "https://dashboard.stripe.com/test/payments/pi_123");
+    assert.ok(Object.values(urls).includes("https://dashboard.stripe.com/test/payments"));
+
+    // Also after a status change, so the page can link to it straight away.
+    const shipped = await request(app)
+      .patch(`/admin/orders/${paid.id}`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ status: "shipped" });
+    assert.equal(shipped.body.data.stripeUrl, "https://dashboard.stripe.com/test/payments/pi_123");
+  });
+
+  it("links to the live Dashboard with a live key", async () => {
+    const { stripePaymentUrl } = await import("../src/stripe.js");
+    const key = process.env.STRIPE_PRIVATE_KEY;
+    process.env.STRIPE_PRIVATE_KEY = "sk_live_dummy";
+    try {
+      assert.equal(stripePaymentUrl("pi_9"), "https://dashboard.stripe.com/payments/pi_9");
+    } finally {
+      process.env.STRIPE_PRIVATE_KEY = key;
+    }
+  });
+
   it("does not let non-admins change status", async () => {
     const order = await Order.create({ ...base, status: "paid" });
     const res = await request(app)

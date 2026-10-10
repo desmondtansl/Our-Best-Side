@@ -57,6 +57,41 @@ const ErrorText = styled.p`
   color: red;
 `;
 
+// Shown after an order is cancelled, until dismissed, so the refund isn't
+// forgotten once the pop-up closes.
+const RefundReminder = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0px;
+  padding: 12px 16px;
+  border: 2px solid red;
+  border-radius: 10px;
+  background-color: #fff0f0;
+  line-height: 1.5;
+`;
+
+const DismissButton = styled.button`
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  padding: 4px 8px;
+  font-size: 18px;
+  cursor: pointer;
+`;
+
+const StripeLink = styled.a`
+  font-weight: 700;
+`;
+
+const SmallStripeLink = styled.a`
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+`;
+
 // Statuses an admin can set; "pending" is managed by checkout itself.
 const ADMIN_STATUSES = ["paid", "processing", "shipped", "delivered", "cancelled"];
 
@@ -77,6 +112,8 @@ function AdminOrders() {
   const [savingId, setSavingId] = useState(null);
   // The order waiting for the admin to confirm it should be cancelled.
   const [cancelling, setCancelling] = useState(null);
+  // The order just cancelled, whose customer still needs refunding.
+  const [toRefund, setToRefund] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -108,9 +145,9 @@ function AdminOrders() {
     setSavingId(order._id);
     try {
       const response = await axios.patch(`${API()}/${order._id}`, { status });
-      setOrders((current) =>
-        current.map((o) => (o._id === order._id ? response.data.data : o))
-      );
+      const updated = response.data.data;
+      setOrders((current) => current.map((o) => (o._id === order._id ? updated : o)));
+      if (status === "cancelled") setToRefund(updated);
     } catch (err) {
       setError(errorMessage(err, "Could not update the order"));
     } finally {
@@ -137,6 +174,24 @@ function AdminOrders() {
         </Select>
       </label>
       {error && <ErrorText>{error}</ErrorText>}
+      {toRefund && (
+        <RefundReminder role="status">
+          <span>
+            <strong>Order #{orderNumber(toRefund._id)} is cancelled.</strong> Don&apos;t forget
+            to refund {formatMoney(toRefund.subtotal, toRefund.currency)} to the customer:{" "}
+            <StripeLink href={toRefund.stripeUrl} target="_blank" rel="noopener noreferrer">
+              Open this payment in Stripe ↗
+            </StripeLink>
+          </span>
+          <DismissButton
+            type="button"
+            aria-label="Dismiss refund reminder"
+            onClick={() => setToRefund(null)}
+          >
+            ✕
+          </DismissButton>
+        </RefundReminder>
+      )}
       {orders === null && !error && <p>Loading orders…</p>}
       {orders?.length === 0 && <p>No orders found.</p>}
       {orders?.length > 0 && (
@@ -188,7 +243,17 @@ function AdminOrders() {
                   <td>
                     {order.status === "cancelled" ? (
                       // Cancelling is final, so there's nothing to choose.
-                      <Badge status="cancelled">{STATUS_LABELS.cancelled}</Badge>
+                      <>
+                        <Badge status="cancelled">{STATUS_LABELS.cancelled}</Badge>
+                        <SmallStripeLink
+                          href={order.stripeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`Payment for order ${orderNumber(order._id)} in Stripe`}
+                        >
+                          Payment in Stripe ↗
+                        </SmallStripeLink>
+                      </>
                     ) : (
                       <Select
                         aria-label={`Status for order ${orderNumber(order._id)}`}
