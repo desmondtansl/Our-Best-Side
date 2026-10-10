@@ -221,4 +221,46 @@ describe("discount codes", () => {
       assert.deepEqual(fake.calls["coupons.create"].map((c) => c.percent_off), [10, 20]);
     });
   });
+
+  describe("homepage banners", () => {
+    const banners = async () => (await request(app).get("/promotions/banners")).body.data;
+
+    it("announces running promotions, newest first, in the standard or custom wording", async () => {
+      await admin.post("/admin/promotions", promo({ code: "WELCOME10" }));
+      await admin.post(
+        "/admin/promotions",
+        promo({ code: "XMAS20", percentOff: 20, bannerText: " Use promo code XMAS20 for the festive season! " })
+      );
+      assert.deepEqual(await banners(), [
+        { code: "XMAS20", percentOff: 20, endDate: sgDate(7), text: "Use promo code XMAS20 for the festive season!" },
+        { code: "WELCOME10", percentOff: 10, endDate: sgDate(7), text: "Use promo code WELCOME10 for 10% off!" },
+      ]);
+    });
+
+    it("leaves out promotions that are scheduled, ended, paused or have the banner turned off", async () => {
+      await admin.post("/admin/promotions", promo({ code: "SOON", startDate: sgDate(2) }));
+      await admin.post("/admin/promotions", promo({ code: "PAST", startDate: sgDate(-9), endDate: sgDate(-2) }));
+      await admin.post("/admin/promotions", promo({ code: "PAUSED", active: false }));
+      await admin.post("/admin/promotions", promo({ code: "QUIET", showBanner: false }));
+      await admin.post("/admin/promotions", promo({ code: "OPEN", endDate: "" }));
+      const shown = await banners();
+      assert.deepEqual(shown.map((b) => b.code), ["OPEN"]);
+      assert.equal(shown[0].endDate, null);
+    });
+
+    it("shows at most 3, and never more than shoppers need", async () => {
+      for (const code of ["AAA", "BBB", "CCC", "DDD"]) {
+        await admin.post("/admin/promotions", promo({ code }));
+      }
+      const shown = await banners();
+      assert.equal(shown.length, 3);
+      assert.deepEqual(Object.keys(shown[0]).sort(), ["code", "endDate", "percentOff", "text"]);
+    });
+
+    it("limits the banner message to 140 characters", async () => {
+      const res = await admin.post("/admin/promotions", promo({ bannerText: "x".repeat(141) }));
+      assert.equal(res.status, 400);
+      assert.match(res.body.error, /at most 140 characters/);
+    });
+  });
 });

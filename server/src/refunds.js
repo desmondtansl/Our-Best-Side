@@ -30,10 +30,11 @@ export const recordRefund = async (orderId, refund) => {
 };
 
 // Refunds `amount` (in the order's currency) through Stripe and records it.
-// The idempotency key makes a double-click send one refund, not two: both
-// requests see the same order and send the same key, and Stripe returns the
-// first refund for the second.
-export const refundOrder = async (order, amount, by) => {
+// `requestId` is made by the admin page once per confirmed refund and sent
+// to Stripe as the idempotency key: however many times the same request
+// arrives (a double-click, a retry, a slow network), Stripe makes one refund
+// and returns it again for the repeats.
+export const refundOrder = async (order, amount, by, requestId) => {
   const cents = toCents(amount);
   const refund = await stripe.refunds.create(
     {
@@ -41,7 +42,7 @@ export const refundOrder = async (order, amount, by) => {
       amount: cents,
       metadata: { orderId: String(order._id), by },
     },
-    { idempotencyKey: `refund:${order._id}:${order.refunds.length}:${cents}` }
+    { idempotencyKey: `refund:${order._id}:${requestId}` }
   );
   await recordRefund(order._id, refund);
   return refund;

@@ -2,6 +2,8 @@ import stripe from "./stripe.js";
 import Promotion, { promotionState, MAX_PERCENT_OFF } from "./models/Promotion.js";
 import { DAY, parseShopDate } from "./shopTime.js";
 
+export const MAX_BANNER_TEXT = 140;
+
 const CODE_PATTERN = /^[A-Z0-9_-]{3,30}$/;
 
 export const normaliseCode = (code) => String(code || "").trim().toUpperCase();
@@ -15,6 +17,10 @@ export const parsePromotion = (body) => {
   const endDate = String(body?.endDate || "");
   if (!name) return { error: "Enter a name for the promotion" };
   if (name.length > 80) return { error: "The name can be at most 80 characters" };
+  const bannerText = String(body?.bannerText ?? "").trim();
+  if (bannerText.length > MAX_BANNER_TEXT) {
+    return { error: `The banner message can be at most ${MAX_BANNER_TEXT} characters` };
+  }
   if (!CODE_PATTERN.test(code)) {
     return { error: "The code must be 3–30 letters, numbers, - or _, with no spaces" };
   }
@@ -41,6 +47,8 @@ export const parsePromotion = (body) => {
       startsAt,
       endsAt,
       active: body?.active === undefined ? true : Boolean(body.active),
+      showBanner: body?.showBanner === undefined ? true : Boolean(body.showBanner),
+      bannerText,
     },
   };
 };

@@ -142,7 +142,20 @@ const Notice = styled.p`
 
 const API = () => `${import.meta.env.VITE_BASE_URL}/admin/promotions`;
 
-const EMPTY = { name: "", code: "", percentOff: "", startDate: "", endDate: "" };
+const EMPTY = {
+  name: "",
+  code: "",
+  percentOff: "",
+  startDate: "",
+  endDate: "",
+  showBanner: true,
+  // Empty: the standard wording below, which follows the code and %.
+  bannerText: "",
+};
+
+// The banner's standard wording (the same as the server's).
+export const defaultBannerText = (form) =>
+  `Use promo code ${form.code.trim().toUpperCase() || "CODE"} for ${form.percentOff || "?"}% off!`;
 
 // "10 Oct – 17 Oct 2026", or "From 10 Oct 2026" with no end date.
 const dateRange = (promotion) => {
@@ -158,14 +171,57 @@ const toForm = (promotion) => ({
   percentOff: String(promotion.percentOff),
   startDate: promotion.startDate,
   endDate: promotion.endDate || "",
+  showBanner: promotion.showBanner !== false,
+  bannerText: promotion.bannerText || "",
 });
 
 const toBody = (form, active) => ({
   ...form,
   code: form.code.trim(),
   percentOff: Number(form.percentOff),
+  bannerText: form.bannerText.trim(),
   active,
 });
+
+const BannerFields = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background-color: #f8f4f4;
+  font-size: 14px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-weight: 600;
+  }
+
+  label.check {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  input[type="text"] {
+    padding: 10px;
+    border: 0.5px solid lightgray;
+    border-radius: 10px;
+    font-weight: 400;
+  }
+`;
+
+// What the homepage banner will look like.
+const Preview = styled.div`
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: teal;
+  color: white;
+  font-weight: 500;
+  text-align: center;
+`;
 
 // Discount codes: each has a name, a code shoppers type in the cart, a
 // percentage and the dates it works between.
@@ -256,7 +312,8 @@ function AdminDiscounts() {
       <Intro>
         Shoppers type a code in their cart to get a percentage off their order. Each code works
         from the start of its start date until the end of its end date, Singapore time. Without
-        an end date, it works until you pause it.
+        an end date, it works until you pause it. While a code is running, a banner on the
+        homepage tells shoppers about it (you can turn this off for each code).
       </Intro>
 
       <Card onSubmit={submit} aria-labelledby="promotion-form-title">
@@ -307,6 +364,34 @@ function AdminDiscounts() {
             />
           </label>
         </Fields>
+        <BannerFields>
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={form.showBanner}
+              onChange={(e) => setForm({ ...form, showBanner: e.target.checked })}
+            />
+            Show a banner on the homepage while it&apos;s running
+          </label>
+          {form.showBanner && (
+            <>
+              <label>
+                <span>
+                  Banner message <Optional>(optional, up to 140 characters)</Optional>
+                </span>
+                <input
+                  type="text"
+                  maxLength={140}
+                  value={form.bannerText}
+                  placeholder={defaultBannerText(form)}
+                  onChange={set("bannerText")}
+                />
+              </label>
+              <span>Preview:</span>
+              <Preview aria-label="Banner preview">{form.bannerText.trim() || defaultBannerText(form)}</Preview>
+            </>
+          )}
+        </BannerFields>
         {formError && <ErrorText role="alert">{formError}</ErrorText>}
         <Inline>
           <Button primary type="submit" disabled={saving}>
@@ -355,6 +440,9 @@ function AdminDiscounts() {
                   <td>{dateRange(promotion)}</td>
                   <td>
                     <State $state={promotion.state}>{STATE_STYLES[promotion.state]?.label}</State>
+                    {promotion.showBanner !== false && (
+                      <div>{promotion.state === "running" ? "Banner showing" : "Banner on"}</div>
+                    )}
                   </td>
                   <td>
                     {promotion.timesUsed} {promotion.timesUsed === 1 ? "order" : "orders"}

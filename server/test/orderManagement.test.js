@@ -34,6 +34,11 @@ describe("order management (detail, search, tracking, notes, refunds)", () => {
       request(app).post(path).set("Authorization", `Bearer ${adminToken}`).send(body),
   };
 
+  // A refund request, each with its own id unless one is given.
+  let requestCount = 0;
+  const refund = (order, amount, requestId = `test-request-${(requestCount += 1)}`) =>
+    admin.post(`/admin/orders/${order.id}/refund`, { amount, requestId });
+
   const number = (order) => String(order._id).slice(-8).toUpperCase();
 
   // Sets createdAt directly (Mongoose would overwrite it).
@@ -254,7 +259,7 @@ describe("order management (detail, search, tracking, notes, refunds)", () => {
 
     it("refunds part, then the rest, in cents, recording who did it", async () => {
       const order = await paidOrder();
-      const first = await admin.post(`/admin/orders/${order.id}/refund`, { amount: 12.34 });
+      const first = await refund(order, 12.34);
       assert.equal(first.status, 200);
       assert.equal(first.body.data.refundedTotal, 12.34);
       assert.equal(first.body.data.refundable, 87.66);
@@ -265,7 +270,7 @@ describe("order management (detail, search, tracking, notes, refunds)", () => {
       );
       assert.ok(options.idempotencyKey);
 
-      const rest = await admin.post(`/admin/orders/${order.id}/refund`, { amount: 87.66 });
+      const rest = await refund(order, 87.66);
       assert.equal(rest.status, 200);
       assert.equal(rest.body.data.refundable, 0);
       assert.deepEqual(
@@ -278,7 +283,7 @@ describe("order management (detail, search, tracking, notes, refunds)", () => {
       // Refunding doesn't change the status.
       assert.equal(rest.body.data.status, "paid");
 
-      const more = await admin.post(`/admin/orders/${order.id}/refund`, { amount: 0.01 });
+      const more = await refund(order, 0.01);
       assert.equal(more.status, 400);
       assert.match(more.body.error, /already been refunded in full/);
     });
@@ -286,7 +291,7 @@ describe("order management (detail, search, tracking, notes, refunds)", () => {
     it("refuses amounts that are zero, negative, too precise or more than is left", async () => {
       const order = await paidOrder();
       for (const amount of [0, -5, "abc", undefined, 1.005, 100.01]) {
-        const res = await admin.post(`/admin/orders/${order.id}/refund`, { amount });
+        const res = await refund(order, amount);
         assert.equal(res.status, 400, String(amount));
       }
       assert.equal(fake.calls["refunds.create"], undefined);
@@ -294,7 +299,7 @@ describe("order management (detail, search, tracking, notes, refunds)", () => {
 
     it("can't refund an order without a saved Stripe payment", async () => {
       const order = await Order.create(base);
-      const res = await admin.post(`/admin/orders/${order.id}/refund`, { amount: 10 });
+      const res = await refund(order, 10);
       assert.equal(res.status, 400);
       assert.match(res.body.error, /Refund it in the Stripe Dashboard/);
     });
@@ -302,29 +307,44 @@ describe("order management (detail, search, tracking, notes, refunds)", () => {
     it("shows Stripe's reason when Stripe refuses, and records nothing", async () => {
       const order = await paidOrder();
       fake.state.refundError = "Charge ch_1 has been charged back";
-      const res = await admin.post(`/admin/orders/${order.id}/refund`, { amount: 10 });
+      const res = await refund(order, 10);
       assert.equal(res.status, 502);
       assert.match(res.body.error, /charged back/);
       assert.equal((await Order.findById(order.id)).refundedTotal, 0);
     });
 
-    it("makes one refund when the button is pressed twice at once", async () => {
+    it("makes one refund however often the same request arrives, at once or later", async () => {
       const order = await paidOrder();
       const results = await Promise.all([
-        admin.post(`/admin/orders/${order.id}/refund`, { amount: 30 }),
-        admin.post(`/admin/orders/${order.id}/refund`, { amount: 30 }),
+        refund(order, 30, "same-request-1"),
+        refund(order, 30, "same-request-1"),
       ]);
       assert.deepEqual(results.map((r) => r.status), [200, 200]);
+      // A repeat arriving after the first was recorded (e.g. a retry).
+      assert.equal((await refund(order, 30, "same-request-1")).status, 200);
       assert.equal(fake.state.refunds.length, 1);
       const saved = await Order.findById(order.id);
       assert.equal(saved.refundedTotal, 30);
       assert.equal(saved.refunds.length, 1);
+
+      // A new confirmation is a new refund.
+      await refund(order, 30, "same-request-2");
+      assert.equal((await Order.findById(order.id)).refundedTotal, 60);
+    });
+
+    it("refuses a refund request without its id", async () => {
+      const order = await paidOrder();
+      for (const requestId of [undefined, "", "short", "has spaces in it", { $ne: 1 }]) {
+        const res = await admin.post(`/admin/orders/${order.id}/refund`, { amount: 10, requestId });
+        assert.equal(res.status, 400, String(requestId));
+      }
+      assert.equal(fake.calls["refunds.create"], undefined);
     });
 
     it("records refunds made in the Stripe Dashboard, once, from the webhook", async () => {
       const order = await paidOrder();
       // One refund from the admin pages, one made in Stripe.
-      await admin.post(`/admin/orders/${order.id}/refund`, { amount: 20 });
+      await refund(order, 20);
       fake.state.refunds.push({
         id: "re_dashboard",
         payment_intent: "pi_r",
@@ -356,7 +376,7 @@ describe("order management (detail, search, tracking, notes, refunds)", () => {
 
     it("takes refunds off the dashboard's revenue", async () => {
       const order = await paidOrder();
-      await admin.post(`/admin/orders/${order.id}/refund`, { amount: 40 });
+      await refund(order, 40);
       const stats = await admin.get("/admin/stats");
       assert.deepEqual(stats.body.data.sales.today, { revenue: 60, orders: 1, average: 60 });
     });

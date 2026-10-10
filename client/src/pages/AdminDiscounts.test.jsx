@@ -87,6 +87,8 @@ describe("AdminDiscounts", () => {
       percentOff: 15,
       startDate: "2026-12-01",
       endDate: "2026-12-31",
+      showBanner: true,
+      bannerText: "",
       active: true,
     });
     expect(screen.getByLabelText("Name of the promotion")).toHaveValue("");
@@ -127,5 +129,51 @@ describe("AdminDiscounts", () => {
     await waitFor(() => expect(axios.put.mock.calls[0][1]).toMatchObject({ active: false }));
     fireEvent.click(screen.getByRole("button", { name: "Delete Flash sale" }));
     await waitFor(() => expect(axios.delete).toHaveBeenCalledWith(expect.stringMatching(/\/admin\/promotions\/d2$/)));
+  });
+
+  it("previews the homepage banner, with the standard wording until a message is typed", async () => {
+    axios.post.mockResolvedValue({ data: { data: {} } });
+    renderPage();
+    await screen.findByText("Welcome offer");
+    fireEvent.change(screen.getByLabelText("Code"), { target: { value: "xmas20" } });
+    fireEvent.change(screen.getByLabelText("Discount (%)"), { target: { value: "20" } });
+    expect(screen.getByLabelText("Banner preview")).toHaveTextContent("Use promo code XMAS20 for 20% off!");
+
+    fireEvent.change(screen.getByLabelText(/Banner message/), {
+      target: { value: "Use promo code XMAS20 for the festive season!" },
+    });
+    expect(screen.getByLabelText("Banner preview")).toHaveTextContent(
+      "Use promo code XMAS20 for the festive season!"
+    );
+    fireEvent.change(screen.getByLabelText("Name of the promotion"), { target: { value: "Christmas" } });
+    fireEvent.change(screen.getByLabelText("Start date"), { target: { value: "2026-12-01" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create promotion" }));
+    await waitFor(() => expect(axios.post).toHaveBeenCalled());
+    expect(axios.post.mock.calls[0][1]).toMatchObject({
+      showBanner: true,
+      bannerText: "Use promo code XMAS20 for the festive season!",
+    });
+  });
+
+  it("can turn the banner off for a code", async () => {
+    axios.post.mockResolvedValue({ data: { data: {} } });
+    renderPage();
+    await screen.findByText("Welcome offer");
+    fireEvent.click(screen.getByLabelText(/Show a banner on the homepage/));
+    expect(screen.queryByLabelText("Banner preview")).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Name of the promotion"), { target: { value: "Staff" } });
+    fireEvent.change(screen.getByLabelText("Code"), { target: { value: "STAFF30" } });
+    fireEvent.change(screen.getByLabelText("Discount (%)"), { target: { value: "30" } });
+    fireEvent.change(screen.getByLabelText("Start date"), { target: { value: "2026-12-01" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create promotion" }));
+    await waitFor(() => expect(axios.post).toHaveBeenCalled());
+    expect(axios.post.mock.calls[0][1]).toMatchObject({ showBanner: false });
+  });
+
+  it("says which promotions have a banner showing", async () => {
+    renderPage();
+    const row = (await screen.findByText("Welcome offer")).closest("tr");
+    expect(row).toHaveTextContent("Banner showing");
+    expect(screen.getByText("Flash sale").closest("tr")).toHaveTextContent("Banner on");
   });
 });

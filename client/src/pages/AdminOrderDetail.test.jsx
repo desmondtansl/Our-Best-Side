@@ -139,7 +139,10 @@ describe("AdminOrderDetail", () => {
 
       fireEvent.click(within(dialog).getByRole("button", { name: "Yes, refund $25.50" }));
       await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
-      expect(axios.post).toHaveBeenCalledWith(expect.stringMatching(/\/refund$/), { amount: 25.5 });
+      expect(axios.post).toHaveBeenCalledWith(expect.stringMatching(/\/refund$/), {
+        amount: 25.5,
+        requestId: expect.stringMatching(/^[A-Za-z0-9-]{8,64}$/),
+      });
       expect(screen.getByRole("status")).toHaveTextContent("$25.50 has been refunded in total");
 
       const payment = section("Payment and refunds");
@@ -167,6 +170,10 @@ describe("AdminOrderDetail", () => {
       expect(await within(screen.getByRole("alertdialog")).findByRole("alert")).toHaveTextContent(
         "charge disputed"
       );
+      // Trying again from the same pop-up sends the same id, so it can't refund twice.
+      fireEvent.click(screen.getByRole("button", { name: "Yes, refund $100.00" }));
+      await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(2));
+      expect(axios.post.mock.calls[1][1].requestId).toBe(axios.post.mock.calls[0][1].requestId);
     });
 
     it("says so when there's nothing left to refund, or no Stripe payment", async () => {

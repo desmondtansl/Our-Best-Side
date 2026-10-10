@@ -105,7 +105,12 @@ On **Manage Orders**:
 **Rules:**
 - **Amount:** more than 0, at most 2 decimal places, and no more than what's left to refund.
 - **No Stripe payment saved** (older orders): the page says so, and the refund has to be made in the Stripe Dashboard.
-- **Double-clicks make one refund.** The site sends Stripe an idempotency key, so a repeated request returns the first refund instead of making a second.
+- **A refund is made once, however often it's sent.**
+  - Each confirmation gets its own one-time id, which the server sends to Stripe as the idempotency key.
+  - A double-click, a retry after an error in the same pop-up, or a slow repeat all return the first refund instead of making a second.
+  - A new confirmation is a new refund.
+  - Requests without an id are refused.
+  - (Updated with the homepage banners: the key used to depend on the number of earlier refunds, so a repeat arriving after the first had been recorded could refund again.)
 - **Refunds made in the Stripe Dashboard** reach the site through the `charge.refunded` webhook event (see the setting above).
   - Each refund is recorded once, by its Stripe id, however many times Stripe reports it.
   - Failed refunds aren't counted.
@@ -124,7 +129,7 @@ All routes need an admin token.
 | PATCH | `/admin/orders/:id` | `{ status, tracking? }` | Changes the status and records it in `statusHistory`. `tracking` is saved when the status is `shipped`. |
 | PUT | `/admin/orders/:id/tracking` | `{ courier, number, url }` | Adds or corrects tracking. All empty removes it. |
 | PUT | `/admin/orders/:id/notes` | `{ notes }` | Saves internal notes (up to 2,000 characters) |
-| POST | `/admin/orders/:id/refund` | `{ amount }` | Refunds through Stripe. 400 for a bad amount or no saved payment, 502 when Stripe refuses (with Stripe's reason). |
+| POST | `/admin/orders/:id/refund` | `{ amount, requestId }` | Refunds through Stripe. 400 for a bad amount or no saved payment, 502 when Stripe refuses (with Stripe's reason). |
 
 **Every order returned includes:**
 - `stripeUrl`

@@ -9,6 +9,7 @@ import adminStatsRoutes from "./routes/adminStats.js";
 import adminUsersRoutes from "./routes/adminUsers.js";
 import adminProductsRoutes from "./routes/adminProducts.js";
 import adminPromotionsRoutes from "./routes/adminPromotions.js";
+import promotionsRoutes from "./routes/promotions.js";
 import { stripeWebhook } from "./routes/webhook.js";
 
 export const createApp = () => {
@@ -39,5 +40,6 @@ export const createApp = () => {
   app.use("/admin/users", adminUsersRoutes);
   app.use("/admin/products", adminProductsRoutes);
   app.use("/admin/promotions", adminPromotionsRoutes);
+  app.use("/promotions", promotionsRoutes);
   return app;
 };

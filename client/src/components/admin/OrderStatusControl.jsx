@@ -5,6 +5,7 @@ import CancelOrderDialog from "./CancelOrderDialog";
 import ShipOrderDialog from "./ShipOrderDialog";
 import { Badge } from "../account/styles";
 import { orderNumber, errorMessage, STATUS_LABELS } from "../../utils/format";
+import { newRequestId } from "../../utils/requestId";
 
 const Select = styled.select`
   padding: 6px;
@@ -57,6 +58,7 @@ function OrderStatusControl({ order, onUpdated, onError }) {
       try {
         const response = await axios.post(`${ORDERS_API()}/${order._id}/refund`, {
           amount: updated.refundable,
+          requestId: newRequestId(),
         });
         updated = response.data.data;
       } catch (err) {
