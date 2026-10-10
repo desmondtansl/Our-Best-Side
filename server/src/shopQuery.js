@@ -85,7 +85,15 @@ export const baseFilter = ({ category, words }) => {
 export const shopFilter = (parsed) => {
   const conditions = [...(baseFilter(parsed).$and || [])];
   if (parsed.sizes.length) {
-    conditions.push({ size: { $in: parsed.sizes.map(optionPattern) } });
+    const patterns = parsed.sizes.map(optionPattern);
+    conditions.push({
+      $or: [
+        // Stock tracked per size: the chosen size must be in stock.
+        { sizeStock: { $elemMatch: { size: { $in: patterns }, inStock: { $gt: 0 } } } },
+        // Otherwise, any product offering the size.
+        { "sizeStock.0": { $exists: false }, size: { $in: patterns } },
+      ],
+    });
   }
   if (parsed.colors.length) {
     conditions.push({ color: { $in: parsed.colors.map(optionPattern) } });

@@ -4,7 +4,9 @@ import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import BackToDashboard from "../components/BackToDashboard";
 import { errorMessage } from "../utils/format";
-import { productPath } from "../utils/products";
+import { productPath, toOptions } from "../utils/products";
+import PhotoManager from "../components/admin/PhotoManager";
+import SizeStockInputs, { sizeStockPayload } from "../components/admin/SizeStockInputs";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const Container = styled.div`
@@ -24,12 +26,6 @@ const Title = styled.h1`
   font-size: 40px;
   font-weight: 600;
   padding: 10px;
-`;
-
-const ImageContainer = styled.p`
-  font-size: 14px;
-  padding: 10px;
-  font-weight: 600;
 `;
 
 const Form = styled.form`
@@ -94,14 +90,19 @@ const FeaturedLabel = styled.label`
   margin: 14px 0px;
 `;
 
+const Hint = styled.p`
+  font-size: 13px;
+  font-weight: 300;
+`;
+
+const StockHeader = styled.p`
+  font-size: 14px;
+  font-weight: 600;
+`;
+
 const StatusMessage = styled.p`
   font-size: 14px;
   color: ${(props) => (props.error ? "red" : "teal")};
-`;
-
-const ProductQtyHeader = styled.p`
-  font-size: 14px;
-  font-weight: 600;
 `;
 
 function AdminUploadProduct() {
@@ -110,14 +111,25 @@ function AdminUploadProduct() {
   const [uploading, setUploading] = useState(false);
   // { type: "success", product } or { type: "error", text }
   const [status, setStatus] = useState(null);
+  const [photos, setPhotos] = useState([]);
+  const [sizeText, setSizeText] = useState("");
+  const [sizeStock, setSizeStock] = useState({});
+  const sizes = toOptions(sizeText);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus(null);
+    if (photos.length === 0) {
+      setStatus({ type: "error", text: "Add at least one photo" });
+      return;
+    }
     setUploading(true);
 
     const form = formRef.current;
     const formData = new FormData(form);
+    photos.forEach((photo) => formData.append("images", photo.file));
+    const stock = sizeStockPayload(sizes, sizeStock);
+    if (stock) formData.append("sizeStock", stock);
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/products/upload`,
@@ -125,6 +137,10 @@ function AdminUploadProduct() {
       );
       // Start the next product with an empty form.
       form.reset();
+      photos.forEach((photo) => URL.revokeObjectURL(photo.url));
+      setPhotos([]);
+      setSizeText("");
+      setSizeStock({});
       setStatus({ type: "success", product: response.data.data });
     } catch (error) {
       setStatus({ type: "error", text: errorMessage(error, "Upload failed") });
@@ -155,16 +171,7 @@ function AdminUploadProduct() {
           />
           <ProductDescHeader>Enter Product Description</ProductDescHeader>
           <Input name="description" id="description" required />
-          <ImageContainer>
-            Upload Product Image
-            <Input
-              name="image"
-              accept="image/*"
-              id="image"
-              type="file"
-              required
-            />
-          </ImageContainer>
+          <PhotoManager items={photos} onChange={setPhotos} />
           <ProductCategoryHeader>Product Category</ProductCategoryHeader>
           <Input
             name="category"
@@ -178,6 +185,8 @@ function AdminUploadProduct() {
             id="size"
             placeholder="separated by commas - e.g. S, M or US 6, US 7"
             required
+            value={sizeText}
+            onChange={(e) => setSizeText(e.target.value)}
           />
           <ProductColorsHeader>Product Colors</ProductColorsHeader>
           <Input
@@ -193,13 +202,17 @@ function AdminUploadProduct() {
             placeholder="enter ONLY numbers w/o $ sign - e.g. 30, 40"
             required
           />
-          <ProductQtyHeader>Product Inventory Qty</ProductQtyHeader>
-          <Input
-            name="inStock"
-            id="inStock"
-            placeholder="enter ONLY numbers"
-            required
-          />
+          <StockHeader>Stock per Size</StockHeader>
+          {sizes.length > 0 ? (
+            <SizeStockInputs
+              sizes={sizes}
+              values={sizeStock}
+              onChange={setSizeStock}
+              required
+            />
+          ) : (
+            <Hint>Enter the sizes above to add the stock for each size.</Hint>
+          )}
           <FeaturedLabel>
             <input type="checkbox" name="featured" value="true" />
             Featured on homepage

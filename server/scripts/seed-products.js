@@ -13,21 +13,13 @@ import { fileURLToPath, pathToFileURL } from "url";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import Product from "../src/models/Product.js";
-import { uploadImageToS3 } from "../src/s3.js";
+import { uploadProductPhoto } from "../src/s3.js";
 import { SEED_PRODUCTS } from "./seed-data.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const DEFAULT_IMAGE_DIR = path.resolve(__dirname, "../../client/public");
 
 const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-const MIME_TYPES = {
-  ".jfif": "image/jpeg",
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".png": "image/png",
-  ".webp": "image/webp",
-};
 
 export const seedProducts = async ({
   products = SEED_PRODUCTS,
@@ -57,10 +49,9 @@ export const seedProducts = async ({
       continue;
     }
 
-    const mimetype =
-      MIME_TYPES[path.extname(file).toLowerCase()] || "application/octet-stream";
-    const imageKey = await uploadImageToS3({ buffer, mimetype });
-    await Product.create({ ...item, image: imageKey, featured: true });
+    // Compressed like any uploaded product photo.
+    const imageKey = await uploadProductPhoto({ buffer });
+    await Product.create({ ...item, image: imageKey, images: [imageKey], featured: true });
     summary.created.push(item.title);
     log(`create  ${item.title}`);
   }

@@ -11,6 +11,7 @@ import {
   createApp,
   createUser,
   tokenFor,
+  testPhoto,
 } from "./helpers.js";
 import { parseList, parseCategories, parseProductFields } from "../src/productFields.js";
 
@@ -186,7 +187,7 @@ describe("product catalogue routes", () => {
         .field("featured", "true");
 
     it("saves sizes and colours as separate options", async () => {
-      const res = await upload().attach("image", Buffer.from("img"), "a.png");
+      const res = await upload().attach("image", await testPhoto(), "a.png");
       assert.equal(res.status, 200);
       const saved = await Product.findById(res.body.data._id).lean();
       assert.equal(saved.title, "Suede Loafers");
@@ -203,7 +204,7 @@ describe("product catalogue routes", () => {
 
       const badPrice = await upload()
         .field("price", "free")
-        .attach("image", Buffer.from("img"), "a.png");
+        .attach("image", await testPhoto(), "a.png");
       assert.equal(badPrice.status, 400);
       assert.equal(await Product.countDocuments(), 0);
       assert.equal(s3Mock.commandCalls(PutObjectCommand).length, 0);

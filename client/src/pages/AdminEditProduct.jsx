@@ -3,7 +3,9 @@ import styled from "styled-components";
 import axios from "axios";
 import { Link, useParams } from "react-router-dom";
 import BackToDashboard from "../components/BackToDashboard";
-import { toOptions } from "../utils/products";
+import { toOptions, productPhotos } from "../utils/products";
+import PhotoManager, { savedPhotoItems } from "../components/admin/PhotoManager";
+import SizeStockInputs, { sizeStockPayload } from "../components/admin/SizeStockInputs";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const Container = styled.div`
@@ -23,12 +25,6 @@ const Title = styled.h1`
   font-size: 40px;
   font-weight: 600;
   padding: 10px;
-`;
-
-const ImageContainer = styled.p`
-  font-size: 14px;
-  padding: 10px;
-  font-weight: 600;
 `;
 
 const Form = styled.form`
@@ -98,6 +94,11 @@ const FeaturedLabel = styled.label`
   margin: 14px 0px;
 `;
 
+const Hint = styled.p`
+  font-size: 13px;
+  font-weight: 300;
+`;
+
 const ProductQtyHeader = styled.p`
   font-size: 14px;
   font-weight: 600;
@@ -111,13 +112,15 @@ function AdminEditProduct() {
   // and keep their saved values.
   const [title, setTitle] = useState();
   const [description, setDescription] = useState();
-  const [image, setImage] = useState(null);
+  const [photos, setPhotos] = useState([]);
   const [category, setCategory] = useState();
   const [size, setSize] = useState();
   const [color, setColor] = useState();
   const [price, setPrice] = useState();
   const [inStock, setInStock] = useState();
   const [featured, setFeatured] = useState();
+  // Stock per size, as typed: { S: "3", M: "0" }.
+  const [sizeStock, setSizeStock] = useState({});
   const [editedProduct, setEditedProduct] = useState("");
 
   const fetchProduct = async () => {
@@ -125,6 +128,11 @@ function AdminEditProduct() {
       `${import.meta.env.VITE_BASE_URL}/products/${params}`
     );
     setData(response.data);
+    const product = response.data.data;
+    setPhotos(savedPhotoItems(productPhotos(product)));
+    setSizeStock(
+      Object.fromEntries((product?.sizeStock || []).map((e) => [e.size, String(e.inStock)]))
+    );
   };
 
   useEffect(() => {
@@ -137,9 +145,22 @@ function AdminEditProduct() {
   // Show saved lists as editable text, e.g. ["S", "M"] -> "S, M".
   const listText = (value) => toOptions(value).join(", ");
 
+  const sizes = toOptions(size ?? data?.data?.size);
+  // Stock is per size when the product already tracks it that way, or once
+  // any size's box is filled in (then every size needs a number).
+  const tracksSizes = data?.data?.sizeStock?.length > 0;
+  const perSize =
+    tracksSizes || sizes.some((option) => (sizeStock[option] ?? "") !== "");
+
   const editProduct = async () => {
     const formData = new FormData();
-    const fields = { title, description, price, inStock, featured };
+    const fields = {
+      title,
+      description,
+      price,
+      inStock: perSize ? undefined : inStock,
+      featured,
+    };
     for (const [key, value] of Object.entries(fields)) {
       if (value !== undefined) formData.append(key, value);
     }
@@ -149,7 +170,21 @@ function AdminEditProduct() {
         stringSplitter(value).forEach((item) => formData.append(key, item));
       }
     }
-    if (image) formData.append("image", image);
+    // Photos are sent only when changed: their order (saved photos by key,
+    // new ones as "new:N") and the new files.
+    const newPhotos = photos.filter((photo) => photo.file);
+    const order = photos.map((photo) =>
+      photo.file ? `new:${newPhotos.indexOf(photo)}` : photo.key
+    );
+    if (newPhotos.length || order.join() !== productPhotos(data?.data).join()) {
+      formData.append("photoOrder", JSON.stringify(order));
+      newPhotos.forEach((photo) => formData.append("images", photo.file));
+    }
+    if (perSize) {
+      const stock = sizeStockPayload(sizes, sizeStock);
+      if (!stock) throw new Error("Enter the stock for every size");
+      formData.append("sizeStock", stock);
+    }
 
     await axios.put(
       `${import.meta.env.VITE_BASE_URL}/products/${params}`,
@@ -160,6 +195,10 @@ function AdminEditProduct() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (photos.length === 0) {
+      alert("Add at least one photo");
+      return;
+    }
     try {
       await editProduct();
       alert("Product successfully edited");
@@ -196,16 +235,7 @@ function AdminEditProduct() {
             required
             onChange={(e) => setDescription(e.target.value)}
           />
-          <ImageContainer>
-            Upload Product Image
-            <Input
-              name="image"
-              accept="image/*"
-              id="image"
-              type="file"
-              onChange={(e) => setImage(e.target.files[0] || null)}
-            />
-          </ImageContainer>
+          <PhotoManager items={photos} onChange={setPhotos} />
           <ProductCategoryHeader>Edit Product Category</ProductCategoryHeader>
           <Input
             defaultValue={data?.data ? listText(data.data.category) : undefined}
@@ -242,15 +272,32 @@ function AdminEditProduct() {
             placeholder="enter ONLY numbers w/o $ sign - e.g. 30, 40"
             onChange={(e) => setPrice(e.target.value)}
           />
-          <ProductQtyHeader>Edit Product Inventory Qty</ProductQtyHeader>
-          <Input
-            defaultValue={data?.data?.inStock}
-            name="inStock"
-            id="inStock"
-            required
-            placeholder="enter ONLY numbers"
-            onChange={(e) => setInStock(e.target.value)}
+          <ProductQtyHeader>Stock per Size</ProductQtyHeader>
+          {data?.data && !tracksSizes && (
+            <Hint>
+              Stock is tracked for the whole product ({data.data.inStock ?? "not set"}). To
+              track it per size, fill in every size; otherwise leave these empty.
+            </Hint>
+          )}
+          <SizeStockInputs
+            sizes={sizes}
+            values={sizeStock}
+            onChange={setSizeStock}
+            required={perSize}
           />
+          {!perSize && (
+            <>
+              <ProductQtyHeader>Edit Product Inventory Qty</ProductQtyHeader>
+              <Input
+                defaultValue={data?.data?.inStock}
+                name="inStock"
+                id="inStock"
+                required
+                placeholder="enter ONLY numbers"
+                onChange={(e) => setInStock(e.target.value)}
+              />
+            </>
+          )}
           <FeaturedLabel>
             <input
               type="checkbox"
