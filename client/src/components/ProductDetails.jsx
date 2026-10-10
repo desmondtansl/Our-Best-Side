@@ -17,37 +17,9 @@ import RelatedProducts from "./RelatedProducts";
 
 // Product page shared by /men/:params and /ladies/:params.
 
-const Container = styled.div`
-  @media (max-width: 1024px) {
-    width: 100%;
-    padding: 0px 10px;
-  }
+const Container = styled.div``;
 
-  @media (max-width: 768px) {
-    width: 100%;
-    padding: 0px 10px;
-  }
-  @media (max-width: 414px) {
-    width: 100%;
-    padding: 0px 10px;
-  }
-
-  @media (max-width: 375px) {
-    width: 100%;
-    padding: 0px 10px;
-  }
-
-  @media (max-width: 360px) {
-    width: 100%;
-    padding: 0px 10px;
-  }
-
-  @media (max-width: 280px) {
-    width: 100%;
-    padding: 0px 10px;
-  }
-`;
-
+// Photo and details side by side; stacked on phones.
 const Wrapper = styled.div`
   padding: 20px;
   display: flex;
@@ -57,23 +29,8 @@ const Wrapper = styled.div`
   }
 
   @media (max-width: 768px) {
-    padding: 10px;
-  }
-
-  @media (max-width: 414px) {
-    padding: 10px;
-  }
-
-  @media (max-width: 375px) {
-    padding: 10px;
-  }
-
-  @media (max-width: 360px) {
-    padding: 10px;
-  }
-
-  @media (max-width: 280px) {
-    padding: 10px;
+    flex-direction: column;
+    padding: 0px;
   }
 `;
 
@@ -81,36 +38,16 @@ const ImageContainer = styled.div`
   flex: 1;
 
   @media (max-width: 1024px) {
-    width: 100%;
     height: 50vh;
   }
 
   @media (max-width: 768px) {
-    width: 100%;
-    height: 50vh;
-  }
-
-  @media (max-width: 414px) {
-    width: 100%;
-    height: 50vh;
-  }
-
-  @media (max-width: 375px) {
-    width: 100%;
-    height: 50vh;
-  }
-
-  @media (max-width: 360px) {
-    width: 100%;
-    height: 50vh;
-  }
-
-  @media (max-width: 280px) {
-    width: 100%;
-    height: 50vh;
+    flex: none;
+    height: auto;
   }
 `;
 
+// On phones the photo spans the screen in a 4:5 shape.
 const Image = styled.img`
   width: 100%;
   height: 90vh;
@@ -120,28 +57,11 @@ const Image = styled.img`
     height: 50vh;
   }
 
-  @media (max-width: 820px) {
-    height: 50vh;
-  }
-
   @media (max-width: 768px) {
-    height: 50vh;
-  }
-
-  @media (max-width: 414px) {
-    height: 50vh;
-  }
-
-  @media (max-width: 375px) {
-    height: 50vh;
-  }
-
-  @media (max-width: 360px) {
-    height: 50vh;
-  }
-
-  @media (max-width: 280px) {
-    height: 50vh;
+    display: block;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    max-height: 75vh;
   }
 `;
 
@@ -149,24 +69,12 @@ const InfoContainer = styled.div`
   flex: 1;
   padding: 0px 50px;
 
+  @media (max-width: 1024px) {
+    padding: 0px 20px;
+  }
+
   @media (max-width: 768px) {
-    padding: 0px 10px;
-  }
-
-  @media (max-width: 414px) {
-    padding: 0px 10px;
-  }
-
-  @media (max-width: 375px) {
-    padding: 0px 10px;
-  }
-
-  @media (max-width: 360px) {
-    padding: 0px 10px;
-  }
-
-  @media (max-width: 280px) {
-    padding: 0px 10px;
+    padding: 20px 16px 8px;
   }
 `;
 
@@ -178,22 +86,6 @@ const Title = styled.h1`
     font-size: 26px;
     font-weight: 300;
   }
-
-  @media (max-width: 414px) {
-    font-size: 20px;
-  }
-
-  @media (max-width: 375px) {
-    font-size: 20px;
-  }
-
-  @media (max-width: 360px) {
-    font-size: 20px;
-  }
-
-  @media (max-width: 280px) {
-    font-size: 20px;
-  }
 `;
 
 const Description = styled.p`
@@ -201,29 +93,10 @@ const Description = styled.p`
   font-size: 20px;
 
   @media (max-width: 768px) {
-    font-size: 16px;
-    margin: 10px 0px;
-    font-weight: 350;
-  }
-
-  @media (max-width: 414px) {
-    font-size: 14px;
-    margin: 10px 0px;
-  }
-
-  @media (max-width: 375px) {
-    font-size: 14px;
-    margin: 10px 0px;
-  }
-
-  @media (max-width: 360px) {
-    font-size: 14px;
-    margin: 10px 0px;
-  }
-
-  @media (max-width: 280px) {
-    font-size: 14px;
-    margin: 10px 0px;
+    margin: 8px 0px 12px;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.5;
   }
 `;
 
@@ -233,26 +106,11 @@ const Price = styled.span`
 
   @media (max-width: 768px) {
     font-size: 24px;
-    font-weight: 200;
-  }
-
-  @media (max-width: 414px) {
-    font-size: 20px;
-  }
-
-  @media (max-width: 375px) {
-    font-size: 20px;
-  }
-
-  @media (max-width: 360px) {
-    font-size: 20px;
-  }
-
-  @media (max-width: 280px) {
-    font-size: 20px;
+    font-weight: 300;
   }
 `;
 
+// Colour and size side by side; stacked on phones.
 const FilterContainer = styled.div`
   display: flex;
   justify-content: space-between;
@@ -262,43 +120,15 @@ const FilterContainer = styled.div`
   @media (max-width: 1024px) {
     width: 100%;
     flex-wrap: wrap;
-    margin: 10px 0px;
-  }
-
-  @media (max-width: 820px) {
-    width: 100%;
-    flex-wrap: wrap;
+    gap: 10px;
     margin: 10px 0px;
   }
 
   @media (max-width: 768px) {
-    width: 100%;
-    flex-wrap: wrap;
-    margin: 10px 0px;
-  }
-
-  @media (max-width: 414px) {
-    width: 100%;
-    flex-wrap: wrap;
-    margin: 10px 0px;
-  }
-
-  @media (max-width: 375px) {
-    width: 100%;
-    flex-wrap: wrap;
-    margin: 10px 0px;
-  }
-
-  @media (max-width: 360px) {
-    width: 100%;
-    flex-wrap: wrap;
-    margin: 10px 0px;
-  }
-
-  @media (max-width: 280px) {
-    width: 100%;
-    flex-wrap: wrap;
-    margin: 10px 0px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin: 16px 0px;
   }
 `;
 
@@ -311,20 +141,9 @@ const FilterTitle = styled.span`
   font-size: 20px;
   font-weight: 200;
 
-  @media (max-width: 414px) {
+  @media (max-width: 768px) {
     font-size: 16px;
-  }
-
-  @media (max-width: 375px) {
-    font-size: 16px;
-  }
-
-  @media (max-width: 360px) {
-    font-size: 16px;
-  }
-
-  @media (max-width: 280px) {
-    font-size: 16px;
+    font-weight: 400;
   }
 `;
 
@@ -342,16 +161,10 @@ const FilterColor = styled.button`
     background-color: #f8f4f4;
   }
 
-  @media (max-width: 375px) {
-    margin-bottom: 10px;
-  }
-
-  @media (max-width: 360px) {
-    margin-bottom: 10px;
-  }
-
-  @media (max-width: 280px) {
-    margin-bottom: 10px;
+  @media (max-width: 768px) {
+    min-height: 40px;
+    padding: 6px 12px;
+    font-size: 14px;
   }
 `;
 
@@ -360,63 +173,44 @@ const FilterSize = styled.select`
   padding: 5px;
   width: 70px;
 
-  @media (max-width: 414px) {
-    width: 100%;
-  }
-
-  @media (max-width: 375px) {
-    width: 100%;
-  }
-
-  @media (max-width: 360px) {
-    width: 100%;
-  }
-
-  @media (max-width: 280px) {
-    width: 100%;
+  @media (max-width: 768px) {
+    width: auto;
+    min-width: 120px;
+    min-height: 40px;
+    padding: 6px 8px;
   }
 `;
 
 const FilterSizeOption = styled.option``;
 
+// On phones the quantity sits beside a full-width Add to Cart button.
 const QtyContainer = styled.div`
   display: flex;
   align-items: center;
   width: 50%;
   justify-content: space-between;
 
-  @media (max-width: 414px) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  @media (max-width: 375px) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  @media (max-width: 280px) {
-    flex-direction: column;
-    align-items: flex-start;
+  @media (max-width: 1024px) {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 20px;
   }
 `;
 
+// Larger − and + on phones, so they're easy to tap.
 const QtyToggleContainer = styled.div`
   display: flex;
   align-items: center;
   font-weight: 700;
   cursor: pointer;
 
-  @media (max-width: 414px) {
-    margin-bottom: 10px;
-  }
-
-  @media (max-width: 375px) {
-    margin-bottom: 10px;
-  }
-
-  @media (max-width: 280px) {
-    margin-bottom: 10px;
+  @media (max-width: 768px) {
+    svg {
+      width: 36px;
+      height: 36px;
+      padding: 6px;
+      box-sizing: border-box;
+    }
   }
 `;
 
@@ -429,22 +223,6 @@ const Amount = styled.span`
   align-items: center;
   justify-content: center;
   margin: 0px 5px;
-
-  @media (max-width: 820px) {
-    margin: 5px 0px;
-  }
-
-  @media (max-width: 414px) {
-    margin: 5px 0px;
-  }
-
-  @media (max-width: 375px) {
-    margin: 5px 0px;
-  }
-
-  @media (max-width: 280px) {
-    margin: 5px 0px;
-  }
 `;
 
 const Button = styled.button`
@@ -463,9 +241,11 @@ const Button = styled.button`
     opacity: 0.6;
   }
 
-  @media (max-width: 820px) {
-    margin: 5px;
-    padding: 10px;
+  @media (max-width: 1024px) {
+    flex: 1;
+    max-width: 360px;
+    padding: 14px;
+    font-size: 16px;
   }
 `;
 

@@ -16,7 +16,7 @@ const Container = styled.div``;
 
 // Smaller top padding than the sides, so the filter bar sits just under the
 // navbar. Cards line up from the left, so a filtered row of 1 or 2 products
-// doesn't spread to the edges.
+// doesn't spread to the edges. Tablets show 3 products per row, phones 2.
 const Container2 = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -27,20 +27,33 @@ const Container2 = styled.div`
   opacity: ${(props) => (props.updating ? 0.6 : 1)};
   transition: opacity 0.15s;
 
-  @media (max-width: 912px) {
-    padding: 30px 50px 50px;
+  @media (max-width: 1024px) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0px, 1fr));
+    column-gap: 16px;
+    row-gap: 28px;
+    padding: 24px 24px 48px;
   }
 
-  @media (max-width: 414px) {
-    padding: 20px 20px 50px;
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, minmax(0px, 1fr));
+    column-gap: 12px;
+    row-gap: 24px;
+    padding: 16px 16px 40px;
   }
 `;
 
 const Heading = styled.h1`
+  grid-column: 1 / -1;
   width: 100%;
   margin: 0px 0px 20px;
   font-size: 30px;
   font-weight: 300;
+
+  @media (max-width: 600px) {
+    margin: 0px;
+    font-size: 24px;
+  }
 `;
 
 const Container3 = styled.div`
@@ -51,43 +64,36 @@ const Container3 = styled.div`
   padding: 10px;
   justify-content: center;
 
-  @media (max-width: 912px) {
-    width: 20%;
-  }
-
-  @media (max-width: 820px) {
-    width: 40%;
-  }
-
-  @media (max-width: 768px) {
-    width: 40%;
-  }
-
-  @media (max-width: 414px) {
-    width: 80%;
-  }
-
-  @media (max-width: 375px) {
-    width: 80%;
-  }
-
-  @media (max-width: 360px) {
-    width: 80%;
-  }
-
-  @media (max-width: 280px) {
-    width: 80%;
+  @media (max-width: 1024px) {
+    width: auto;
+    padding: 0px;
+    justify-content: flex-start;
   }
 `;
 
+// On tablets and phones photos fill the card in a 3:4 shape.
 const ImageCard = styled.img`
   display: flex;
   width: 80%;
   cursor: pointer;
+
+  @media (max-width: 1024px) {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+  }
 `;
 
+// Name and price side by side on computers, stacked on tablets and phones.
 const InfoContainer = styled.div`
   display: flex;
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 8px;
+  }
 `;
 
 const Text = styled.p`
@@ -99,35 +105,9 @@ const Text = styled.p`
   font-size: 16px;
 
   @media (max-width: 1024px) {
+    padding: 0px;
+    justify-content: flex-start;
     font-size: 14px;
-  }
-
-  @media (max-width: 912px) {
-    font-size: 13px;
-  }
-
-  @media (max-width: 820px) {
-    font-size: 14px;
-  }
-
-  @media (max-width: 768px) {
-    font-size: 14px;
-  }
-
-  @media (max-width: 414px) {
-    font-size: 12px;
-  }
-
-  @media (max-width: 375px) {
-    font-size: 12px;
-  }
-
-  @media (max-width: 360px) {
-    font-size: 11px;
-  }
-
-  @media (max-width: 280px) {
-    font-size: 10px;
   }
 `;
 
@@ -140,39 +120,14 @@ const Price = styled.p`
   font-size: 16px;
 
   @media (max-width: 1024px) {
+    padding: 0px;
+    justify-content: flex-start;
     font-size: 14px;
-  }
-
-  @media (max-width: 912px) {
-    font-size: 13px;
-  }
-
-  @media (max-width: 820px) {
-    font-size: 14px;
-  }
-
-  @media (max-width: 768px) {
-    font-size: 14px;
-  }
-
-  @media (max-width: 414px) {
-    font-size: 12px;
-  }
-
-  @media (max-width: 375px) {
-    font-size: 12px;
-  }
-
-  @media (max-width: 360px) {
-    font-size: 11px;
-  }
-
-  @media (max-width: 280px) {
-    font-size: 10px;
   }
 `;
 
 const Message = styled.p`
+  grid-column: 1 / -1;
   width: 100%;
   font-size: 20px;
   font-weight: 300;

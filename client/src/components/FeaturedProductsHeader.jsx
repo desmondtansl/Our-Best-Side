@@ -8,32 +8,14 @@ const Container = styled.div`
   font-weight: 700;
   padding: 40px 0px 0px 0px;
 
-  @media (max-width: 393px) {
-    font-size: 40px;
-    justify-content: center;
-    align-items: center;
-    display: flex;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    padding: 40px 16px 0px;
   }
 
-  @media (max-width: 375px) {
-    font-size: 40px;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-  }
-
-  @media (max-width: 360px) {
-    font-size: 38px;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-  }
-
-  @media (max-width: 280px) {
-    font-size: 33px;
-    justify-content: center;
-    align-items: center;
-    display: flex;
+  @media (max-width: 600px) {
+    font-size: 28px;
+    padding: 32px 16px 0px;
   }
 `;
 

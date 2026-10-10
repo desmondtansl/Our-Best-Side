@@ -5,6 +5,8 @@ import SingleFeaturedProduct from "./SingleFeaturedProduct.jsx";
 import FeaturedProductsHeader from "./FeaturedProductsHeader.jsx";
 import { productImageUrl, productPath } from "../utils/products";
 
+// Computers: 4 per row. Tablets: 3 per row; phones: 2 per row, matching the
+// product listings.
 const Container = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -14,67 +16,21 @@ const Container = styled.div`
   height: 900px;
   margin-top: 30px;
 
-  @media (max-width: 820px) {
-    display: flex;
-    margin-top: 20px;
-    margin: auto;
-    align-items: flex-start;
-    height: 100%;
-    width: 100%;
-    background-size: cover;
-    margin: 20px 0px;
-    row-gap: 20px;
+  @media (max-width: 1024px) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0px, 1fr));
+    column-gap: 16px;
+    row-gap: 28px;
+    height: auto;
+    margin: 0px;
+    padding: 24px 24px 16px;
   }
 
-  @media (max-width: 768px) {
-    display: flex;
-    margin-top: 20px;
-    margin: auto;
-    align-items: flex-start;
-    height: 100%;
-    width: 100%;
-    background-size: cover;
-    margin: 20px 0px;
-    row-gap: 20px;
-  }
-
-  @media (max-width: 414px) {
-    display: flex;
-    margin-top: 20px;
-    margin: auto;
-    align-items: flex-start;
-    height: 100%;
-    width: 100%;
-    background-size: cover;
-    margin: 20px 0px;
-    row-gap: 20px;
-    column-gap: 60px;
-  }
-
-  @media (max-width: 375px) {
-    display: flex;
-    margin-top: 20px;
-    margin: auto;
-    align-items: flex-start;
-    height: 100%;
-    width: 100%;
-    background-size: cover;
-    margin: 20px 0px;
-    row-gap: 20px;
-    column-gap: 60px;
-  }
-
-  @media (max-width: 360px) {
-    display: flex;
-    margin-top: 20px;
-    margin: auto;
-    align-items: flex-start;
-    height: 100%;
-    width: 100%;
-    background-size: cover;
-    margin: 20px 0px;
-    row-gap: 20px;
-    column-gap: 60px;
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, minmax(0px, 1fr));
+    column-gap: 12px;
+    row-gap: 24px;
+    padding: 16px 16px 8px;
   }
 `;
 
@@ -83,6 +39,12 @@ const ProductContainer = styled.div`
   width: 25%;
   justify-content: center;
   display: flex;
+
+  @media (max-width: 1024px) {
+    display: block;
+    width: auto;
+    height: auto;
+  }
 `;
 
 // Products marked "Featured on homepage" in the admin dashboard.

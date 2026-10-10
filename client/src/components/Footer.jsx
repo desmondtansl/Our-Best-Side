@@ -13,41 +13,17 @@ const Container = styled.div`
   min-height: 60px;
 `;
 
+// One row on computers; stacked and centred on tablets and phones.
 const Wrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-around;
 
-  @media (max-width: 414px) {
-    width: auto;
-    padding: 10px;
+  @media (max-width: 1024px) {
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-  }
-
-  @media (max-width: 375px) {
-    width: auto;
-    padding: 10px;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-  }
-
-  @media (max-width: 360px) {
-    width: auto;
-    padding: 10px;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-  }
-
-  @media (max-width: 280px) {
-    width: auto;
-    padding: 10px;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
+    gap: 12px;
+    padding: 24px 16px 32px;
+    border-top: 0.5px solid lightgray;
   }
 `;
 
@@ -58,25 +34,9 @@ const Left = styled.div`
   justify-content: flex-start;
   padding: 0px 20px;
 
-  @media (max-width: 414px) {
-    width: auto;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-around;
-  }
-
-  @media (max-width: 375px) {
-    width: auto;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-around;
-  }
-
-  @media (max-width: 280px) {
-    width: auto;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-around;
+  @media (max-width: 1024px) {
+    justify-content: center;
+    padding: 0px;
   }
 `;
 
@@ -92,6 +52,12 @@ const SocialMediaIcons = styled.div`
   width: 40px;
   height: 40px;
   border-radius: 50%;
+
+  @media (max-width: 1024px) {
+    margin: 0px 8px;
+    width: 44px;
+    height: 44px;
+  }
 `;
 
 const Center = styled.div`
@@ -99,14 +65,21 @@ const Center = styled.div`
   padding: 20px;
   text-align: center;
 
-  @media (max-width: 280px) {
-    flex: 1;
-    text-align: center;
+  @media (max-width: 1024px) {
+    padding: 0px;
   }
 `;
 
 const Logo = styled.h1`
   font-weight: bold;
+
+  @media (max-width: 1024px) {
+    font-size: 28px;
+  }
+
+  @media (max-width: 600px) {
+    font-size: 24px;
+  }
 `;
 
 const Right = styled.div`
@@ -116,39 +89,9 @@ const Right = styled.div`
   align-items: center;
   justify-content: flex-end;
 
-  @media (max-width: 820px) {
-    width: auto;
-    justify-content: flex-end;
-  }
-
-  @media (max-width: 768px) {
-    width: auto;
-    justify-content: flex-end;
-  }
-
-  @media (max-width: 540px) {
-    width: auto;
-    justify-content: flex-end;
-  }
-
-  @media (max-width: 414px) {
-    width: auto;
-    justify-content: space-around;
-  }
-
-  @media (max-width: 375px) {
-    width: auto;
-    justify-content: space-around;
-  }
-
-  @media (max-width: 360px) {
-    width: auto;
-    justify-content: space-around;
-  }
-
-  @media (max-width: 280px) {
-    width: auto;
-    justify-content: space-around;
+  @media (max-width: 1024px) {
+    padding: 0px;
+    justify-content: center;
   }
 `;
 
@@ -163,7 +106,7 @@ const Payments = styled.div`
   padding: 0px 20px;
   font-size: 12px;
 
-  @media (max-width: 414px) {
+  @media (max-width: 1024px) {
     justify-content: center;
     padding: 0px;
   }

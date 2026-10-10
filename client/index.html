@@ -13,6 +13,20 @@
         margin: 0;
         font-family: "Urbanist", sans-serif;
       }
+      /* Keep text the same size when a phone is turned sideways. */
+      html {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+      }
+      /* iPhones zoom the page in when a text box or dropdown with text
+         smaller than 16px is tapped, so phones and tablets use 16px. */
+      @media (max-width: 1024px) {
+        input,
+        select,
+        textarea {
+          font-size: 16px !important;
+        }
+      }
     </style>
     <meta
       name="description"
