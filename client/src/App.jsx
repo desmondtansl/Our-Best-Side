@@ -18,33 +18,39 @@ import ProtectedRoutes from "./routes/ProtectedRoutes.jsx";
 import UserRoutes from "./routes/UserRoutes.jsx";
 import Success from "./pages/Success.jsx";
 import NotFound from "./pages/NotFound.jsx";
+import SearchResults from "./pages/SearchResults.jsx";
+import ScrollToTop from "./components/ScrollToTop.jsx";
 
 function App() {
   const [user] = UserAuth();
 
   return (
-    <Routes>
-      <Route path="/" element={<Homepage />} />
-      <Route path="/men" element={<MenProducts />} />
-      <Route path="/men/:params" element={<IndividualMenProduct />} />
-      <Route path="/ladies/:params" element={<IndividualLadiesProduct />} />
-      <Route path="/ladies" element={<LadiesProducts />} />
-      <Route path="/cart" element={<Cart />} />
-      <Route path="/success" element={<Success />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/login" element={<Login />} />
-      <Route element={<UserRoutes />}>
-        <Route path="/account" element={<Account />} />
-      </Route>
-      <Route element={<ProtectedRoutes />}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/upload" element={<UploadProduct />} />
-        <Route path="/search" element={<SearchProduct />} />
-        <Route path="/search/:params" element={<EditProduct />} />
-        <Route path="/admin/orders" element={<AdminOrders />} />
-      </Route>
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<Homepage />} />
+        <Route path="/men" element={<MenProducts />} />
+        <Route path="/men/:params" element={<IndividualMenProduct />} />
+        <Route path="/ladies/:params" element={<IndividualLadiesProduct />} />
+        <Route path="/ladies" element={<LadiesProducts />} />
+        <Route path="/results" element={<SearchResults />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/success" element={<Success />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+        <Route element={<UserRoutes />}>
+          <Route path="/account" element={<Account />} />
+        </Route>
+        <Route element={<ProtectedRoutes />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/upload" element={<UploadProduct />} />
+          <Route path="/search" element={<SearchProduct />} />
+          <Route path="/search/:params" element={<EditProduct />} />
+          <Route path="/admin/orders" element={<AdminOrders />} />
+        </Route>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
   );
 }
 

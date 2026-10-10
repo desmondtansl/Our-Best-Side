@@ -6,13 +6,20 @@ import checkAuth from "../middleware/checkAuth.js";
 import requireAdmin from "../middleware/requireAdmin.js";
 import { uploadImageToS3, signedImageUrl, isValidImageKey } from "../s3.js";
 import { parseProductFields } from "../productFields.js";
+import {
+  parseShopQuery,
+  baseFilter,
+  shopFilter,
+  buildFacets,
+  rankRelated,
+  escapeRegex,
+  SORTS,
+} from "../shopQuery.js";
 
 const router = express.Router();
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
-
-const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const uploadMiddleware = [checkAuth, requireAdmin, upload.single("image")];
 
@@ -97,6 +104,27 @@ router.get("/featured", async (req, res) => {
   }
 });
 
+// SHOP: SEARCH, FILTER AND SORT
+// e.g. /products/shop?category=men&q=jacket&size=M&color=Black&min=50&max=200
+// &sort=price-asc. `facets` lists the sizes, colours and price range on offer
+// for the category/search, so the filter options don't vanish as they're used.
+// With `limit` (search suggestions), facets are skipped.
+
+router.get("/shop", async (req, res) => {
+  try {
+    const parsed = parseShopQuery(req.query);
+    let query = Product.find(shopFilter(parsed)).sort(SORTS[parsed.sort]);
+    if (parsed.limit) query = query.limit(parsed.limit);
+    const products = await query;
+    const facets = parsed.limit
+      ? undefined
+      : buildFacets(await Product.find(baseFilter(parsed), "size color price").lean());
+    res.status(200).json({ data: products, facets, error: "" });
+  } catch (error) {
+    return serverError(res, error);
+  }
+});
+
 // PRODUCT IMAGE
 // Redirects to a short-lived signed S3 link, so the bucket can stay private.
 // Browsers cache the redirect for a little less than the link's lifetime.
@@ -153,6 +181,29 @@ router.get("/search/:params", async (req, res) => {
       data: fetchAllProducts,
       error: "",
     });
+  } catch (error) {
+    return serverError(res, error);
+  }
+});
+
+// "YOU MAY ALSO LIKE": other in-stock products from the same category,
+// most similar first.
+
+const RELATED_LIMIT = 4;
+const RELATED_CANDIDATES = 40;
+
+router.get("/:params/related", async (req, res) => {
+  try {
+    const product = await findProduct(req.params.params);
+    if (!product) return notFound(res);
+    const candidates = await listProducts({
+      _id: { $ne: product._id },
+      category: { $in: product.category },
+      inStock: { $ne: 0 },
+    }).limit(RELATED_CANDIDATES);
+    res
+      .status(200)
+      .json({ data: rankRelated(product, candidates, RELATED_LIMIT), error: "" });
   } catch (error) {
     return serverError(res, error);
   }

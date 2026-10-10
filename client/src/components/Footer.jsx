@@ -2,6 +2,10 @@ import styled from "styled-components";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import visaLogo from "../assets/payment/visa.svg";
+import mastercardLogo from "../assets/payment/mastercard.svg";
+import amexLogo from "../assets/payment/amex.svg";
+import paynowLogo from "../assets/payment/paynow.svg";
 
 // min-height (not height) so the footer grows to fit its content instead of
 // letting it spill below the page.
@@ -148,8 +152,8 @@ const Right = styled.div`
   }
 `;
 
-// Cards accepted by Stripe Checkout, drawn as text badges so nothing is
-// loaded from other websites.
+// Payment methods accepted at Stripe Checkout, shown with their official
+// logos (hosted with the site; see assets/payment/LICENSE.md).
 const Payments = styled.div`
   display: flex;
   align-items: center;
@@ -165,12 +169,10 @@ const Payments = styled.div`
   }
 `;
 
-const Badge = styled.span`
-  border: 1px solid lightgray;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+const PaymentLogo = styled.img`
+  display: block;
+  width: 38px;
+  height: 24px;
 `;
 
 const Secure = styled.span`
@@ -180,7 +182,12 @@ const Secure = styled.span`
   font-weight: 300;
 `;
 
-const ACCEPTED_CARDS = ["VISA", "Mastercard", "AMEX"];
+const ACCEPTED_PAYMENTS = [
+  { name: "Visa", logo: visaLogo },
+  { name: "Mastercard", logo: mastercardLogo },
+  { name: "American Express", logo: amexLogo },
+  { name: "PayNow", logo: paynowLogo },
+];
 
 function Footer() {
   return (
@@ -204,8 +211,8 @@ function Footer() {
             <Secure>
               <LockOutlinedIcon fontSize="inherit" /> Secure checkout
             </Secure>
-            {ACCEPTED_CARDS.map((card) => (
-              <Badge key={card}>{card}</Badge>
+            {ACCEPTED_PAYMENTS.map(({ name, logo }) => (
+              <PaymentLogo key={name} src={logo} alt={name} title={name} />
             ))}
           </Payments>
         </Right>

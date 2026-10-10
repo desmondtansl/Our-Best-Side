@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
@@ -136,5 +136,44 @@ describe("ProductDetails", () => {
     axios.get.mockRejectedValue({ request: {} });
     renderPage();
     expect(await screen.findByText(/couldn't load this product/)).toBeInTheDocument();
+  });
+
+  describe("You may also like", () => {
+    const jacket = { _id: "j1", title: "Black Leather Jacket", price: 300, image: "jacket-key", category: ["Men"] };
+    const dress = { _id: "d1", title: "Ladies Blue Dress", price: 80, image: "dress-key", category: ["Ladies"] };
+
+    // `related` returns the promise for the suggestions request.
+    const respond = (related) =>
+      axios.get.mockImplementation((url) =>
+        url.endsWith("/related") ? related() : Promise.resolve({ data: { data: loafers } })
+      );
+
+    it("shows similar products linking to their own pages", async () => {
+      respond(() => Promise.resolve({ data: { data: [jacket, dress] } }));
+      renderPage();
+      const section = await screen.findByRole("region", { name: "You may also like" });
+      const cards = within(section).getAllByTestId("related-product");
+      expect(cards).toHaveLength(2);
+      expect(cards[0]).toHaveAttribute("href", "/men/j1");
+      expect(cards[0]).toHaveTextContent("Black Leather Jacket$300");
+      expect(cards[1]).toHaveAttribute("href", "/ladies/d1");
+      expect(axios.get).toHaveBeenCalledWith(expect.stringMatching(/\/products\/p1\/related$/));
+    });
+
+    it("stays hidden when there's nothing to suggest", async () => {
+      respond(() => Promise.resolve({ data: { data: [] } }));
+      renderPage();
+      await screen.findByText("Suede Loafers");
+      await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
+      expect(screen.queryByText("You may also like")).not.toBeInTheDocument();
+    });
+
+    it("stays hidden when loading suggestions fails", async () => {
+      respond(() => Promise.reject(new Error("Network Error")));
+      renderPage();
+      await screen.findByText("Suede Loafers");
+      await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
+      expect(screen.queryByText("You may also like")).not.toBeInTheDocument();
+    });
   });
 });
