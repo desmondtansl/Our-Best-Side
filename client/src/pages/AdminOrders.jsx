@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import BackToDashboard from "../components/BackToDashboard";
-import CancelOrderDialog from "../components/admin/CancelOrderDialog";
-import { Badge } from "../components/account/styles";
+import OrderStatusControl, {
+  ADMIN_STATUSES,
+  ORDERS_API,
+} from "../components/admin/OrderStatusControl";
+import CancelNotice from "../components/admin/CancelNotice";
+import { Button } from "../components/account/styles";
 import {
   formatDate,
   formatMoney,
@@ -32,6 +36,31 @@ const Title = styled.h1`
   font-weight: 600;
 `;
 
+const Filters = styled.form`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  margin: 10px 0px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-weight: 600;
+  }
+
+  input,
+  select {
+    padding: 6px;
+    font-weight: 400;
+  }
+`;
+
+const SearchLabel = styled.label`
+  flex: 1 1 220px;
+`;
+
 const TableWrapper = styled.div`
   overflow-x: auto;
 `;
@@ -49,40 +78,9 @@ const Table = styled.table`
   }
 `;
 
-const Select = styled.select`
-  padding: 6px;
-`;
-
-const ErrorText = styled.p`
-  color: red;
-`;
-
-// Shown after an order is cancelled, until dismissed, so the refund isn't
-// forgotten once the pop-up closes.
-const RefundReminder = styled.div`
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 12px 0px;
-  padding: 12px 16px;
-  border: 2px solid red;
-  border-radius: 10px;
-  background-color: #fff0f0;
-  line-height: 1.5;
-`;
-
-const DismissButton = styled.button`
-  flex-shrink: 0;
-  border: none;
-  background: none;
-  padding: 4px 8px;
-  font-size: 18px;
-  cursor: pointer;
-`;
-
-const StripeLink = styled.a`
+const OrderLink = styled(Link)`
   font-weight: 700;
+  white-space: nowrap;
 `;
 
 const SmallStripeLink = styled.a`
@@ -92,68 +90,96 @@ const SmallStripeLink = styled.a`
   white-space: nowrap;
 `;
 
-// Statuses an admin can set; "pending" is managed by checkout itself.
-const ADMIN_STATUSES = ["paid", "processing", "shipped", "delivered", "cancelled"];
+const ErrorText = styled.p`
+  color: red;
+`;
+
+const More = styled.div`
+  display: flex;
+  justify-content: center;
+  margin: 16px 0px;
+`;
 
 // "Waiting to ship" covers two statuses; the dashboard links here with it.
 const TO_SHIP = "paid,processing";
 
-const API = () => `${import.meta.env.VITE_BASE_URL}/admin/orders`;
+// The filters live in the address (?status=…&q=…&from=…&to=…), so the
+// dashboard can link to a filtered list and Back returns to the previous one.
+const FILTER_KEYS = ["status", "q", "from", "to"];
+
+const formatAddress = (address) =>
+  address?.line1
+    ? [address.name, address.line1, address.line2, address.city, address.postalCode, address.country]
+        .filter(Boolean)
+        .join(", ")
+    : "—";
 
 function AdminOrders() {
   useDocumentTitle("Orders");
-  const [orders, setOrders] = useState(null);
-  // The filter lives in the address (?status=…), so the dashboard can link
-  // to a filtered list and Back returns to the previous filter.
   const [searchParams, setSearchParams] = useSearchParams();
-  const filter = searchParams.get("status") || "";
-  const setFilter = (value) => setSearchParams(value ? { status: value } : {});
+  const filters = Object.fromEntries(FILTER_KEYS.map((key) => [key, searchParams.get(key) || ""]));
+  const filterKey = FILTER_KEYS.map((key) => filters[key]).join("|");
+  // What's typed in the search box, applied when the form is submitted.
+  const [query, setQuery] = useState(filters.q);
+  const [orders, setOrders] = useState(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
-  const [savingId, setSavingId] = useState(null);
-  // The order waiting for the admin to confirm it should be cancelled.
-  const [cancelling, setCancelling] = useState(null);
-  // The order just cancelled, whose customer still needs refunding.
-  const [toRefund, setToRefund] = useState(null);
+  // What happened to the order just cancelled (a refund reminder).
+  const [cancelOutcome, setCancelOutcome] = useState(null);
+
+  const setFilters = (changes) => {
+    const next = { ...filters, ...changes };
+    setSearchParams(Object.fromEntries(Object.entries(next).filter(([, value]) => value)));
+  };
+
+  const fetchPage = (pageNumber) => {
+    const params = Object.fromEntries(Object.entries(filters).filter(([, value]) => value));
+    if (pageNumber > 1) params.page = pageNumber;
+    return axios.get(ORDERS_API(), { params });
+  };
 
   useEffect(() => {
+    setQuery(filters.q);
     const fetchOrders = async () => {
       setError("");
       try {
-        const response = await axios.get(API(), {
-          params: filter ? { status: filter } : {},
-        });
+        const response = await fetchPage(1);
         setOrders(response.data.data);
+        setHasMore(Boolean(response.data.hasMore));
+        setPage(1);
       } catch (err) {
         setError(errorMessage(err, "Could not load orders"));
       }
     };
     fetchOrders();
-  }, [filter]);
+  }, [filterKey]);
 
-  // Cancelling can't be undone, so it's confirmed in a pop-up first. Until
-  // then the dropdown keeps showing the order's current status.
-  const handleSelect = (order, status) => {
-    if (status === "cancelled") {
-      setCancelling(order);
-      return;
-    }
-    handleStatusChange(order, status);
-  };
-
-  const handleStatusChange = async (order, status) => {
-    setError("");
-    setSavingId(order._id);
+  const loadMore = async () => {
+    setLoadingMore(true);
     try {
-      const response = await axios.patch(`${API()}/${order._id}`, { status });
-      const updated = response.data.data;
-      setOrders((current) => current.map((o) => (o._id === order._id ? updated : o)));
-      if (status === "cancelled") setToRefund(updated);
+      const response = await fetchPage(page + 1);
+      // Orders placed since the first page can shift the list; skip repeats.
+      setOrders((current) => {
+        const seen = new Set(current.map((o) => o._id));
+        return [...current, ...response.data.data.filter((o) => !seen.has(o._id))];
+      });
+      setHasMore(Boolean(response.data.hasMore));
+      setPage(page + 1);
     } catch (err) {
-      setError(errorMessage(err, "Could not update the order"));
+      setError(errorMessage(err, "Could not load more orders"));
     } finally {
-      setSavingId(null);
+      setLoadingMore(false);
     }
   };
+
+  const handleUpdated = (updated, outcome) => {
+    setOrders((current) => current.map((o) => (o._id === updated._id ? updated : o)));
+    if (outcome?.cancelled) setCancelOutcome({ order: updated, ...outcome });
+  };
+
+  const filtered = FILTER_KEYS.some((key) => filters[key]);
 
   return (
     <Container>
@@ -161,36 +187,68 @@ function AdminOrders() {
         <Title>Orders</Title>
         <BackToDashboard />
       </Header>
-      <label>
-        Show:{" "}
-        <Select value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="">All orders</option>
-          <option value={TO_SHIP}>Waiting to ship</option>
-          {ADMIN_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {STATUS_LABELS[status]}
-            </option>
-          ))}
-        </Select>
-      </label>
-      {error && <ErrorText>{error}</ErrorText>}
-      {toRefund && (
-        <RefundReminder role="status">
-          <span>
-            <strong>Order #{orderNumber(toRefund._id)} is cancelled.</strong> Don&apos;t forget
-            to refund {formatMoney(toRefund.subtotal, toRefund.currency)} to the customer:{" "}
-            <StripeLink href={toRefund.stripeUrl} target="_blank" rel="noopener noreferrer">
-              Open this payment in Stripe ↗
-            </StripeLink>
-          </span>
-          <DismissButton
+      <Filters
+        role="search"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setFilters({ q: query.trim() });
+        }}
+      >
+        <SearchLabel>
+          Order number or email
+          <input
+            type="search"
+            value={query}
+            placeholder="e.g. ABCD1234 or jane@"
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </SearchLabel>
+        <Button type="submit">Search</Button>
+        <label>
+          Show
+          <select value={filters.status} onChange={(e) => setFilters({ status: e.target.value })}>
+            <option value="">All orders</option>
+            <option value={TO_SHIP}>Waiting to ship</option>
+            {ADMIN_STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {STATUS_LABELS[status]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          From
+          <input
+            type="date"
+            value={filters.from}
+            max={filters.to || undefined}
+            onChange={(e) => setFilters({ from: e.target.value })}
+          />
+        </label>
+        <label>
+          To
+          <input
+            type="date"
+            value={filters.to}
+            min={filters.from || undefined}
+            onChange={(e) => setFilters({ to: e.target.value })}
+          />
+        </label>
+        {filtered && (
+          <Button
             type="button"
-            aria-label="Dismiss refund reminder"
-            onClick={() => setToRefund(null)}
+            onClick={() => {
+              setQuery("");
+              setSearchParams({});
+            }}
           >
-            ✕
-          </DismissButton>
-        </RefundReminder>
+            Clear filters
+          </Button>
+        )}
+      </Filters>
+      {error && <ErrorText>{error}</ErrorText>}
+      {cancelOutcome && (
+        <CancelNotice outcome={cancelOutcome} onDismiss={() => setCancelOutcome(null)} />
       )}
       {orders === null && !error && <p>Loading orders…</p>}
       {orders?.length === 0 && <p>No orders found.</p>}
@@ -211,7 +269,11 @@ function AdminOrders() {
             <tbody>
               {orders.map((order) => (
                 <tr key={order._id}>
-                  <td>#{orderNumber(order._id)}</td>
+                  <td>
+                    <OrderLink to={`/admin/orders/${order._id}`}>
+                      #{orderNumber(order._id)}
+                    </OrderLink>
+                  </td>
                   <td>{formatDate(order.createdAt)}</td>
                   <td>
                     {order.email || "—"}
@@ -225,48 +287,30 @@ function AdminOrders() {
                       </div>
                     ))}
                   </td>
-                  <td>{formatMoney(order.subtotal, order.currency)}</td>
                   <td>
-                    {order.shippingAddress?.line1
-                      ? [
-                          order.shippingAddress.name,
-                          order.shippingAddress.line1,
-                          order.shippingAddress.line2,
-                          order.shippingAddress.city,
-                          order.shippingAddress.postalCode,
-                          order.shippingAddress.country,
-                        ]
-                          .filter(Boolean)
-                          .join(", ")
-                      : "—"}
+                    {formatMoney(order.subtotal, order.currency)}
+                    {order.refundedTotal > 0 && (
+                      <div>
+                        Refunded {formatMoney(order.refundedTotal, order.currency)}
+                      </div>
+                    )}
                   </td>
+                  <td>{formatAddress(order.shippingAddress)}</td>
                   <td>
-                    {order.status === "cancelled" ? (
-                      // Cancelling is final, so there's nothing to choose.
-                      <>
-                        <Badge status="cancelled">{STATUS_LABELS.cancelled}</Badge>
-                        <SmallStripeLink
-                          href={order.stripeUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={`Payment for order ${orderNumber(order._id)} in Stripe`}
-                        >
-                          Payment in Stripe ↗
-                        </SmallStripeLink>
-                      </>
-                    ) : (
-                      <Select
-                        aria-label={`Status for order ${orderNumber(order._id)}`}
-                        value={order.status}
-                        disabled={savingId === order._id}
-                        onChange={(e) => handleSelect(order, e.target.value)}
+                    <OrderStatusControl
+                      order={order}
+                      onUpdated={handleUpdated}
+                      onError={setError}
+                    />
+                    {order.status === "cancelled" && (
+                      <SmallStripeLink
+                        href={order.stripeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Payment for order ${orderNumber(order._id)} in Stripe`}
                       >
-                        {ADMIN_STATUSES.map((status) => (
-                          <option key={status} value={status}>
-                            {STATUS_LABELS[status]}
-                          </option>
-                        ))}
-                      </Select>
+                        Payment in Stripe ↗
+                      </SmallStripeLink>
                     )}
                   </td>
                 </tr>
@@ -275,11 +319,13 @@ function AdminOrders() {
           </Table>
         </TableWrapper>
       )}
-      <CancelOrderDialog
-        order={cancelling}
-        onClose={() => setCancelling(null)}
-        onConfirm={(order) => handleStatusChange(order, "cancelled")}
-      />
+      {hasMore && (
+        <More>
+          <Button type="button" onClick={loadMore} disabled={loadingMore}>
+            {loadingMore ? "Loading…" : "Load more orders"}
+          </Button>
+        </More>
+      )}
     </Container>
   );
 }

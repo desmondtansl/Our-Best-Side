@@ -1,79 +1,15 @@
-import { useRef } from "react";
+import { useState } from "react";
 import styled from "styled-components";
-import useModal from "../../hooks/useModal";
-import useCloseOnBack from "../../hooks/useCloseOnBack";
+import AdminDialog, {
+  DialogTitle,
+  CannotBeUndone,
+  DialogList,
+  DialogNote,
+  DialogButtons,
+  BackButton,
+  DangerButton,
+} from "./AdminDialog";
 import { formatMoney, orderNumber } from "../../utils/format";
-
-const Overlay = styled.div`
-  position: fixed;
-  inset: 0px;
-  z-index: 300;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.4);
-`;
-
-const Dialog = styled.div`
-  width: 100%;
-  max-width: 480px;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 20px 24px 24px;
-  border-radius: 10px;
-  background: white;
-  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  font-size: 15px;
-  line-height: 1.5;
-
-  @media (max-width: 600px) {
-    padding: 16px;
-  }
-`;
-
-const Title = styled.h2`
-  margin: 0px;
-  font-size: 22px;
-  font-weight: 500;
-`;
-
-// The warning that can't be missed: first thing under the title, in a red
-// box, in large bold red text.
-const Warning = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  border: 2px solid red;
-  border-radius: 10px;
-  background-color: #fff0f0;
-  color: red;
-  font-size: 20px;
-  font-weight: 800;
-  line-height: 1.3;
-`;
-
-const WarningIcon = styled.span`
-  font-size: 28px;
-  line-height: 1;
-`;
-
-const Details = styled.ul`
-  margin: 0px;
-  padding-left: 20px;
-`;
-
-// The refund reminder, with the link to the payment in Stripe.
-const Refund = styled.div`
-  padding: 12px 16px;
-  border: 0.5px solid lightgray;
-  border-radius: 10px;
-  background-color: #f8f4f4;
-`;
 
 const StripeLink = styled.a`
   display: inline-block;
@@ -81,31 +17,26 @@ const StripeLink = styled.a`
   font-weight: 700;
 `;
 
-const Buttons = styled.div`
+const Checkbox = styled.label`
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 4px;
-`;
-
-const Button = styled.button`
-  flex: 1 1 auto;
-  border: none;
-  padding: 12px 16px;
-  cursor: pointer;
-  font-size: 15px;
+  align-items: flex-start;
+  gap: 10px;
   font-weight: 600;
+  cursor: pointer;
+
+  input {
+    width: 18px;
+    height: 18px;
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
 `;
 
-const KeepButton = styled(Button)`
-  background-color: #e1d7c6;
-  color: black;
-`;
-
-const CancelButton = styled(Button)`
-  background-color: red;
-  color: white;
+const Hint = styled.span`
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 300;
 `;
 
 const itemsBackInStock = (order) => {
@@ -116,70 +47,76 @@ const itemsBackInStock = (order) => {
 };
 
 // Asks an admin to confirm before an order is cancelled, which is final.
-// Shown while `order` is set; `onClose` hides it, `onConfirm` cancels.
+// When the order can be refunded through Stripe, it offers to refund it at
+// the same time (ticked by default). `onConfirm(order, { refund })` cancels;
+// `onClose` hides it.
 function CancelOrderDialog({ order, onConfirm, onClose }) {
-  const dialogRef = useRef(null);
-  const open = Boolean(order);
-  // The phone's Back button closes the pop-up, keeping the order as it is.
-  const { close } = useCloseOnBack(open, (value) => {
-    if (!value) onClose();
-  });
-  // "Keep order" has focus when the pop-up opens, so pressing Enter straight
-  // away never cancels anything.
-  const trapFocus = useModal(open, { onClose: close, containerRef: dialogRef });
-
-  if (!order) return null;
+  const refundable = order.refundable || 0;
+  const [refundNow, setRefundNow] = useState(refundable > 0);
+  const fullyRefunded = order.refundedTotal > 0 && order.refundedTotal >= order.subtotal;
+  const amount = formatMoney(refundable, order.currency);
 
   return (
-    <Overlay
-      onClick={(event) => {
-        if (event.target === event.currentTarget) close();
-      }}
+    <AdminDialog
+      alert
+      titleId="cancel-order-title"
+      describedBy="cancel-order-warning"
+      onClose={onClose}
     >
-      <Dialog
-        ref={dialogRef}
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="cancel-order-title"
-        aria-describedby="cancel-order-warning"
-        onKeyDown={trapFocus}
-      >
-        <Title id="cancel-order-title">Cancel order #{orderNumber(order._id)}?</Title>
-        <Warning id="cancel-order-warning">
-          <WarningIcon aria-hidden="true">⚠</WarningIcon>
-          <span>This action cannot be undone.</span>
-        </Warning>
-        <Details>
-          <li>
-            Once cancelled, this order&apos;s status can never be changed again. If it was
-            cancelled by mistake, the customer will need to order again.
-          </li>
-          <li>{itemsBackInStock(order)}</li>
-        </Details>
-        <Refund>
-          <strong>The customer is not refunded automatically.</strong> Refund{" "}
-          {formatMoney(order.subtotal, order.currency)} in Stripe.
-          <br />
-          <StripeLink href={order.stripeUrl} target="_blank" rel="noopener noreferrer">
-            Open this payment in Stripe ↗
-          </StripeLink>
-        </Refund>
-        <Buttons>
-          <KeepButton type="button" data-autofocus onClick={close}>
-            No, keep order
-          </KeepButton>
-          <CancelButton
-            type="button"
-            onClick={() => {
-              close();
-              onConfirm(order);
-            }}
-          >
-            Yes, cancel order
-          </CancelButton>
-        </Buttons>
-      </Dialog>
-    </Overlay>
+      {({ close }) => (
+        <>
+          <DialogTitle id="cancel-order-title">Cancel order #{orderNumber(order._id)}?</DialogTitle>
+          <CannotBeUndone id="cancel-order-warning" />
+          <DialogList>
+            <li>
+              Once cancelled, this order&apos;s status can never be changed again. If it was
+              cancelled by mistake, the customer will need to order again.
+            </li>
+            <li>{itemsBackInStock(order)}</li>
+          </DialogList>
+          <DialogNote>
+            {refundable > 0 && (
+              <Checkbox>
+                <input
+                  type="checkbox"
+                  checked={refundNow}
+                  onChange={(e) => setRefundNow(e.target.checked)}
+                />
+                <span>
+                  Also refund {amount} to the customer now, through Stripe
+                  <Hint>Untick to refund later, from the order&apos;s page or in Stripe.</Hint>
+                </span>
+              </Checkbox>
+            )}
+            {refundable <= 0 && fullyRefunded && <>This order has already been refunded in full.</>}
+            {refundable <= 0 && !fullyRefunded && (
+              <>
+                <strong>The customer is not refunded automatically.</strong> Refund{" "}
+                {formatMoney(order.subtotal, order.currency)} in Stripe.
+                <br />
+                <StripeLink href={order.stripeUrl} target="_blank" rel="noopener noreferrer">
+                  Open this payment in Stripe ↗
+                </StripeLink>
+              </>
+            )}
+          </DialogNote>
+          <DialogButtons>
+            <BackButton type="button" data-autofocus onClick={close}>
+              No, keep order
+            </BackButton>
+            <DangerButton
+              type="button"
+              onClick={() => {
+                close();
+                onConfirm(order, { refund: refundable > 0 && refundNow });
+              }}
+            >
+              {refundable > 0 && refundNow ? "Yes, cancel and refund" : "Yes, cancel order"}
+            </DangerButton>
+          </DialogButtons>
+        </>
+      )}
+    </AdminDialog>
   );
 }
 

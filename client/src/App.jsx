@@ -10,6 +10,7 @@ import SearchProduct from "./pages/AdminSearchProduct.jsx";
 import EditProduct from "./pages/AdminEditProduct.jsx";
 import Dashboard from "./pages/AdminDashboard.jsx";
 import AdminOrders from "./pages/AdminOrders.jsx";
+import AdminOrderDetail from "./pages/AdminOrderDetail.jsx";
 import AdminUsers from "./pages/AdminUsers.jsx";
 import IndividualMenProduct from "./pages/IndividualMenProduct.jsx";
 import IndividualLadiesProduct from "./pages/IndividualLadiesProduct.jsx";
@@ -49,6 +50,7 @@ function App() {
           <Route path="/search" element={<SearchProduct />} />
           <Route path="/search/:params" element={<EditProduct />} />
           <Route path="/admin/orders" element={<AdminOrders />} />
+          <Route path="/admin/orders/:orderId" element={<AdminOrderDetail />} />
           <Route element={<OwnerRoutes />}>
             <Route path="/admin/users" element={<AdminUsers />} />
           </Route>

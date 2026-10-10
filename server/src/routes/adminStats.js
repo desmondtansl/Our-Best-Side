@@ -4,6 +4,7 @@ import Product from "../models/Product.js";
 import checkAuth from "../middleware/checkAuth.js";
 import requireAdmin from "../middleware/requireAdmin.js";
 import { LOW_STOCK_THRESHOLD } from "../inventory.js";
+import { DAY, shopDayStart } from "../shopTime.js";
 
 const router = express.Router();
 
@@ -16,16 +17,10 @@ export const SALE_STATUSES = ["paid", "processing", "shipped", "delivered"];
 // Paid orders that haven't been sent yet.
 export const TO_SHIP_STATUSES = ["paid", "processing"];
 
-const DAY = 24 * 60 * 60 * 1000;
-// The shop's days run midnight to midnight Singapore time (UTC+8, no
-// daylight saving), not UTC.
-const SHOP_UTC_OFFSET = 8 * 60 * 60 * 1000;
-
-// When "today", "the last 7 days" and "the last 30 days" start. Each period
-// includes today.
+// When "today", "the last 7 days" and "the last 30 days" start, in Singapore
+// time. Each period includes today.
 export const periodStarts = (now = new Date()) => {
-  const shopTime = now.getTime() + SHOP_UTC_OFFSET;
-  const today = Math.floor(shopTime / DAY) * DAY - SHOP_UTC_OFFSET;
+  const today = shopDayStart(now).getTime();
   return {
     today: new Date(today),
     week: new Date(today - 6 * DAY),
@@ -35,11 +30,14 @@ export const periodStarts = (now = new Date()) => {
 
 const round2 = (value) => Math.round(value * 100) / 100;
 
+// What the shop kept from an order: its subtotal less any refunds.
+const netAmount = { $subtract: ["$subtotal", { $ifNull: ["$refundedTotal", 0] }] };
+
 const salesSince = async (starts) => {
   const since = (start) => ({ $gte: ["$createdAt", start] });
   const group = { _id: null };
   for (const [period, start] of Object.entries(starts)) {
-    group[`${period}Revenue`] = { $sum: { $cond: [since(start), "$subtotal", 0] } };
+    group[`${period}Revenue`] = { $sum: { $cond: [since(start), netAmount, 0] } };
     group[`${period}Orders`] = { $sum: { $cond: [since(start), 1, 0] } };
   }
   const [totals = {}] = await Order.aggregate([

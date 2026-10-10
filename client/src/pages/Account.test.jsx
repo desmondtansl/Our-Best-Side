@@ -94,6 +94,30 @@ describe("Account page", () => {
     expect(screen.getByText("sam@example.com")).toBeInTheDocument();
   });
 
+  it("shows tracking details and refunds on an order", async () => {
+    routes["/account/orders"] = {
+      data: [
+        {
+          ...order,
+          tracking: { courier: "Ninja Van", number: "NV123", url: "https://track.example.com/NV123" },
+          refundedTotal: 50,
+        },
+      ],
+    };
+    try {
+      renderAccount();
+      const card = await screen.findByTestId("order");
+      expect(card).toHaveTextContent("Shipped with Ninja Van · Tracking number NV123");
+      expect(within(card).getByRole("link", { name: "Track your parcel ↗" })).toHaveAttribute(
+        "href",
+        "https://track.example.com/NV123"
+      );
+      expect(card).toHaveTextContent("Refunded $50.00. Refunds usually reach your card");
+    } finally {
+      routes["/account/orders"] = { data: [order] };
+    }
+  });
+
   it("shows an empty state when there are no orders", async () => {
     routes["/account/orders"] = { data: [] };
     try {

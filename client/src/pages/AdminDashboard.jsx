@@ -262,7 +262,8 @@ function RecentOrders({ orders }) {
           {orders.map((order) => (
             <li key={order._id}>
               <span>
-                #{orderNumber(order._id)} <Muted>{formatDate(order.createdAt)}</Muted>
+                <Link to={`/admin/orders/${order._id}`}>#{orderNumber(order._id)}</Link>{" "}
+                <Muted>{formatDate(order.createdAt)}</Muted>
                 <br />
                 <Muted>
                   {order.email || "—"}
