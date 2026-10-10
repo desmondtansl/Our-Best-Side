@@ -1,5 +1,6 @@
 import stripe from "../stripe.js";
 import Order from "../models/Order.js";
+import Promotion from "../models/Promotion.js";
 import { adjustStock } from "../inventory.js";
 import { syncRefundsFromStripe } from "../refunds.js";
 
@@ -46,9 +47,20 @@ const markOrderPaid = async (session) => {
     }
   }
 
+  // Stripe's own totals, so a discount is exactly what the customer paid.
+  if (Number.isInteger(session.amount_total)) {
+    order.subtotal = session.amount_total / 100;
+    if (order.discount?.code && Number.isInteger(session.total_details?.amount_discount)) {
+      order.discount.amount = session.total_details.amount_discount / 100;
+    }
+  }
+
   order.status = "paid";
   order.statusHistory.push({ status: "paid", at: new Date() });
   await order.save();
+  if (order.discount?.promotion) {
+    await Promotion.updateOne({ _id: order.discount.promotion }, { $inc: { timesUsed: 1 } });
+  }
   await adjustStock(order.items, -1);
 };
 

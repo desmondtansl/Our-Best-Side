@@ -540,6 +540,20 @@ function AdminOrderDetail() {
                 ))}
               </tbody>
               <tfoot>
+                {order.discount?.code && (
+                  <>
+                    <tr>
+                      <td colSpan={4}>Items</td>
+                      <td>{formatMoney(order.itemsTotal ?? order.subtotal + order.discount.amount, order.currency)}</td>
+                    </tr>
+                    <tr>
+                      <td colSpan={4}>
+                        Discount: {order.discount.code} ({order.discount.percentOff}% off, {order.discount.name})
+                      </td>
+                      <td>−{formatMoney(order.discount.amount, order.currency)}</td>
+                    </tr>
+                  </>
+                )}
                 <tr>
                   <td colSpan={4}>Total paid</td>
                   <td>{formatMoney(order.subtotal, order.currency)}</td>

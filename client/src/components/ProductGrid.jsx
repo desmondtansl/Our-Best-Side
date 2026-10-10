@@ -8,6 +8,7 @@ import { productImageUrl, productPath } from "../utils/products";
 import { readFilters, activeFilterCount, shopApiUrl, withoutFilters } from "../utils/shop";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import ShopFilters from "./ShopFilters.jsx";
+import WasPrice from "./WasPrice";
 
 // Product listing shared by /men, /ladies and the search results page
 // (no category). Filters and sort come from the page address.
@@ -241,7 +242,10 @@ function ProductGrid({ category }) {
               </NavLink>
               <InfoContainer>
                 <Text> {product.title}</Text>
-                <Price>$ {product.price}</Price>
+                <Price>
+                  $ {product.price}
+                  <WasPrice product={product} />
+                </Price>
               </InfoContainer>
             </Container3>
           ))}

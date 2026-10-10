@@ -56,8 +56,10 @@ const salesSince = async (starts) => {
 // Products, or single sizes, at or below the threshold, sold out first.
 // Products whose stock isn't tracked are never listed.
 const lowStock = async () => {
+  // Archived products are no longer sold, so their stock doesn't matter.
   const products = await Product.find(
     {
+      status: { $ne: "archived" },
       $or: [
         { "sizeStock.0": { $exists: true }, "sizeStock.inStock": { $lte: LOW_STOCK_THRESHOLD } },
         { "sizeStock.0": { $exists: false }, inStock: { $type: "number", $lte: LOW_STOCK_THRESHOLD } },

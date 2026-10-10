@@ -202,6 +202,15 @@ function AdminUploadProduct() {
             placeholder="enter ONLY numbers w/o $ sign - e.g. 30, 40"
             required
           />
+          <ProductPricesHeader as="label" htmlFor="compareAtPrice">
+            "Was" price (optional)
+          </ProductPricesHeader>
+          <Input
+            name="compareAtPrice"
+            id="compareAtPrice"
+            inputMode="decimal"
+            placeholder="only for a sale: the old price, shown crossed out"
+          />
           <StockHeader>Stock per Size</StockHeader>
           {sizes.length > 0 ? (
             <SizeStockInputs
@@ -217,13 +226,26 @@ function AdminUploadProduct() {
             <input type="checkbox" name="featured" value="true" />
             Featured on homepage
           </FeaturedLabel>
+          <FeaturedLabel>
+            <input type="checkbox" name="status" value="draft" />
+            Save as a draft (only admins see it until it&apos;s published)
+          </FeaturedLabel>
           <Button type="submit" disabled={uploading}>
             {uploading ? "Uploading…" : "Upload Product"}
           </Button>
           {status?.type === "success" && (
             <StatusMessage role="status">
-              "{status.product.title}" was uploaded.{" "}
-              <Link to={productPath(status.product)}>View product</Link>
+              {status.product.status === "draft" ? (
+                <>
+                  "{status.product.title}" was saved as a draft.{" "}
+                  <Link to={`/search/${status.product._id}`}>Edit or publish it</Link>
+                </>
+              ) : (
+                <>
+                  "{status.product.title}" was uploaded.{" "}
+                  <Link to={productPath(status.product)}>View product</Link>
+                </>
+              )}
             </StatusMessage>
           )}
           {status?.type === "error" && (

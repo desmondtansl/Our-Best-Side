@@ -7,6 +7,8 @@ import { toOptions, productPhotos } from "../utils/products";
 import PhotoManager, { savedPhotoItems } from "../components/admin/PhotoManager";
 import SizeStockInputs, { sizeStockPayload } from "../components/admin/SizeStockInputs";
 import useDocumentTitle from "../hooks/useDocumentTitle";
+import ProductStatusBar from "../components/admin/ProductStatusBar";
+import { errorMessage } from "../utils/format";
 
 const Container = styled.div`
   display: flex;
@@ -117,6 +119,8 @@ function AdminEditProduct() {
   const [size, setSize] = useState();
   const [color, setColor] = useState();
   const [price, setPrice] = useState();
+  // The "was" price; an empty box ends the sale.
+  const [compareAtPrice, setCompareAtPrice] = useState();
   const [inStock, setInStock] = useState();
   const [featured, setFeatured] = useState();
   // Stock per size, as typed: { S: "3", M: "0" }.
@@ -124,8 +128,9 @@ function AdminEditProduct() {
   const [editedProduct, setEditedProduct] = useState("");
 
   const fetchProduct = async () => {
+    // The admin route loads drafts and archived products too.
     const response = await axios.get(
-      `${import.meta.env.VITE_BASE_URL}/products/${params}`
+      `${import.meta.env.VITE_BASE_URL}/admin/products/${params}`
     );
     setData(response.data);
     const product = response.data.data;
@@ -158,6 +163,7 @@ function AdminEditProduct() {
       title,
       description,
       price,
+      compareAtPrice,
       inStock: perSize ? undefined : inStock,
       featured,
     };
@@ -204,7 +210,7 @@ function AdminEditProduct() {
       alert("Product successfully edited");
     } catch (error) {
       console.log(error.message);
-      alert("Failed to edit product");
+      alert(error.response ? errorMessage(error, "Failed to edit product") : "Failed to edit product");
     }
   };
 
@@ -212,8 +218,14 @@ function AdminEditProduct() {
     <Container>
       <Wrapper>
         <BackToDashboard />
-        <BackLink to="/search">← Back to search</BackLink>
+        <BackLink to="/search">← All products</BackLink>
         <Title>Product Edit Form</Title>
+        {data?.data && (
+          <ProductStatusBar
+            product={data.data}
+            onChanged={(product) => setData({ ...data, data: product })}
+          />
+        )}
         <Form onSubmit={handleSubmit} id="form" encType="multipart/form-data">
           <TitleHeader>Edit Product Title</TitleHeader>
           <Input
@@ -270,6 +282,18 @@ function AdminEditProduct() {
             placeholder="enter ONLY numbers w/o $ sign - e.g. 30, 40"
             onChange={(e) => setPrice(e.target.value)}
           />
+          <ProductPricesHeader as="label" htmlFor="compareAtPrice">
+            "Was" price (optional)
+          </ProductPricesHeader>
+          <Input
+            defaultValue={data?.data?.compareAtPrice ?? ""}
+            name="compareAtPrice"
+            id="compareAtPrice"
+            inputMode="decimal"
+            placeholder="only for a sale: the old price, shown crossed out"
+            onChange={(e) => setCompareAtPrice(e.target.value)}
+          />
+          <Hint>Empty this box to end the sale.</Hint>
           <ProductQtyHeader>Stock per Size</ProductQtyHeader>
           {data?.data && !tracksSizes && (
             <Hint>

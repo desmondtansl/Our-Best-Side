@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import { Link } from "react-router-dom";
+import WasPrice from "./WasPrice";
 
 const MasterContainer = styled.div`
   height: 100%;
@@ -83,7 +84,10 @@ function SingleFeaturedProduct({ item }) {
           <Image src={item.img} alt={item.text} />
           <InfoContainer>
             <Text>{item.text}</Text>
-            <Price>{item.price}</Price>
+            <Price>
+              {item.price}
+              <WasPrice product={item.product} />
+            </Price>
           </InfoContainer>
         </StyledLink>
       </Container>

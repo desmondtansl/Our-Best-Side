@@ -326,8 +326,10 @@ function AdminDashboard() {
       </Header>
       <Menu aria-label="Admin pages">
         <MenuItem to="/upload">Upload New Products</MenuItem>
-        <MenuItem to="/search">Search and Edit Products</MenuItem>
+        <MenuItem to="/search">Products</MenuItem>
+        <MenuItem to="/admin/stock">Edit Stock</MenuItem>
         <MenuItem to="/admin/orders">Manage Orders</MenuItem>
+        <MenuItem to="/admin/discounts">Discounts</MenuItem>
         {user.data?.isOwner && <MenuItem to="/admin/users">Manage Admins</MenuItem>}
         <MenuItem to="/" onClick={logOut}>
           Logout

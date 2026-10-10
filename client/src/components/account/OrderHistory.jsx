@@ -76,6 +76,12 @@ function OrderHistory() {
               </li>
             ))}
           </ItemList>
+          {order.discount?.code && (
+            <Muted>
+              Discount {order.discount.code} ({order.discount.percentOff}% off): −
+              {formatMoney(order.discount.amount, order.currency)}
+            </Muted>
+          )}
           <CardRow>
             <b>Total: {formatMoney(order.subtotal, order.currency)}</b>
             {order.paymentMethod?.last4 && (

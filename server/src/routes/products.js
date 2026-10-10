@@ -1,6 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
-import Product, { MAX_PHOTOS, productPhotos } from "../models/Product.js";
+import Product, { MAX_PHOTOS, productPhotos, VISIBLE } from "../models/Product.js";
 import multer from "multer";
 import checkAuth from "../middleware/checkAuth.js";
 import requireAdmin from "../middleware/requireAdmin.js";
@@ -87,13 +87,21 @@ const serverError = (res, error) =>
   res.status(400).json({ data: "", error: error.message });
 
 // Each request builds its own result, so concurrent visitors never share or
-// overwrite each other's product lists.
-const listProducts = (filter) => Product.find(filter).sort({ createdAt: -1, _id: -1 });
+// overwrite each other's product lists. Shoppers only ever see live products
+// (drafts and archived products are for admins: see adminProducts.js).
+const listProducts = (filter) =>
+  Product.find({ ...filter, ...VISIBLE }).sort({ createdAt: -1, _id: -1 });
 
 const findProduct = async (id, category) => {
   if (!mongoose.isValidObjectId(id)) return null;
-  return Product.findOne(category ? { _id: id, category } : { _id: id });
+  return Product.findOne({ _id: id, ...(category && { category }), ...VISIBLE });
 };
+
+// The "was" price must be above the price, or there's no sale to show.
+const saleError = (price, compareAtPrice) =>
+  compareAtPrice != null && price != null && compareAtPrice <= price
+    ? 'The "was" price must be higher than the price'
+    : null;
 
 // UPLOAD A NEW PRODUCT
 // Photos: up to MAX_PHOTOS in "images" (the first is the main photo).
@@ -109,6 +117,9 @@ router.post("/upload", uploadMiddleware, async (req, res) => {
     }
     const { fields, error } = parseProductFields(req.body, { requireAll: true });
     if (error) return badRequest(res, error);
+    const priceError = saleError(fields.price, fields.compareAtPrice);
+    if (priceError) return badRequest(res, priceError);
+    if (fields.compareAtPrice === null) delete fields.compareAtPrice;
 
     if (req.body.sizeStock !== undefined) {
       const { sizeStock, error: stockError } = parseSizeStock(
@@ -186,12 +197,14 @@ router.get("/featured", async (req, res) => {
 router.get("/shop", async (req, res) => {
   try {
     const parsed = parseShopQuery(req.query);
-    let query = Product.find(shopFilter(parsed)).sort(SORTS[parsed.sort]);
+    let query = Product.find({ ...shopFilter(parsed), ...VISIBLE }).sort(SORTS[parsed.sort]);
     if (parsed.limit) query = query.limit(parsed.limit);
     const products = await query;
     const facets = parsed.limit
       ? undefined
-      : buildFacets(await Product.find(baseFilter(parsed), "size color price").lean());
+      : buildFacets(
+          await Product.find({ ...baseFilter(parsed), ...VISIBLE }, "size color price").lean()
+        );
     res.status(200).json({ data: products, facets, error: "" });
   } catch (error) {
     return serverError(res, error);
@@ -249,6 +262,7 @@ router.get("/search/:params", async (req, res) => {
     const { params } = req.params;
     const fetchAllProducts = await Product.find({
       title: { $regex: "^" + escapeRegex(params), $options: "i" },
+      ...VISIBLE,
     });
     res.status(200).json({
       data: fetchAllProducts,
@@ -316,6 +330,11 @@ router.put("/:params", uploadMiddleware, async (req, res) => {
 
     const { fields: update, error } = parseProductFields(req.body);
     if (error) return badRequest(res, error);
+    const priceError = saleError(
+      update.price ?? product.price,
+      update.compareAtPrice !== undefined ? update.compareAtPrice : product.compareAtPrice
+    );
+    if (priceError) return badRequest(res, priceError);
 
     // Photos
     const current = productPhotos(product);

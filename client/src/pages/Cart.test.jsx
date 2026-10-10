@@ -203,3 +203,51 @@ describe("Cart checkout", () => {
     expect(screen.getByText("Checkout Now")).not.toBeDisabled();
   });
 });
+
+describe("Cart discount codes", () => {
+  afterEach(() => vi.clearAllMocks());
+
+  it("applies a code, shows the discount and the new total, and sends it to checkout", async () => {
+    axios.post.mockImplementation(async (url) =>
+      url.endsWith("/checkout/discount")
+        ? { data: { data: { code: "WELCOME10", name: "Welcome offer", percentOff: 10 } } }
+        : { data: { data: "https://checkout.stripe.com/c/pay/cs_1" } }
+    );
+    renderCart(null);
+    fireEvent.change(screen.getByLabelText("Discount code"), { target: { value: "welcome10" } });
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
+    expect(await screen.findByText("WELCOME10 (10% off)")).toBeInTheDocument();
+    expect(screen.getByText(/−\$50\.00/)).toBeInTheDocument();
+    expect(screen.getByTestId("cart-total")).toHaveTextContent("$450.00");
+    expect(axios.post).toHaveBeenCalledWith(expect.stringMatching(/\/checkout\/discount$/), {
+      code: "welcome10",
+    });
+
+    fireEvent.click(screen.getByText("Checkout Now"));
+    await waitFor(() => expect(redirectTo).toHaveBeenCalled());
+    const [, body] = axios.post.mock.calls.find(([url]) => url.endsWith("/create-checkout-session"));
+    expect(body.discountCode).toBe("WELCOME10");
+  });
+
+  it("explains a code that can't be used", async () => {
+    axios.post.mockRejectedValue({ response: { data: { error: "That discount code has expired" } } });
+    renderCart(null);
+    fireEvent.change(screen.getByLabelText("Discount code"), { target: { value: "OLD" } });
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("That discount code has expired");
+    expect(screen.getByTestId("cart-total")).toHaveTextContent("$500.00");
+  });
+
+  it("removes an applied code", async () => {
+    axios.post.mockResolvedValue({
+      data: { data: { code: "WELCOME10", name: "Welcome offer", percentOff: 10 } },
+    });
+    renderCart(null);
+    fireEvent.change(screen.getByLabelText("Discount code"), { target: { value: "WELCOME10" } });
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Remove discount code" }));
+    expect(screen.getByTestId("cart-total")).toHaveTextContent("$500.00");
+    expect(screen.getByLabelText("Discount code")).toBeInTheDocument();
+  });
+});

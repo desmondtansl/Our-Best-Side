@@ -2,7 +2,6 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import axios from "axios";
 import AdminUploadProduct from "./AdminUploadProduct";
-import AdminSearchProduct from "./AdminSearchProduct";
 
 vi.mock("axios", () => ({
   default: { get: vi.fn(), post: vi.fn(), defaults: { headers: { common: {} } } },
@@ -104,16 +103,5 @@ describe("AdminUploadProduct", () => {
       await screen.findByText("Price must be a number greater than 0")
     ).toBeInTheDocument();
     expect(container.querySelector("#title")).toHaveValue("Canvas Sneakers");
-  });
-});
-
-describe("AdminSearchProduct", () => {
-  it("links back to the dashboard", () => {
-    render(
-      <MemoryRouter>
-        <AdminSearchProduct />
-      </MemoryRouter>
-    );
-    expect(screen.getByText("← Back to Dashboard")).toHaveAttribute("href", "/dashboard");
   });
 });

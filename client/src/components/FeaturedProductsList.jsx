@@ -63,6 +63,7 @@ function FeaturedProducts() {
             img: productImageUrl(product.image),
             text: product.title,
             price: `$${product.price}`,
+            product,
             page: productPath(product),
           }))
         );

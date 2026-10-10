@@ -55,7 +55,19 @@ const orderSchema = new Schema(
     user: { type: Schema.Types.ObjectId, ref: "user", index: true },
     email: { type: String, trim: true, lowercase: true },
     items: [orderItemSchema],
+    // What the customer paid for the items: itemsTotal less any discount.
     subtotal: { type: Number, required: true },
+    // The items at their prices, before a discount code. Empty on orders
+    // from before discount codes, where it equals subtotal.
+    itemsTotal: { type: Number },
+    // The discount code used, if any. `amount` is what it took off.
+    discount: {
+      promotion: { type: Schema.Types.ObjectId, ref: "promotion" },
+      code: { type: String },
+      name: { type: String },
+      percentOff: { type: Number },
+      amount: { type: Number },
+    },
     currency: { type: String, required: true },
     shippingAddress: {
       name: String,
