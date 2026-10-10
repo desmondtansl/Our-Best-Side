@@ -144,11 +144,19 @@ export const stubStripe = async () => {
     return { data: state.refunds.filter((r) => r.payment_intent === params.payment_intent) };
   };
 
+  state.couponCount = 0;
+  stripe.coupons.create = async (params) => {
+    record("coupons.create", params);
+    state.couponCount += 1;
+    return { id: `coupon_test_${state.couponCount}`, ...params };
+  };
+
   const reset = () => {
     for (const key of Object.keys(calls)) delete calls[key];
     state.paymentMethods = [];
     state.refunds = [];
     state.refundError = null;
+    state.couponCount = 0;
     byKey.clear();
     state.sessionCount = 0;
     state.customerCount = 0;

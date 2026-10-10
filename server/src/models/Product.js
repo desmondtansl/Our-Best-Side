@@ -4,6 +4,12 @@ const { Schema } = mongoose;
 
 export const MAX_PHOTOS = 8;
 
+export const PRODUCT_STATUSES = ["live", "draft", "archived"];
+
+// Matches the products shoppers can see and buy (including older products,
+// which have no status).
+export const VISIBLE = { status: { $nin: ["draft", "archived"] } };
+
 // Stock for one size, when stock is tracked per size.
 const sizeStockSchema = new Schema(
   {
@@ -35,6 +41,13 @@ const productSchema = new Schema(
     sizeStock: [sizeStockSchema],
     // Shown in the homepage "Featured Products" section.
     featured: { type: Boolean, default: false, index: true },
+    // "live" products are in the shop; "draft" ones are being prepared and
+    // "archived" ones are retired. Only admins see drafts and archived
+    // products. Products from before statuses existed have none: they're live.
+    status: { type: String, enum: PRODUCT_STATUSES, default: "live", index: true },
+    // The "was" price, shown crossed out next to `price` while on sale.
+    // Checkout always charges `price`.
+    compareAtPrice: { type: Number },
   },
   { timestamps: true }
 );

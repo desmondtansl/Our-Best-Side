@@ -56,6 +56,26 @@ export const parseProductFields = (body, { requireAll = false } = {}) => {
     }
     fields.price = Math.round(price * 100) / 100;
   }
+  // The "was" price for a sale; empty ends the sale.
+  if (has("compareAtPrice")) {
+    const text = String(body.compareAtPrice).replace(/[$,\s]/g, "");
+    if (text === "" || text === "null") {
+      fields.compareAtPrice = null;
+    } else {
+      const was = Number(text);
+      if (!Number.isFinite(was) || was <= 0) {
+        return { error: "The \"was\" price must be a number greater than 0" };
+      }
+      fields.compareAtPrice = Math.round(was * 100) / 100;
+    }
+  }
+  // New products can be saved as drafts; the status is changed afterwards
+  // with Publish, Archive and Restore.
+  if (has("status")) {
+    const status = String(body.status);
+    if (!["live", "draft"].includes(status)) return { error: "Status must be live or draft" };
+    fields.status = status;
+  }
   if (has("inStock")) {
     const inStock = Number(body.inStock);
     if (!Number.isInteger(inStock) || inStock < 0) {

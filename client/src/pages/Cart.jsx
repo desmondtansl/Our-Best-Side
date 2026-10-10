@@ -20,6 +20,7 @@ import { productImageUrl } from "../utils/products";
 import { DELIVERY } from "../config/store";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import { buttonLink } from "../styles/links";
+import DiscountCode, { discountFor } from "../components/DiscountCode";
 
 // Full-height column so the footer sits at the bottom even when the cart is short.
 const Container = styled.div`
@@ -317,6 +318,9 @@ function Cart() {
   const [addressId, setAddressId] = useState("");
   const [checkingOut, setCheckingOut] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
+  // The discount code applied in the cart: { code, name, percentOff }.
+  const [discount, setDiscount] = useState(null);
+  const discountAmount = discount ? discountFor(cart.totalPrice, discount.percentOff) : 0;
 
   useEffect(() => {
     if (!user.data) {
@@ -352,7 +356,11 @@ function Cart() {
       }));
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/checkout/create-checkout-session`,
-        { items, ...(addressId && { addressId }) }
+        {
+          items,
+          ...(addressId && { addressId }),
+          ...(discount && { discountCode: discount.code }),
+        }
       );
       redirectTo(response.data.data);
     } catch (err) {
@@ -450,10 +458,20 @@ function Cart() {
               <SummaryItemText>Shipping</SummaryItemText>
               <SummaryItemPrice>{DELIVERY.cartLabel}</SummaryItemPrice>
             </SummaryItem>
+            {cart.products.length > 0 && (
+              <DiscountCode
+                discount={discount}
+                amount={cart.totalPrice}
+                onChange={(applied) => {
+                  setCheckoutError("");
+                  setDiscount(applied);
+                }}
+              />
+            )}
             <SummaryItem type="total">
               <SummaryItemText>Total</SummaryItemText>
               <SummaryItemPrice data-testid="cart-total">
-                {formatMoney(cart.totalPrice)}
+                {formatMoney(cart.totalPrice - discountAmount)}
               </SummaryItemPrice>
             </SummaryItem>
             {user.data ? (

@@ -3,6 +3,7 @@ import axios from "axios";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import { productImageUrl, productPath } from "../utils/products";
+import WasPrice from "./WasPrice";
 
 // "You may also like": up to 4 similar in-stock products from the same
 // category, under the product details. Hidden when there are none.
@@ -90,7 +91,10 @@ function RelatedProducts({ productId }) {
           <Card key={product._id} to={productPath(product)} data-testid="related-product">
             <Image src={productImageUrl(product.image)} alt={product.title} />
             <span>{product.title}</span>
-            <span>${product.price}</span>
+            <span>
+              ${product.price}
+              <WasPrice product={product} />
+            </span>
           </Card>
         ))}
       </Grid>

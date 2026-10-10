@@ -6,7 +6,9 @@ import Signup from "./pages/Signup.jsx";
 import Login from "./pages/Login.jsx";
 import { Routes, Route } from "react-router-dom";
 import UploadProduct from "./pages/AdminUploadProduct.jsx";
-import SearchProduct from "./pages/AdminSearchProduct.jsx";
+import AdminProducts from "./pages/AdminProducts.jsx";
+import AdminStock from "./pages/AdminStock.jsx";
+import AdminDiscounts from "./pages/AdminDiscounts.jsx";
 import EditProduct from "./pages/AdminEditProduct.jsx";
 import Dashboard from "./pages/AdminDashboard.jsx";
 import AdminOrders from "./pages/AdminOrders.jsx";
@@ -47,7 +49,9 @@ function App() {
         <Route element={<ProtectedRoutes />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/upload" element={<UploadProduct />} />
-          <Route path="/search" element={<SearchProduct />} />
+          <Route path="/search" element={<AdminProducts />} />
+          <Route path="/admin/stock" element={<AdminStock />} />
+          <Route path="/admin/discounts" element={<AdminDiscounts />} />
           <Route path="/search/:params" element={<EditProduct />} />
           <Route path="/admin/orders" element={<AdminOrders />} />
           <Route path="/admin/orders/:orderId" element={<AdminOrderDetail />} />

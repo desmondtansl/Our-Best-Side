@@ -21,6 +21,7 @@ import useDocumentTitle from "../hooks/useDocumentTitle";
 import RelatedProducts from "./RelatedProducts";
 import ProductGallery from "./ProductGallery";
 import SizeGuide from "./SizeGuide";
+import WasPrice from "./WasPrice";
 
 // Product page shared by /men/:params and /ladies/:params.
 
@@ -397,7 +398,10 @@ function ProductDetails({ category }) {
         <InfoContainer>
           <Title>{product.title}</Title>
           <Description>{product.description}</Description>
-          <Price>${product.price}</Price>
+          <Price>
+            ${product.price}
+            <WasPrice product={product} />
+          </Price>
           {lowStock && (
             <LowStock>
               Only {stock} left{perSize ? ` in size ${size}` : ""}

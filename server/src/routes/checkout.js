@@ -1,5 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
+import { findUsablePromotion, stripeCouponFor, discountOn } from "../promotions.js";
 import stripe, {
   ensureStripeCustomer,
   isStripeConfigured,
@@ -72,7 +73,24 @@ const toStripeShipping = (address) => ({
   },
 });
 
+// CHECK A DISCOUNT CODE (from the cart, before checkout)
+// Body: { code }. Returns the promotion's name and percentage.
+
+router.post("/discount", async (req, res) => {
+  try {
+    const { promotion, error } = await findUsablePromotion(req.body?.code);
+    if (error) return badRequest(res, error);
+    return res.status(200).json({
+      data: { code: promotion.code, name: promotion.name, percentOff: promotion.percentOff },
+      error: "",
+    });
+  } catch (error) {
+    return badRequest(res, "Couldn't check that code. Please try again.");
+  }
+});
+
 // CREATE A STRIPE CHECKOUT SESSION FOR THE CART
+// Body: { items, addressId?, discountCode? }
 
 router.post("/create-checkout-session", optionalAuth, async (req, res) => {
   if (!isStripeConfigured()) return paymentsNotConfigured(res);
@@ -88,8 +106,15 @@ router.post("/create-checkout-session", optionalAuth, async (req, res) => {
     const orderItems = [];
     for (const item of items) {
       const product = productsById.get(item.productId);
-      if (!product || !(product.price > 0)) {
-        return badRequest(res, "Some items in your cart are no longer available");
+      // Drafts and archived products can't be bought, even from an old cart.
+      const hidden = ["draft", "archived"].includes(product?.status);
+      if (!product || hidden || !(product.price > 0)) {
+        return badRequest(
+          res,
+          product?.title && hidden
+            ? `${product.title} is no longer available. Please remove it from your cart.`
+            : "Some items in your cart are no longer available"
+        );
       }
       orderItems.push({
         product: product._id,
@@ -113,17 +138,38 @@ router.post("/create-checkout-session", optionalAuth, async (req, res) => {
       if (!savedAddress) return badRequest(res, "Address not found");
     }
 
+    // A discount code is checked again here: it may have ended since it was
+    // entered in the cart.
+    let promotion;
+    if (req.body?.discountCode) {
+      const result = await findUsablePromotion(req.body.discountCode);
+      if (result.error) return badRequest(res, result.error);
+      promotion = result.promotion;
+    }
+
     const currency = getCurrency();
-    const subtotal =
+    const itemsTotal =
       orderItems.reduce((sum, item) => sum + toCents(item.price) * item.quantity, 0) /
       100;
+    const discountAmount = promotion ? discountOn(itemsTotal, promotion.percentOff) : 0;
 
     order = await Order.create({
       user: user?._id,
       email: user?.email,
       items: orderItems,
-      subtotal,
+      itemsTotal,
+      // Stripe's exact totals replace these when payment is confirmed.
+      subtotal: Math.round((itemsTotal - discountAmount) * 100) / 100,
       currency,
+      ...(promotion && {
+        discount: {
+          promotion: promotion._id,
+          code: promotion.code,
+          name: promotion.name,
+          percentOff: promotion.percentOff,
+          amount: discountAmount,
+        },
+      }),
     });
 
     // Stripe shows product photos on its checkout page; a checkout session
@@ -156,6 +202,7 @@ router.post("/create-checkout-session", optionalAuth, async (req, res) => {
         };
       }),
       shipping_address_collection: { allowed_countries: getShippingCountries() },
+      ...(promotion && { discounts: [{ coupon: await stripeCouponFor(promotion) }] }),
       client_reference_id: order.id,
       metadata: { orderId: order.id },
       success_url: `${process.env.BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,

@@ -80,8 +80,10 @@ describe("AdminDashboard", () => {
     renderDashboard();
     const links = [
       ["Upload New Products", "/upload"],
-      ["Search and Edit Products", "/search"],
+      ["Products", "/search"],
+      ["Edit Stock", "/admin/stock"],
       ["Manage Orders", "/admin/orders"],
+      ["Discounts", "/admin/discounts"],
       ["Logout", "/"],
     ];
     for (const [name, href] of links) {

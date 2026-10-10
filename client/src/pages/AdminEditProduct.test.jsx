@@ -7,6 +7,7 @@ vi.mock("axios", () => ({
   default: {
     get: vi.fn(),
     put: vi.fn(),
+    patch: vi.fn(),
     defaults: { headers: { common: {} } },
   },
 }));
@@ -184,9 +185,9 @@ describe("AdminEditProduct", () => {
   it("links back to the dashboard and to search", async () => {
     await renderPage();
     expect(screen.getByText("← Back to Dashboard")).toHaveAttribute("href", "/dashboard");
-    expect(screen.getByText("← Back to search")).toHaveAttribute("href", "/search");
+    expect(screen.getByText("← All products")).toHaveAttribute("href", "/search");
     // Both back links look the same.
-    expect(getComputedStyle(screen.getByText("← Back to search")).fontWeight).toBe("600");
+    expect(getComputedStyle(screen.getByText("← All products")).fontWeight).toBe("600");
     expect(getComputedStyle(screen.getByText("← Back to Dashboard")).fontWeight).toBe("600");
   });
 
@@ -224,5 +225,50 @@ describe("AdminEditProduct", () => {
       expect(window.alert).toHaveBeenCalledWith("Failed to edit product")
     );
     expect(window.alert).not.toHaveBeenCalledWith("Product successfully edited");
+  });
+
+  it("loads the product through the admin route, so drafts can be edited", async () => {
+    await renderPage();
+    expect(axios.get).toHaveBeenCalledWith(expect.stringMatching(/\/admin\/products\/product-1$/));
+  });
+
+  it("puts a product on sale with a was-price, and ends the sale when emptied", async () => {
+    axios.put.mockResolvedValue({ data: { data: product } });
+    const { container } = await renderPage();
+    const was = screen.getByLabelText(/"Was" price/);
+    fireEvent.change(was, { target: { value: "300" } });
+    submit(container);
+    await waitFor(() => expect(axios.put).toHaveBeenCalled());
+    expect(sentFormData().get("compareAtPrice")).toBe("300");
+  });
+
+  it("publishes a draft, and archives after confirming", async () => {
+    axios.get.mockResolvedValue({ data: { data: { ...product, status: "draft" } } });
+    axios.patch
+      .mockResolvedValueOnce({ data: { data: { ...product, status: "live" } } })
+      .mockResolvedValueOnce({ data: { data: { ...product, status: "archived" } } });
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    await renderPage();
+    const bar = screen.getByLabelText("Product status");
+    expect(bar).toHaveTextContent("Draft");
+    expect(bar).toHaveTextContent("Only admins can see it.");
+
+    fireEvent.click(screen.getByRole("button", { name: "Publish" }));
+    await waitFor(() => expect(bar).toHaveTextContent("In the shop."));
+    expect(axios.patch).toHaveBeenCalledWith(expect.stringMatching(/\/admin\/products\/product-1\/status$/), {
+      status: "live",
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Archive" }));
+    expect(window.confirm).toHaveBeenCalledWith(expect.stringMatching(/^Archive "Suede Loafers"\?/));
+    await waitFor(() => expect(bar).toHaveTextContent("Archived"));
+    expect(screen.getByRole("button", { name: "Restore to the shop" })).toBeInTheDocument();
+  });
+
+  it("doesn't archive when the confirmation is cancelled", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(false);
+    await renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Archive" }));
+    expect(axios.patch).not.toHaveBeenCalled();
   });
 });

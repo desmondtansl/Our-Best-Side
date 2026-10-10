@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { UserAuth } from "../context/Auth";
 import useDocumentTitle from "../hooks/useDocumentTitle";
+import { errorMessage } from "../utils/format";
 
 const Container = styled.div`
   overflow: hidden;
@@ -75,6 +76,12 @@ const Input = styled.input`
   padding: 10px;
 `;
 
+const ErrorText = styled.p`
+  color: red;
+  font-size: 14px;
+  margin: 10px 0px 0px;
+`;
+
 const Button = styled.button`
   width: auto;
   border: none;
@@ -102,6 +109,7 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
     try {
       const response = await axios.post(
@@ -109,7 +117,6 @@ function Login() {
         {
           email,
           password,
-          isAdmin: true,
         }
       );
 
@@ -129,9 +136,11 @@ function Login() {
       navigate("/");
 
       console.log(response);
-    } catch (error) {
-      setError(error.response.data.error[0].message);
-      alert(error.response.data.error[0].message);
+    } catch (err) {
+      const message = errorMessage(err, "Couldn't log in. Please try again.");
+      setError(message === "Invalid credentials" ? "Wrong email or password." : message);
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -154,7 +163,8 @@ function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <Button>Login</Button>
+          {error && <ErrorText role="alert">{error}</ErrorText>}
+          <Button disabled={loading}>Login</Button>
         </Form>
         <InfoContainer>
           Don't have an account?{" "}
