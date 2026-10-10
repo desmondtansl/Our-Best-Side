@@ -5,52 +5,12 @@ import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import { carouselPhotos } from "../assets/carouselPhotos.js";
 import { Link as NavLink } from "react-router-dom";
 
+// The slides set the carousel's height (see Slide).
 const Container = styled.div`
   width: 100%;
-  height: 100vh;
   display: flex;
   position: relative;
   overflow: hidden;
-
-  @media (max-width: 1280px) {
-    height: auto;
-    width: auto;
-  }
-
-  @media (max-width: 1024px) {
-    height: auto;
-    width: auto;
-  }
-
-  @media (max-width: 820px) {
-    height: auto;
-    width: auto;
-  }
-
-  @media (max-width: 768px) {
-    height: auto;
-    width: auto;
-  }
-
-  @media (max-width: 414px) {
-    height: auto;
-    width: auto;
-  }
-
-  @media (max-width: 375px) {
-    height: auto;
-    width: auto;
-  }
-
-  @media (max-width: 360px) {
-    height: auto;
-    width: auto;
-  }
-
-  @media (max-width: 280px) {
-    height: auto;
-    width: auto;
-  }
 `;
 
 const Arrow = styled.div`
@@ -108,125 +68,39 @@ const Arrow = styled.div`
 `;
 
 const Wrapper = styled.div`
-  height: 100%;
   display: flex;
   transition: all 2s ease;
   transform: translateX(${(props) => props.slideIndex * -100}vw);
-
-  @media (max-width: 1280px) {
-    height: auto;
-  }
-
-  @media (max-width: 1024px) {
-    height: auto;
-  }
-
-  @media (max-width: 820px) {
-    height: auto;
-  }
-
-  @media (max-width: 768px) {
-    height: auto;
-  }
-
-  @media (max-width: 414px) {
-    height: auto;
-  }
-
-  @media (max-width: 375px) {
-    height: auto;
-  }
-
-  @media (max-width: 360px) {
-    height: auto;
-  }
-
-  @media (max-width: 280px) {
-    height: auto;
-  }
 `;
 
+// On computers each slide is a fixed-height banner: the photo fills the left
+// part and the text sits right beside it, so there's no gap between them.
+// On tablets and phones (where the photo is hidden) the slide fits the text.
 const Slide = styled.div`
   display: flex;
-  align-items: center;
+  align-items: stretch;
   width: 100vw;
-  height: 100vh;
+  height: min(85vh, 860px);
+  min-height: 480px;
   background-color: #${(props) => props.bg};
-
-  @media (max-width: 1280px) {
-    height: auto;
-    background-color: white;
-  }
 
   @media (max-width: 1024px) {
     height: auto;
-  }
-
-  @media (max-width: 820px) {
-    height: auto;
-  }
-
-  @media (max-width: 768px) {
-    height: auto;
-  }
-
-  @media (max-width: 414px) {
-    height: auto;
-  }
-
-  @media (max-width: 375px) {
-    height: auto;
-  }
-
-  @media (max-width: 360px) {
-    height: auto;
-  }
-
-  @media (max-width: 280px) {
-    height: auto;
+    min-height: 0px;
+    align-items: center;
+    background-color: white;
   }
 `;
 
 const ImageContainer = styled.div`
-  flex: 1;
-  height: 100%;
+  flex: 0 0 45%;
+  overflow: hidden;
 
   @media (max-width: 1280px) {
-    height: 90%;
+    flex-basis: 48%;
   }
 
   @media (max-width: 1024px) {
-    height: auto;
-    display: none;
-  }
-
-  @media (max-width: 820px) {
-    height: auto;
-    display: none;
-  }
-
-  @media (max-width: 768px) {
-    height: auto;
-    display: none;
-  }
-
-  @media (max-width: 414px) {
-    height: auto;
-    display: none;
-  }
-
-  @media (max-width: 375px) {
-    height: auto;
-    display: none;
-  }
-
-  @media (max-width: 360px) {
-    height: auto;
-    display: none;
-  }
-
-  @media (max-width: 280px) {
-    height: auto;
     display: none;
   }
 `;
@@ -341,45 +215,27 @@ const Button = styled.button`
   }
 `;
 
+// Fills its column (trimming the sides as needed), keeping the upper part of
+// the photo, where the faces are, in view.
 const Image = styled.img`
-  height: 90%;
-
-  @media (max-width: 1280px) {
-    height: 85%;
-  }
-
-  @media (max-width: 1024px) {
-    height: 60%;
-  }
-
-  @media (max-width: 820px) {
-    height: 60%;
-  }
-
-  @media (max-width: 768px) {
-    height: 60%;
-  }
-
-  @media (max-width: 414px) {
-    height: 50%;
-  }
-
-  @media (max-width: 375px) {
-    height: 50%;
-  }
-
-  @media (max-width: 360px) {
-    height: 50%;
-  }
-
-  @media (max-width: 280px) {
-    height: 50%;
-  }
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
 `;
 
 const InfoContainer = styled.div`
   flex: 1;
-  padding: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 50px 80px 50px 60px;
+
+  @media (max-width: 1280px) {
+    padding: 40px 70px 40px 50px;
+  }
 
   @media (max-width: 1024px) {
     padding: 35px;
@@ -388,30 +244,9 @@ const InfoContainer = styled.div`
 
   @media (max-width: 820px) {
     padding: 30px;
-    font-size: 14px;
-  }
-
-  @media (max-width: 768px) {
-    padding: 30px;
-    font-size: 14px;
   }
 
   @media (max-width: 414px) {
-    padding: 20px;
-    font-size: 12px;
-  }
-
-  @media (max-width: 375px) {
-    padding: 20px;
-    font-size: 12px;
-  }
-
-  @media (max-width: 360px) {
-    padding: 20px;
-    font-size: 12px;
-  }
-
-  @media (max-width: 280px) {
     padding: 20px;
     font-size: 12px;
   }
