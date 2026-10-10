@@ -2,6 +2,7 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import JWT from "jsonwebtoken";
+import sharp from "sharp";
 
 // Set before any route module is imported, as they read env at load time.
 process.env.JWT_SECRET = "test-secret";
@@ -127,3 +128,11 @@ export const stubStripe = async () => {
 
   return { stripe, calls, state, reset, signedWebhook };
 };
+
+// A small real image for upload tests (made-up bytes are rejected as photos).
+export const testPhoto = ({ width = 40, height = 30, format = "png" } = {}) =>
+  sharp({
+    create: { width, height, channels: 3, background: { r: 200, g: 120, b: 60 } },
+  })
+    [format]()
+    .toBuffer();

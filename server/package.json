@@ -8,6 +8,7 @@
     "test": "node --test \"test/**/*.test.js\"",
     "start": "node src/server.js",
     "seed": "node scripts/seed-products.js",
+    "optimize-photos": "node scripts/optimize-photos.js",
     "dev": "nodemon src/server.js"
   },
   "keywords": [],
@@ -24,12 +25,13 @@
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^6.8.3",
     "multer": "^1.4.5-lts.1",
+    "sharp": "^0.35.5",
     "stripe": "^11.7.0"
   },
   "devDependencies": {
     "aws-sdk-client-mock": "^4.1.0",
     "mongodb-memory-server": "^11.3.0",
-    "supertest": "^7.3.0",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "supertest": "^7.3.0"
   }
 }

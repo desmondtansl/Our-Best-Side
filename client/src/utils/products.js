@@ -23,3 +23,18 @@ export const toOptions = (list) => [
 // Link for a product page, based on its category.
 export const productPath = (product) =>
   `/${product.category?.includes("Ladies") ? "ladies" : "men"}/${product._id}`;
+
+// Every photo's key, main photo first. Products from before multiple photos
+// were supported only have `image`.
+export const productPhotos = (product) =>
+  product?.images?.length ? product.images : [product?.image].filter(Boolean);
+
+// True when stock is tracked per size (product.sizeStock).
+export const tracksSizeStock = (product) => product?.sizeStock?.length > 0;
+
+// Stock for one size, or undefined when stock isn't tracked per size.
+// A size missing from sizeStock counts as sold out.
+export const sizeStockFor = (product, size) => {
+  if (!tracksSizeStock(product)) return undefined;
+  return product.sizeStock.find((entry) => entry.size === size)?.inStock ?? 0;
+};

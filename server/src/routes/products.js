@@ -1,11 +1,17 @@
 import express from "express";
 import mongoose from "mongoose";
-import Product from "../models/Product.js";
+import Product, { MAX_PHOTOS, productPhotos } from "../models/Product.js";
 import multer from "multer";
 import checkAuth from "../middleware/checkAuth.js";
 import requireAdmin from "../middleware/requireAdmin.js";
 import { uploadImageToS3, signedImageUrl, isValidImageKey } from "../s3.js";
-import { parseProductFields } from "../productFields.js";
+import { optimizePhoto, ImageError } from "../images.js";
+import {
+  parseProductFields,
+  parseList,
+  parseSizeStock,
+  totalStock,
+} from "../productFields.js";
 import {
   parseShopQuery,
   baseFilter,
@@ -18,10 +24,59 @@ import {
 
 const router = express.Router();
 
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+// Photos arrive as "images" (several) or, from older forms, "image" (one).
+const MAX_UPLOAD_MB = 20;
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024, files: MAX_PHOTOS + 1 },
+});
+const photoFields = upload.fields([
+  { name: "images", maxCount: MAX_PHOTOS },
+  { name: "image", maxCount: 1 },
+]);
 
-const uploadMiddleware = [checkAuth, requireAdmin, upload.single("image")];
+const badRequest = (res, error) => res.status(400).json({ data: "", error });
+
+// Too many or too large files get a clear message instead of a server error.
+const receivePhotos = (req, res, next) =>
+  photoFields(req, res, (error) => {
+    if (!error) return next();
+    if (error instanceof multer.MulterError) {
+      return badRequest(
+        res,
+        error.code === "LIMIT_FILE_SIZE"
+          ? `Each photo must be under ${MAX_UPLOAD_MB} MB`
+          : `A product can have at most ${MAX_PHOTOS} photos`
+      );
+    }
+    return next(error);
+  });
+
+const uploadMiddleware = [checkAuth, requireAdmin, receivePhotos];
+
+// Compresses every new photo first (so one unsupported file fails before
+// anything is uploaded), then uploads them; returns their keys in order.
+const storePhotos = async (files) => {
+  const optimized = await Promise.all(files.map((file) => optimizePhoto(file.buffer)));
+  return Promise.all(optimized.map((photo) => uploadImageToS3(photo)));
+};
+
+// The edit form's photo order, sent as JSON: existing photo keys to keep and
+// "new:N" for the Nth new photo in "images", e.g. ["new:0", "key1", "key2"].
+// Returns null when not sent, undefined when invalid.
+const NEW_PHOTO = /^new:(\d+)$/;
+const parsePhotoOrder = (raw) => {
+  if (raw === undefined) return null;
+  try {
+    const list = typeof raw === "string" ? JSON.parse(raw) : raw;
+    if (!Array.isArray(list) || !list.every((entry) => typeof entry === "string")) {
+      return undefined;
+    }
+    return [...new Set(list)];
+  } catch (error) {
+    return undefined;
+  }
+};
 
 const FEATURED_LIMIT = 8;
 
@@ -41,22 +96,40 @@ const findProduct = async (id, category) => {
 };
 
 // UPLOAD A NEW PRODUCT
+// Photos: up to MAX_PHOTOS in "images" (the first is the main photo).
+// Stock: "inStock" for the whole product, or "sizeStock" ({"S": 3, ...})
+// for every size, in which case inStock becomes their total.
 
 router.post("/upload", uploadMiddleware, async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ data: "", error: "Product image is required" });
+    const files = [...(req.files?.images || []), ...(req.files?.image || [])];
+    if (files.length === 0) return badRequest(res, "Product image is required");
+    if (files.length > MAX_PHOTOS) {
+      return badRequest(res, `A product can have at most ${MAX_PHOTOS} photos`);
     }
     const { fields, error } = parseProductFields(req.body, { requireAll: true });
-    if (error) return res.status(400).json({ data: "", error });
+    if (error) return badRequest(res, error);
 
-    const imageName = await uploadImageToS3(req.file);
-    const product = await Product.create({ ...fields, image: imageName });
+    if (req.body.sizeStock !== undefined) {
+      const { sizeStock, error: stockError } = parseSizeStock(
+        req.body.sizeStock,
+        fields.size || []
+      );
+      if (stockError) return badRequest(res, stockError);
+      if (sizeStock.length) {
+        fields.sizeStock = sizeStock;
+        fields.inStock = totalStock(sizeStock);
+      }
+    }
+
+    const photos = await storePhotos(files);
+    const product = await Product.create({ ...fields, image: photos[0], images: photos });
     res.status(200).json({
       data: product,
       error: "",
     });
   } catch (error) {
+    if (error instanceof ImageError) return badRequest(res, error.message);
     return serverError(res, error);
   }
 });
@@ -222,17 +295,74 @@ router.get("/:params", async (req, res) => {
 });
 
 // EDIT 1 PRODUCT
+// Only the fields sent are changed. Photos:
+// - "images": new photos.
+// - "photoOrder": the photos to keep, in order (first = main photo), as
+//   existing keys and "new:N" for the Nth new photo. New photos it doesn't
+//   mention go at the end. When not sent, every existing photo is kept and
+//   new photos are added after them.
+// - "image" (older form): a new main photo replacing the current one.
+// Old photos stay in S3, because past orders still show them.
+// Stock per size ("sizeStock") works as on upload; sending it empty switches
+// back to stock for the whole product. If the sizes change while stock is
+// tracked per size, removed sizes are dropped and new ones start at 0.
 
 router.put("/:params", uploadMiddleware, async (req, res) => {
   try {
     const { params } = req.params;
     if (!mongoose.isValidObjectId(params)) return notFound(res);
+    const product = await Product.findById(params);
+    if (!product) return notFound(res);
 
     const { fields: update, error } = parseProductFields(req.body);
-    if (error) return res.status(400).json({ data: "", error });
-    if (req.file) {
-      update.image = await uploadImageToS3(req.file);
+    if (error) return badRequest(res, error);
+
+    // Photos
+    const current = productPhotos(product);
+    const newPhotos = req.files?.images || [];
+    const newMain = req.files?.image?.[0];
+    const order = parsePhotoOrder(req.body.photoOrder);
+    if (order === undefined) return badRequest(res, "The photo order isn't valid");
+    const isNewRef = (entry) => {
+      const match = NEW_PHOTO.exec(entry);
+      return Boolean(match) && Number(match[1]) < newPhotos.length;
+    };
+    if (order && order.some((entry) => !current.includes(entry) && !isNewRef(entry))) {
+      return badRequest(res, "Only the product's own photos can be kept");
     }
+    if (order || newPhotos.length || newMain) {
+      let entries = order || current;
+      // The older form's single photo replaces the main photo.
+      if (newMain && !order) entries = entries.slice(1);
+      const listed = new Set(entries.filter(isNewRef));
+      const unlisted = newPhotos.map((_, i) => `new:${i}`).filter((ref) => !listed.has(ref));
+      entries = [...(newMain ? [newMain] : []), ...entries, ...unlisted];
+      if (entries.length === 0) return badRequest(res, "A product needs at least one photo");
+      if (entries.length > MAX_PHOTOS) {
+        return badRequest(res, `A product can have at most ${MAX_PHOTOS} photos`);
+      }
+      const uploaded = await storePhotos([...(newMain ? [newMain] : []), ...newPhotos]);
+      const mainKey = newMain ? uploaded.shift() : null;
+      const photos = entries.map((entry) => {
+        if (entry === newMain) return mainKey;
+        return isNewRef(entry) ? uploaded[Number(NEW_PHOTO.exec(entry)[1])] : entry;
+      });
+      update.images = photos;
+      update.image = photos[0];
+    }
+
+    // Stock per size
+    const sizes = update.size ?? parseList(product.size);
+    if (req.body.sizeStock !== undefined) {
+      const { sizeStock, error: stockError } = parseSizeStock(req.body.sizeStock, sizes);
+      if (stockError) return badRequest(res, stockError);
+      update.sizeStock = sizeStock;
+    } else if (update.size && product.sizeStock?.length) {
+      const bySize = new Map(product.sizeStock.map((entry) => [entry.size, entry.inStock]));
+      update.sizeStock = sizes.map((size) => ({ size, inStock: bySize.get(size) ?? 0 }));
+    }
+    const sizeStock = update.sizeStock ?? product.sizeStock;
+    if (sizeStock?.length) update.inStock = totalStock(sizeStock);
 
     const getEditedProduct = await Product.findByIdAndUpdate(
       params,
@@ -248,6 +378,7 @@ router.put("/:params", uploadMiddleware, async (req, res) => {
       error: "",
     });
   } catch (error) {
+    if (error instanceof ImageError) return badRequest(res, error.message);
     return serverError(res, error);
   }
 });

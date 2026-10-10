@@ -176,4 +176,76 @@ describe("ProductDetails", () => {
       expect(screen.queryByText("You may also like")).not.toBeInTheDocument();
     });
   });
+
+  describe("photos and stock per size", () => {
+    const shirt = {
+      ...loafers,
+      title: "Linen Shirt",
+      category: ["Men"],
+      image: "front",
+      images: ["front", "back"],
+      size: ["S", "M", "L"],
+      color: ["White"],
+      inStock: 4,
+      sizeStock: [
+        { size: "S", inStock: 0 },
+        { size: "M", inStock: 2 },
+        { size: "L", inStock: 2 },
+      ],
+    };
+
+    const respondWith = (product) =>
+      axios.get.mockImplementation((url) =>
+        Promise.resolve({ data: { data: url.endsWith("/related") ? [] : product } })
+      );
+
+    it("shows every photo in the gallery", async () => {
+      respondWith(shirt);
+      renderPage();
+      await screen.findByText("Linen Shirt");
+      expect(screen.getAllByRole("button", { name: /Show photo/ })).toHaveLength(2);
+    });
+
+    it("marks sold-out sizes and starts on the first size in stock", async () => {
+      respondWith(shirt);
+      renderPage();
+      await screen.findByText("Linen Shirt");
+      const options = [...screen.getByLabelText("Size").options];
+      expect(options.map((o) => [o.textContent, o.disabled])).toEqual([
+        ["S (sold out)", true],
+        ["M", false],
+        ["L", false],
+      ]);
+      expect(screen.getByLabelText("Size")).toHaveValue("M");
+      expect(screen.getByText("Only 2 left in size M")).toBeInTheDocument();
+    });
+
+    it("limits the quantity to the chosen size's stock and keeps it in the cart", async () => {
+      respondWith(shirt);
+      const store = renderPage();
+      await screen.findByText("Linen Shirt");
+      for (let i = 0; i < 4; i++) fireEvent.click(screen.getByLabelText("Increase quantity"));
+      expect(screen.getByText("2")).toBeInTheDocument();
+      fireEvent.click(screen.getByText("Add to Cart"));
+      expect(store.getState().cart.products[0]).toMatchObject({ size: "M", quantity: 2, inStock: 2 });
+    });
+
+    it("shows Out of Stock when every size has sold out", async () => {
+      respondWith({
+        ...shirt,
+        inStock: 0,
+        sizeStock: shirt.sizeStock.map((s) => ({ ...s, inStock: 0 })),
+      });
+      renderPage();
+      expect(await screen.findByText("Out of Stock")).toBeDisabled();
+    });
+
+    it("offers a size guide for the product", async () => {
+      respondWith(shirt);
+      renderPage();
+      await screen.findByText("Linen Shirt");
+      fireEvent.click(screen.getByRole("button", { name: "Size guide" }));
+      expect(screen.getByRole("dialog", { name: "Size guide" })).toHaveTextContent("Men's clothing");
+    });
+  });
 });

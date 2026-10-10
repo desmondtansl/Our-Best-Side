@@ -74,27 +74,84 @@ describe("AdminEditProduct", () => {
     const body = sentFormData();
     expect(body.get("title")).toBe("Suede Loafers v2");
     expect(body.getAll("size")).toEqual(["S", "M", "L"]);
-    expect(body.has("image")).toBe(false);
+    // Photos and stock per size are only sent when changed.
+    expect(body.has("photoOrder")).toBe(false);
+    expect(body.has("images")).toBe(false);
+    expect(body.has("sizeStock")).toBe(false);
     // Untouched fields are left out so their saved values are kept.
     expect(body.has("description")).toBe(false);
     expect(body.has("price")).toBe(false);
     expect(body.has("category")).toBe(false);
   });
 
-  it("includes the chosen image file", async () => {
+  it("adds new photos after the saved ones", async () => {
     axios.put.mockResolvedValue({ data: { data: product } });
     const { container } = await renderPage();
-
+    expect(screen.getByAltText("Photo 1 (main)")).toBeInTheDocument();
     const file = new File(["image bytes"], "new.png", { type: "image/png" });
-    fireEvent.change(container.querySelector("#image"), {
-      target: { files: [file] },
-    });
+    fireEvent.change(container.querySelector("#images"), { target: { files: [file] } });
     submit(container);
-
     await waitFor(() => expect(axios.put).toHaveBeenCalled());
-    const image = sentFormData().get("image");
-    expect(image).toBeInstanceOf(File);
-    expect(image.name).toBe("new.png");
+    const body = sentFormData();
+    expect(JSON.parse(body.get("photoOrder"))).toEqual(["existing-image-key", "new:0"]);
+    expect(body.getAll("images").map((f) => f.name)).toEqual(["new.png"]);
+  });
+
+  it("can make another photo the main photo or remove one", async () => {
+    axios.get.mockResolvedValue({
+      data: { data: { ...product, images: ["front", "back", "detail"] } },
+    });
+    axios.put.mockResolvedValue({ data: { data: product } });
+    const { container } = await renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Make photo 3 the main photo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove photo 2" }));
+    submit(container);
+    await waitFor(() => expect(axios.put).toHaveBeenCalled());
+    expect(JSON.parse(sentFormData().get("photoOrder"))).toEqual(["detail", "back"]);
+  });
+
+  it("won't save a product with no photos", async () => {
+    const { container } = await renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Remove photo 1" }));
+    submit(container);
+    expect(window.alert).toHaveBeenCalledWith("Add at least one photo");
+    expect(axios.put).not.toHaveBeenCalled();
+  });
+
+  it("edits stock per size, hiding the single stock box", async () => {
+    axios.get.mockResolvedValue({
+      data: {
+        data: {
+          ...product,
+          inStock: 5,
+          sizeStock: [
+            { size: "S", inStock: 2 },
+            { size: "M", inStock: 3 },
+          ],
+        },
+      },
+    });
+    axios.put.mockResolvedValue({ data: { data: product } });
+    const { container } = await renderPage();
+    expect(screen.getByLabelText("Stock for size S")).toHaveValue(2);
+    expect(container.querySelector("#inStock")).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Stock for size M"), { target: { value: "7" } });
+    submit(container);
+    await waitFor(() => expect(axios.put).toHaveBeenCalled());
+    const body = sentFormData();
+    expect(JSON.parse(body.get("sizeStock"))).toEqual({ S: 2, M: 7 });
+    expect(body.has("inStock")).toBe(false);
+  });
+
+  it("switches a product to stock per size once a size's box is filled", async () => {
+    const { container } = await renderPage();
+    expect(screen.getByText(/Stock is tracked for the whole product \(10\)/)).toBeInTheDocument();
+    expect(container.querySelector("#inStock")).toBeInTheDocument();
+    expect(screen.getByLabelText("Stock for size S")).not.toBeRequired();
+
+    fireEvent.change(screen.getByLabelText("Stock for size S"), { target: { value: "4" } });
+    expect(container.querySelector("#inStock")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Stock for size M")).toBeRequired();
   });
 
   it("keeps multi-word sizes intact and shows saved lists as text", async () => {
@@ -130,9 +187,9 @@ describe("AdminEditProduct", () => {
     expect(screen.getByText("← Back to search")).toHaveAttribute("href", "/search");
   });
 
-  it("does not require an image to submit", async () => {
+  it("does not require choosing a new photo to submit", async () => {
     const { container } = await renderPage();
-    expect(container.querySelector("#image")).not.toBeRequired();
+    expect(container.querySelector("#images")).not.toBeRequired();
   });
 
   it("only shows the success alert after the request resolves", async () => {

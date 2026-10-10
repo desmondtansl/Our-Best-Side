@@ -8,12 +8,19 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { addProduct } from "../redux/cartRedux";
 import { useDispatch } from "react-redux";
-import { productImageUrl, toOptions } from "../utils/products";
+import {
+  toOptions,
+  productPhotos,
+  tracksSizeStock,
+  sizeStockFor,
+} from "../utils/products";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
 import AssignmentReturnOutlinedIcon from "@mui/icons-material/AssignmentReturnOutlined";
 import { DELIVERY, RETURNS, LOW_STOCK_THRESHOLD } from "../config/store";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import RelatedProducts from "./RelatedProducts";
+import ProductGallery from "./ProductGallery";
+import SizeGuide from "./SizeGuide";
 
 // Product page shared by /men/:params and /ladies/:params.
 
@@ -36,32 +43,10 @@ const Wrapper = styled.div`
 
 const ImageContainer = styled.div`
   flex: 1;
-
-  @media (max-width: 1024px) {
-    height: 50vh;
-  }
+  min-width: 0px;
 
   @media (max-width: 768px) {
     flex: none;
-    height: auto;
-  }
-`;
-
-// On phones the photo spans the screen in a 4:5 shape.
-const Image = styled.img`
-  width: 100%;
-  height: 90vh;
-  object-fit: cover;
-
-  @media (max-width: 1024px) {
-    height: 50vh;
-  }
-
-  @media (max-width: 768px) {
-    display: block;
-    height: auto;
-    aspect-ratio: 4 / 5;
-    max-height: 75vh;
   }
 `;
 
@@ -113,8 +98,8 @@ const Price = styled.span`
 // Colour and size side by side; stacked on phones.
 const FilterContainer = styled.div`
   display: flex;
-  justify-content: space-between;
-  width: 50%;
+  flex-wrap: wrap;
+  gap: 16px 40px;
   margin: 20px 0px;
 
   @media (max-width: 1024px) {
@@ -329,8 +314,10 @@ function ProductDetails({ category }) {
         if (cancelled) return;
         const loaded = response.data.data;
         setProduct(loaded);
-        // Pre-select the first option so the cart never gets a blank size or colour.
-        setSize(toOptions(loaded.size)[0] || "");
+        // Pre-select the first option so the cart never gets a blank size or
+        // colour (the first size in stock, when stock is tracked per size).
+        const options = toOptions(loaded.size);
+        setSize(options.find((option) => sizeStockFor(loaded, option) !== 0) || options[0] || "");
         setColor(toOptions(loaded.color)[0] || "");
         setStatus("ready");
       } catch (error) {
@@ -351,10 +338,13 @@ function ProductDetails({ category }) {
     product?.description
   );
 
-  const outOfStock = product?.inStock === 0;
-  const lowStock =
-    product?.inStock > 0 && product.inStock <= LOW_STOCK_THRESHOLD;
-  const maxQuantity = product?.inStock > 0 ? product.inStock : Infinity;
+  // Stock for the chosen size when tracked per size, otherwise for the whole
+  // product (undefined: not tracked, so unlimited).
+  const perSize = tracksSizeStock(product);
+  const stock = perSize ? sizeStockFor(product, size) : product?.inStock;
+  const outOfStock = stock === 0;
+  const lowStock = stock > 0 && stock <= LOW_STOCK_THRESHOLD;
+  const maxQuantity = stock > 0 ? stock : Infinity;
 
   const handleQty = (type) => {
     setAdded(false);
@@ -365,8 +355,16 @@ function ProductDetails({ category }) {
     }
   };
 
+  const chooseSize = (option) => {
+    setSize(option);
+    setAdded(false);
+    const available = perSize ? sizeStockFor(product, option) : undefined;
+    if (available > 0) setQuantity((current) => Math.min(current, available));
+  };
+
+  // The cart line keeps the chosen size's stock, so the cart's + stops there.
   const handleClick = () => {
-    dispatch(addProduct({ ...product, quantity, color, size }));
+    dispatch(addProduct({ ...product, quantity, color, size, inStock: stock }));
     setAdded(true);
   };
 
@@ -394,13 +392,17 @@ function ProductDetails({ category }) {
       <Navbar />
       <Wrapper>
         <ImageContainer>
-          <Image src={productImageUrl(product.image)} alt={product.title} />
+          <ProductGallery photos={productPhotos(product)} title={product.title} />
         </ImageContainer>
         <InfoContainer>
           <Title>{product.title}</Title>
           <Description>{product.description}</Description>
           <Price>${product.price}</Price>
-          {lowStock && <LowStock>Only {product.inStock} left</LowStock>}
+          {lowStock && (
+            <LowStock>
+              Only {stock} left{perSize ? ` in size ${size}` : ""}
+            </LowStock>
+          )}
           <FilterContainer>
             {colors.length > 0 && (
               <Filter>
@@ -431,17 +433,18 @@ function ProductDetails({ category }) {
                   name="size"
                   aria-label="Size"
                   value={size}
-                  onChange={(e) => {
-                    setSize(e.target.value);
-                    setAdded(false);
-                  }}
+                  onChange={(e) => chooseSize(e.target.value)}
                 >
-                  {sizes.map((element) => (
-                    <FilterSizeOption value={element} key={element}>
-                      {element}
-                    </FilterSizeOption>
-                  ))}
+                  {sizes.map((element) => {
+                    const soldOut = sizeStockFor(product, element) === 0;
+                    return (
+                      <FilterSizeOption value={element} key={element} disabled={soldOut}>
+                        {soldOut ? `${element} (sold out)` : element}
+                      </FilterSizeOption>
+                    );
+                  })}
                 </FilterSize>
+                <SizeGuide product={product} sizes={sizes} selectedSize={size} />
               </Filter>
             )}
           </FilterContainer>

@@ -11,7 +11,11 @@ import {
   createApp,
   createUser,
   tokenFor,
+  testPhoto,
 } from "./helpers.js";
+
+// A small real image to upload.
+const photo = await testPhoto();
 
 const s3Mock = mockClient(S3Client);
 
@@ -63,7 +67,7 @@ describe("product routes", () => {
       .field("color", "Black")
       .field("price", "300")
       .field("inStock", "5")
-      .attach("image", Buffer.from("fake image"), {
+      .attach("image", photo, {
         filename: "jacket.png",
         contentType: "image/png",
       });
@@ -145,7 +149,7 @@ describe("product routes", () => {
         .put(`/products/${product.id}`)
         .set("Authorization", `Bearer ${adminToken}`)
         .field("title", "Suede Loafers")
-        .attach("image", Buffer.from("new image"), {
+        .attach("image", photo, {
           filename: "new.png",
           contentType: "image/png",
         });

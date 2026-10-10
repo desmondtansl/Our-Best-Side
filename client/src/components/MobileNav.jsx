@@ -8,6 +8,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import SearchBar from "./SearchBar.jsx";
+import useModal from "../hooks/useModal";
 
 // Header for phones and tablets: one slim bar that stays at the top of the
 // screen, with a menu button (opens a slide-out menu), search, the logo, and
@@ -177,10 +178,6 @@ const SECTIONS = [
   { to: "/ladies", label: "Ladies" },
 ];
 
-const focusable = (container) => [
-  ...container.querySelectorAll("a[href], button:not([disabled])"),
-];
-
 function MobileNav({ user, quantity, onLogout }) {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -194,39 +191,13 @@ function MobileNav({ user, quantity, onLogout }) {
     setSearchOpen(false);
   }, [location.pathname, location.search]);
 
-  // While the menu is open: the page behind doesn't scroll, focus moves into
-  // the menu (and back to the menu button when it closes), and Esc closes it.
-  useEffect(() => {
-    if (!menuOpen) return undefined;
-    const { overflow } = document.body.style;
-    document.body.style.overflow = "hidden";
-    focusable(drawerRef.current)[0]?.focus();
-    const closeOnEscape = (event) => {
-      if (event.key === "Escape") setMenuOpen(false);
-    };
-    document.addEventListener("keydown", closeOnEscape);
-    const menuButton = menuButtonRef.current;
-    return () => {
-      document.body.style.overflow = overflow;
-      document.removeEventListener("keydown", closeOnEscape);
-      menuButton?.focus();
-    };
-  }, [menuOpen]);
-
-  // Keeps Tab and Shift+Tab inside the open menu.
-  const trapFocus = (event) => {
-    if (event.key !== "Tab") return;
-    const items = focusable(drawerRef.current);
-    const first = items[0];
-    const last = items[items.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  };
+  // While the menu is open: focus moves into it (and back to the menu button
+  // when it closes), Esc closes it, Tab stays inside and the page is locked.
+  const trapFocus = useModal(menuOpen, {
+    onClose: () => setMenuOpen(false),
+    containerRef: drawerRef,
+    returnFocusRef: menuButtonRef,
+  });
 
   const close = () => setMenuOpen(false);
 

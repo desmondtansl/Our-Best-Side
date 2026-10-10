@@ -76,3 +76,50 @@ export const parseProductFields = (body, { requireAll = false } = {}) => {
 
   return { fields };
 };
+
+const MAX_SIZES = 50;
+const INVALID_SIZE_STOCK = "Stock per size isn't valid";
+
+// Stock per size from the admin forms, sent as JSON such as {"S": 3, "M": 0}.
+// Every size must have a whole number of 0 or more. Returns { sizeStock }
+// (in the order of `sizes`; an empty list turns per-size stock off) or
+// { error }.
+export const parseSizeStock = (raw, sizes) => {
+  let values = raw;
+  if (typeof raw === "string") {
+    if (raw.trim() === "") return { sizeStock: [] };
+    try {
+      values = JSON.parse(raw);
+    } catch (error) {
+      return { error: INVALID_SIZE_STOCK };
+    }
+  }
+  if (!values || typeof values !== "object" || Array.isArray(values)) {
+    return { error: INVALID_SIZE_STOCK };
+  }
+  const given = Object.keys(values);
+  if (given.length === 0) return { sizeStock: [] };
+  if (given.length > MAX_SIZES) return { error: INVALID_SIZE_STOCK };
+
+  const unknown = given.filter((size) => !sizes.includes(size));
+  if (unknown.length) {
+    return { error: `Stock was given for a size the product doesn't have: ${unknown.join(", ")}` };
+  }
+  const missing = sizes.filter((size) => !Object.hasOwn(values, size));
+  if (missing.length) {
+    return { error: `Enter the stock for every size (missing: ${missing.join(", ")})` };
+  }
+  const sizeStock = [];
+  for (const size of sizes) {
+    const value = values[size];
+    const quantity = Number(value);
+    if (value === "" || value === null || !Number.isInteger(quantity) || quantity < 0) {
+      return { error: `Stock for size ${size} must be a whole number of 0 or more` };
+    }
+    sizeStock.push({ size, inStock: quantity });
+  }
+  return { sizeStock };
+};
+
+export const totalStock = (sizeStock) =>
+  sizeStock.reduce((sum, entry) => sum + entry.inStock, 0);
