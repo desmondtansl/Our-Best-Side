@@ -21,15 +21,14 @@ const Container = styled.div`
   }
 `;
 
-// On tablets and phones the name and price are black, like the product
-// listings.
+// The name and price are black, like the product listings.
 const StyledLink = styled(Link)`
   height: 100%;
+  color: black;
 
   @media (max-width: 1024px) {
     display: block;
     height: auto;
-    color: black;
   }
 `;
 

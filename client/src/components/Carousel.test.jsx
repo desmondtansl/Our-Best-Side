@@ -85,6 +85,15 @@ describe("Carousel", () => {
     });
   });
 
+  it("makes the whole Shop Now box one black link, not a link inside a button", () => {
+    renderCarousel();
+    const [link] = screen.getAllByRole("link", { name: "SHOP NOW" });
+    expect(link.closest("button")).toBeNull();
+    expect(screen.queryByRole("button", { name: "SHOP NOW" })).not.toBeInTheDocument();
+    expect(getComputedStyle(link).color).toBe("rgb(0, 0, 0)");
+    expect(cssFor(link)).toMatch(/border:2px solid black/);
+  });
+
   it.each([2, 3, 5])(
     "moves through %i slides with the arrows, wrapping round",
     (count) => {

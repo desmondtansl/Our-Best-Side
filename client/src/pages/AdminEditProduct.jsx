@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import axios from "axios";
-import { Link, useParams } from "react-router-dom";
-import BackToDashboard from "../components/BackToDashboard";
+import { useParams } from "react-router-dom";
+import BackToDashboard, { BackLink } from "../components/BackToDashboard";
 import { toOptions, productPhotos } from "../utils/products";
 import PhotoManager, { savedPhotoItems } from "../components/admin/PhotoManager";
 import SizeStockInputs, { sizeStockPayload } from "../components/admin/SizeStockInputs";
@@ -212,9 +212,7 @@ function AdminEditProduct() {
     <Container>
       <Wrapper>
         <BackToDashboard />
-        <Link to="/search" style={{ fontSize: "14px", margin: "10px" }}>
-          ← Back to search
-        </Link>
+        <BackLink to="/search">← Back to search</BackLink>
         <Title>Product Edit Form</Title>
         <Form onSubmit={handleSubmit} id="form" encType="multipart/form-data">
           <TitleHeader>Edit Product Title</TitleHeader>

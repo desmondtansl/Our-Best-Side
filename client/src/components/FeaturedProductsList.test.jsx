@@ -36,6 +36,9 @@ describe("FeaturedProductsList", () => {
       "/ladies/l1"
     );
     expect(axios.get.mock.calls[0][0]).toMatch(/\/products\/featured$/);
+    // Names and prices are black on every screen size, like the listings.
+    expect(getComputedStyle(screen.getByText("Suede Loafers")).color).toBe("rgb(0, 0, 0)");
+    expect(getComputedStyle(screen.getByText("$250")).color).toBe("rgb(0, 0, 0)");
   });
 
   it("renders nothing, not even the header, when no products are featured", async () => {

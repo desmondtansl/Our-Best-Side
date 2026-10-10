@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import styled from "styled-components";
 import CloseIcon from "@mui/icons-material/Close";
 import useModal from "../hooks/useModal";
+import useCloseOnBack from "../hooks/useCloseOnBack";
 import { SIZE_CHARTS, HOW_TO_MEASURE, pickSizeChart, chartRowFor } from "../config/sizeGuide";
 
 // "Size guide" link beside the size picker; opens the right chart for the
@@ -112,7 +113,8 @@ function SizeGuide({ product, sizes, selectedSize }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
   const dialogRef = useRef(null);
-  const close = () => setOpen(false);
+  // The phone's Back button closes the guide instead of leaving the page.
+  const { close } = useCloseOnBack(open, setOpen);
   const trapFocus = useModal(open, {
     onClose: close,
     containerRef: dialogRef,

@@ -47,6 +47,15 @@ const renderCart = (user, overrides = {}) => {
 describe("Cart items", () => {
   afterEach(() => vi.clearAllMocks());
 
+  it("has one Continue Shopping link back to the shop, not a button inside a link", () => {
+    renderCart(null);
+    const link = screen.getByRole("link", { name: "Continue Shopping" });
+    expect(link).toHaveAttribute("href", "/");
+    expect(link.querySelector("button")).toBeNull();
+    expect(getComputedStyle(link).color).toBe("rgb(0, 0, 0)");
+    expect(getComputedStyle(link).borderTop).toBe("2px solid black");
+  });
+
   it("shows each line's details, unit price and line total", () => {
     renderCart(null);
     const item = screen.getByTestId("cart-item");

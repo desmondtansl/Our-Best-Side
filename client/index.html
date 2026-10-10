@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- The site is designed light-only: this asks browsers with an automatic
+         dark mode (e.g. Chrome or Samsung Internet on Android) not to repaint
+         it in dark colours. -->
+    <meta name="color-scheme" content="only light" />
     <link
       href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
       rel="stylesheet"
@@ -13,10 +17,18 @@
         margin: 0;
         font-family: "Urbanist", sans-serif;
       }
-      /* Keep text the same size when a phone is turned sideways. */
+      /* Keep text the same size when a phone is turned sideways, and keep
+         the site's light colours (see the color-scheme tag above). */
       html {
         -webkit-text-size-adjust: 100%;
         text-size-adjust: 100%;
+        color-scheme: only light;
+      }
+      /* Links take the colour of the text around them (black on this site)
+         instead of the browser's blue, or purple once visited. See
+         src/styles/links.js for the site's link styles. */
+      a {
+        color: inherit;
       }
       /* iPhones zoom the page in when a text box or dropdown with text
          smaller than 16px is tapped, so phones and tablets use 16px. */

@@ -1,8 +1,9 @@
 import React from "react";
 import styled from "styled-components";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { UserAuth } from "../context/Auth";
 import useDocumentTitle from "../hooks/useDocumentTitle";
+import { navLink } from "../styles/links";
 
 const Container = styled.div`
   display: flex;
@@ -26,7 +27,9 @@ const Wrapper = styled.div`
   background-color: coral;
 `;
 
+// Black, underlined under a mouse pointer, like the desktop header.
 const MenuItems = styled.div`
+  ${navLink}
   font-size: 20px;
   font-weight: 500;
   cursor: pointer;
@@ -37,12 +40,10 @@ const MenuItems = styled.div`
 function AdminDashboard() {
   useDocumentTitle("Admin Dashboard");
   const [user, setUser] = UserAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
+  // Runs as the Logout link opens the homepage (clicked or Enter pressed).
+  const logOut = () => {
     setUser({ data: null, loading: false, error: null });
     localStorage.removeItem("token");
-    navigate("/");
   };
 
   return (
@@ -58,8 +59,8 @@ function AdminDashboard() {
         <Link to="/admin/orders" style={{ textDecoration: "none" }}>
           <MenuItems>Manage Orders</MenuItems>
         </Link>
-        <Link to="/" style={{ textDecoration: "none" }}>
-          <MenuItems onClick={handleLogout}>Logout</MenuItems>
+        <Link to="/" style={{ textDecoration: "none" }} onClick={logOut}>
+          <MenuItems>Logout</MenuItems>
         </Link>
       </Wrapper>
     </Container>
