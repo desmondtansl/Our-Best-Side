@@ -104,6 +104,37 @@ describe("admin order routes", () => {
     assert.equal((await Order.findById(paid.id)).status, "paid");
   });
 
+  it("never changes a cancelled order's status", async () => {
+    const order = await Order.create({ ...base, status: "cancelled" });
+    for (const status of ["paid", "processing", "shipped", "delivered", "cancelled"]) {
+      const res = await request(app)
+        .patch(`/admin/orders/${order.id}`)
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({ status });
+      assert.equal(res.status, 400);
+      assert.match(res.body.error, /Cancelled orders can't be changed/);
+    }
+    assert.equal((await Order.findById(order.id)).status, "cancelled");
+  });
+
+  it("puts the items back in stock only once when two admins cancel at the same moment", async () => {
+    const { default: Product } = await import("../src/models/Product.js");
+    const tee = await Product.create({ title: "Tee", inStock: 1 });
+    const order = await Order.create({
+      ...base,
+      status: "paid",
+      items: [{ product: tee._id, title: "Tee", price: 10, quantity: 2 }],
+    });
+    const cancel = () =>
+      request(app)
+        .patch(`/admin/orders/${order.id}`)
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({ status: "cancelled" });
+    const results = await Promise.all([cancel(), cancel()]);
+    assert.deepEqual(results.map((r) => r.status).sort(), [200, 400]);
+    assert.equal((await Product.findById(tee.id)).inStock, 3);
+  });
+
   it("does not let non-admins change status", async () => {
     const order = await Order.create({ ...base, status: "paid" });
     const res = await request(app)

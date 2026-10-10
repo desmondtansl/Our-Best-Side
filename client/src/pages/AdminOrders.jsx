@@ -3,6 +3,8 @@ import axios from "axios";
 import styled from "styled-components";
 import { useSearchParams } from "react-router-dom";
 import BackToDashboard from "../components/BackToDashboard";
+import CancelOrderDialog from "../components/admin/CancelOrderDialog";
+import { Badge } from "../components/account/styles";
 import {
   formatDate,
   formatMoney,
@@ -73,6 +75,8 @@ function AdminOrders() {
   const setFilter = (value) => setSearchParams(value ? { status: value } : {});
   const [error, setError] = useState("");
   const [savingId, setSavingId] = useState(null);
+  // The order waiting for the admin to confirm it should be cancelled.
+  const [cancelling, setCancelling] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -88,6 +92,16 @@ function AdminOrders() {
     };
     fetchOrders();
   }, [filter]);
+
+  // Cancelling can't be undone, so it's confirmed in a pop-up first. Until
+  // then the dropdown keeps showing the order's current status.
+  const handleSelect = (order, status) => {
+    if (status === "cancelled") {
+      setCancelling(order);
+      return;
+    }
+    handleStatusChange(order, status);
+  };
 
   const handleStatusChange = async (order, status) => {
     setError("");
@@ -172,18 +186,23 @@ function AdminOrders() {
                       : "—"}
                   </td>
                   <td>
-                    <Select
-                      aria-label={`Status for order ${orderNumber(order._id)}`}
-                      value={order.status}
-                      disabled={savingId === order._id}
-                      onChange={(e) => handleStatusChange(order, e.target.value)}
-                    >
-                      {ADMIN_STATUSES.map((status) => (
-                        <option key={status} value={status}>
-                          {STATUS_LABELS[status]}
-                        </option>
-                      ))}
-                    </Select>
+                    {order.status === "cancelled" ? (
+                      // Cancelling is final, so there's nothing to choose.
+                      <Badge status="cancelled">{STATUS_LABELS.cancelled}</Badge>
+                    ) : (
+                      <Select
+                        aria-label={`Status for order ${orderNumber(order._id)}`}
+                        value={order.status}
+                        disabled={savingId === order._id}
+                        onChange={(e) => handleSelect(order, e.target.value)}
+                      >
+                        {ADMIN_STATUSES.map((status) => (
+                          <option key={status} value={status}>
+                            {STATUS_LABELS[status]}
+                          </option>
+                        ))}
+                      </Select>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -191,6 +210,11 @@ function AdminOrders() {
           </Table>
         </TableWrapper>
       )}
+      <CancelOrderDialog
+        order={cancelling}
+        onClose={() => setCancelling(null)}
+        onConfirm={(order) => handleStatusChange(order, "cancelled")}
+      />
     </Container>
   );
 }

@@ -70,7 +70,7 @@ All responses use the existing `{ data, error }` shape.
 | Method | Path | Purpose |
 |--------|------|---------|
 | GET | `/admin/orders?status=` | Orders, newest first (pending ones hidden unless asked for) |
-| PATCH | `/admin/orders/:id` | `{ status }`, one of `paid, processing, shipped, delivered, cancelled` |
+| PATCH | `/admin/orders/:id` | `{ status }`, one of `paid, processing, shipped, delivered, cancelled`. Cancelled orders can't be changed (see `cancelling-orders.md`). |
 
 ## Data model changes
 
