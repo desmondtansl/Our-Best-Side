@@ -194,10 +194,11 @@ router.delete("/addresses/:addressId", async (req, res) => {
 
 router.get("/orders", async (req, res) => {
   try {
-    const orders = await Order.find({
-      user: req.account._id,
-      status: { $ne: "pending" },
-    }).sort({ createdAt: -1 });
+    // Admin-only details (notes, who changed what) are left out.
+    const orders = await Order.find(
+      { user: req.account._id, status: { $ne: "pending" } },
+      "-notes -statusHistory -refunds"
+    ).sort({ createdAt: -1 });
     return res.status(200).json({ data: orders, error: "" });
   } catch (error) {
     return res.status(400).json({ data: "", error: error.message });

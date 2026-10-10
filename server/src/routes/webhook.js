@@ -1,6 +1,7 @@
 import stripe from "../stripe.js";
 import Order from "../models/Order.js";
 import { adjustStock } from "../inventory.js";
+import { syncRefundsFromStripe } from "../refunds.js";
 
 const toShippingAddress = (shipping) => {
   if (!shipping?.address) return undefined;
@@ -46,6 +47,7 @@ const markOrderPaid = async (session) => {
   }
 
   order.status = "paid";
+  order.statusHistory.push({ status: "paid", at: new Date() });
   await order.save();
   await adjustStock(order.items, -1);
 };
@@ -78,6 +80,17 @@ export const stripeWebhook = async (req, res) => {
           await markOrderPaid(session);
         }
         break;
+      case "charge.refunded": {
+        // A refund made in the Stripe Dashboard (or from the admin pages,
+        // which is already recorded and is skipped).
+        const charge = event.data.object;
+        const paymentIntentId =
+          typeof charge.payment_intent === "string"
+            ? charge.payment_intent
+            : charge.payment_intent?.id;
+        await syncRefundsFromStripe(paymentIntentId);
+        break;
+      }
       case "checkout.session.expired":
         // Abandoned checkout: drop the placeholder order.
         await Order.deleteOne({ stripeSessionId: session.id, status: "pending" });

@@ -88,6 +88,29 @@ function OrderHistory() {
           {order.shippingAddress?.line1 && (
             <Muted>Ship to: {formatAddress(order.shippingAddress)}</Muted>
           )}
+          {(order.tracking?.number || order.tracking?.courier || order.tracking?.url) && (
+            <Muted>
+              Shipped
+              {order.tracking.courier && ` with ${order.tracking.courier}`}
+              {order.tracking.number && ` · Tracking number ${order.tracking.number}`}
+              {order.tracking.url && (
+                <>
+                  {" · "}
+                  <a href={order.tracking.url} target="_blank" rel="noopener noreferrer">
+                    Track your parcel ↗
+                  </a>
+                </>
+              )}
+            </Muted>
+          )}
+          {order.refundedTotal > 0 && (
+            <Muted>
+              {order.refundedTotal >= order.subtotal
+                ? `Refunded in full (${formatMoney(order.refundedTotal, order.currency)})`
+                : `Refunded ${formatMoney(order.refundedTotal, order.currency)}`}
+              . Refunds usually reach your card in 5–10 working days.
+            </Muted>
+          )}
         </Card>
       ))}
     </Section>

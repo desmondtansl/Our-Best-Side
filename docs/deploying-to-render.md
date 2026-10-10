@@ -39,9 +39,12 @@ Orders are recorded as **paid** only when Stripe calls the backend's webhook. Wi
    - `checkout.session.completed`
    - `checkout.session.async_payment_succeeded`
    - `checkout.session.expired`
+   - `charge.refunded` (so refunds made in the Stripe Dashboard show on the site; see `order-management.md`)
 4. Save, then click **Reveal** under **Signing secret** and copy the `whsec_...` value.
 5. On Render, set `STRIPE_WEBHOOK_SECRET` to that value and save. The service redeploys.
 6. Test: make a purchase with card `4242 4242 4242 4242`, any future expiry and any CVC. The order should appear under **Account → Orders** as **Paid**, and in **Dashboard → Manage Orders**.
+
+**Already set up the webhook?** Add `charge.refunded` to it: Developers → Webhooks → your endpoint → **⋯** → **Update details** → **Select events** → tick `charge.refunded` → **Update endpoint**. The signing secret doesn't change.
 
 Test mode and live mode have separate endpoints and secrets. When you switch to live keys, create the endpoint again in live mode.
 

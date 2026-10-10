@@ -82,3 +82,7 @@ The site still doesn't refund automatically. A one-click refund from Manage Orde
   - A direct request to change the cancelled order was refused.
   - The pop-up's Stripe link opened the order's test-mode payment page in a new tab. The pop-up stayed open and the order stayed Paid.
   - After confirming, the reminder appeared with the same link.
+
+## Later: cancel and refund in one step (Batch G)
+
+When the order can be refunded through Stripe, the pop-up now has a ticked box, **Also refund $X to the customer now, through Stripe**, and the red button reads **Yes, cancel and refund**. Untick it to cancel only, and the refund reminder appears as before. See `order-management.md`.

@@ -156,7 +156,10 @@ describe("AdminDashboard", () => {
   it("shows recent orders", async () => {
     renderDashboard();
     const recent = (await screen.findByText("Recent orders")).closest("section");
-    expect(recent).toHaveTextContent("#ABCD1234");
+    expect(within(recent).getByRole("link", { name: "#ABCD1234" })).toHaveAttribute(
+      "href",
+      "/admin/orders/64b0000000000000abcd1234"
+    );
     expect(recent).toHaveTextContent("guest@example.com (guest)");
     expect(recent).toHaveTextContent("Paid");
   });

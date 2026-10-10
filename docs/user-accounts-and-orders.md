@@ -197,7 +197,7 @@ Still to do for this feature:
 - [ ] Stripe (Test mode) → **Developers → Webhooks** → add an endpoint:
   - URL: `https://<render-service>.onrender.com/checkout/webhook`
   - Scope: **Your account**
-  - Events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.expired`
+  - Events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.expired`, and (since Batch G) `charge.refunded`
 - [ ] Render → **Environment**: add `STRIPE_WEBHOOK_SECRET` (the `whsec_...` value). Optionally add `CURRENCY=sgd` and `SHIPPING_COUNTRIES=SG`; these are also the defaults.
 - [ ] Test purchase with `4242 4242 4242 4242`. The order should show as **Paid** under Account → Orders and in Dashboard → Manage Orders.
 - [ ] Give your own user admin rights in Atlas (`users` → `isAdmin: true`) to use Manage Orders.

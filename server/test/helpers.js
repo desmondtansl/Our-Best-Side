@@ -116,9 +116,40 @@ export const stubStripe = async () => {
     };
   };
 
+  // Refunds, kept per payment. The idempotency key works as in Stripe: the
+  // same key returns the first refund again instead of making a new one.
+  state.refunds = [];
+  const byKey = new Map();
+  stripe.refunds.create = async (params, options = {}) => {
+    record("refunds.create", [params, options]);
+    if (state.refundError) throw new Error(state.refundError);
+    if (options.idempotencyKey && byKey.has(options.idempotencyKey)) {
+      return byKey.get(options.idempotencyKey);
+    }
+    const refund = {
+      id: `re_test_${state.refunds.length + 1}`,
+      object: "refund",
+      payment_intent: params.payment_intent,
+      amount: params.amount,
+      status: "succeeded",
+      created: Math.floor(Date.now() / 1000),
+      metadata: params.metadata || {},
+    };
+    state.refunds.push(refund);
+    if (options.idempotencyKey) byKey.set(options.idempotencyKey, refund);
+    return refund;
+  };
+  stripe.refunds.list = async (params) => {
+    record("refunds.list", params);
+    return { data: state.refunds.filter((r) => r.payment_intent === params.payment_intent) };
+  };
+
   const reset = () => {
     for (const key of Object.keys(calls)) delete calls[key];
     state.paymentMethods = [];
+    state.refunds = [];
+    state.refundError = null;
+    byKey.clear();
     state.sessionCount = 0;
     state.customerCount = 0;
   };
