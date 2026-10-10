@@ -104,6 +104,67 @@ describe("admin order routes", () => {
     assert.equal((await Order.findById(paid.id)).status, "paid");
   });
 
+  it("never changes a cancelled order's status", async () => {
+    const order = await Order.create({ ...base, status: "cancelled" });
+    for (const status of ["paid", "processing", "shipped", "delivered", "cancelled"]) {
+      const res = await request(app)
+        .patch(`/admin/orders/${order.id}`)
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({ status });
+      assert.equal(res.status, 400);
+      assert.match(res.body.error, /Cancelled orders can't be changed/);
+    }
+    assert.equal((await Order.findById(order.id)).status, "cancelled");
+  });
+
+  it("puts the items back in stock only once when two admins cancel at the same moment", async () => {
+    const { default: Product } = await import("../src/models/Product.js");
+    const tee = await Product.create({ title: "Tee", inStock: 1 });
+    const order = await Order.create({
+      ...base,
+      status: "paid",
+      items: [{ product: tee._id, title: "Tee", price: 10, quantity: 2 }],
+    });
+    const cancel = () =>
+      request(app)
+        .patch(`/admin/orders/${order.id}`)
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({ status: "cancelled" });
+    const results = await Promise.all([cancel(), cancel()]);
+    assert.deepEqual(results.map((r) => r.status).sort(), [200, 400]);
+    assert.equal((await Product.findById(tee.id)).inStock, 3);
+  });
+
+  it("links each order to its payment in the Stripe Dashboard", async () => {
+    const paid = await Order.create({ ...base, status: "paid", stripePaymentIntentId: "pi_123" });
+    await Order.create({ ...base, status: "paid" }); // no payment id saved
+    const list = await request(app)
+      .get("/admin/orders")
+      .set("Authorization", `Bearer ${adminToken}`);
+    const urls = Object.fromEntries(list.body.data.map((o) => [o._id, o.stripeUrl]));
+    // The tests use a test key, so links open the Dashboard's test mode.
+    assert.equal(urls[paid.id], "https://dashboard.stripe.com/test/payments/pi_123");
+    assert.ok(Object.values(urls).includes("https://dashboard.stripe.com/test/payments"));
+
+    // Also after a status change, so the page can link to it straight away.
+    const shipped = await request(app)
+      .patch(`/admin/orders/${paid.id}`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ status: "shipped" });
+    assert.equal(shipped.body.data.stripeUrl, "https://dashboard.stripe.com/test/payments/pi_123");
+  });
+
+  it("links to the live Dashboard with a live key", async () => {
+    const { stripePaymentUrl } = await import("../src/stripe.js");
+    const key = process.env.STRIPE_PRIVATE_KEY;
+    process.env.STRIPE_PRIVATE_KEY = "sk_live_dummy";
+    try {
+      assert.equal(stripePaymentUrl("pi_9"), "https://dashboard.stripe.com/payments/pi_9");
+    } finally {
+      process.env.STRIPE_PRIVATE_KEY = key;
+    }
+  });
+
   it("does not let non-admins change status", async () => {
     const order = await Order.create({ ...base, status: "paid" });
     const res = await request(app)

@@ -38,7 +38,7 @@ Batch A of the improvement list (items 1, 5, 6, 14, 17 and 18).
 | Checkout starts | Nothing changes, but checkout is refused with a clear message if there isn't enough, e.g. "Only 2 left of Suede Loafers" or "Suede Loafers is out of stock". Quantities are added up across sizes and colours of the same product. |
 | Stripe confirms payment (webhook) | Goes down by the quantity bought. This happens once per order, even if Stripe sends the event again. |
 | Admin changes an order to **Cancelled** | Goes back up |
-| Admin changes a cancelled order back to another status | Goes down again |
+| ~~Admin changes a cancelled order back to another status~~ | No longer possible: cancelling is final (see `cancelling-orders.md`) |
 
 - **Products with no stock number** (the field is empty) are treated as unlimited and never change.
 - **Stock never goes below 0.** Two shoppers can both pay for the last item at the same moment. If that happens, stock is set to 0 and the server log shows `Product … sold more than was in stock` so you can follow up with the customer.
@@ -115,7 +115,7 @@ To run a promotion, edit `client/src/assets/carouselPhotos.js`.
 - products with no stock number are unlimited
 - stock goes down only when payment is confirmed, and only once when the webhook repeats
 - stock never goes below 0
-- cancelling restocks, and un-cancelling takes stock again
+- cancelling restocks (un-cancelling was removed later: see `cancelling-orders.md`)
 
 **Client** (11 new, 70 total):
 - `src/redux/store.test.js`:

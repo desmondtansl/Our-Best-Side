@@ -99,7 +99,7 @@ describe("stock tracking", () => {
     assert.equal(await stock(), 0);
   });
 
-  it("returns stock when an admin cancels, and takes it again if un-cancelled", async () => {
+  it("returns stock when an admin cancels, and never changes it again after that", async () => {
     await checkout([{ productId: tee.id, quantity: 2 }]);
     const order = await Order.findOne();
     await pay(order.stripeSessionId);
@@ -111,13 +111,14 @@ describe("stock tracking", () => {
         .set("Authorization", `Bearer ${adminToken}`)
         .send({ status });
 
+    assert.equal((await setStatus("shipped")).status, 200); // other changes leave stock alone
+    assert.equal(await stock(), 1);
     assert.equal((await setStatus("cancelled")).status, 200);
     assert.equal(await stock(), 3);
-    await setStatus("cancelled"); // no double restock
+    // Cancelling is final: no double restock, and no un-cancelling.
+    assert.equal((await setStatus("cancelled")).status, 400);
+    assert.equal((await setStatus("processing")).status, 400);
     assert.equal(await stock(), 3);
-    await setStatus("processing");
-    assert.equal(await stock(), 1);
-    await setStatus("shipped"); // other changes leave stock alone
-    assert.equal(await stock(), 1);
+    assert.equal((await Order.findById(order.id)).status, "cancelled");
   });
 });

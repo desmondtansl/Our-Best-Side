@@ -6,7 +6,8 @@ const focusable = (container) =>
     : [];
 
 // Behaviour shared by pop-ups (the mobile menu, the size guide). While open:
-// - focus moves to the first button or link inside
+// - focus moves to the first button or link inside (or the one marked
+//   data-autofocus)
 // - Esc closes it
 // - the page behind doesn't scroll
 // - when it closes, focus returns to `returnFocusRef` (the button that opened
@@ -18,7 +19,11 @@ const useModal = (open, { onClose, containerRef, returnFocusRef }) => {
     const previous = document.activeElement;
     const { overflow } = document.body.style;
     document.body.style.overflow = "hidden";
-    focusable(containerRef.current)[0]?.focus();
+    // An element marked data-autofocus gets focus first, if there is one.
+    (
+      containerRef.current?.querySelector("[data-autofocus]") ||
+      focusable(containerRef.current)[0]
+    )?.focus();
     const closeOnEscape = (event) => {
       if (event.key === "Escape") onClose();
     };
