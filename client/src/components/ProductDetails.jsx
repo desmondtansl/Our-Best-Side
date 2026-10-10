@@ -13,6 +13,7 @@ import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined
 import AssignmentReturnOutlinedIcon from "@mui/icons-material/AssignmentReturnOutlined";
 import { DELIVERY, RETURNS, LOW_STOCK_THRESHOLD } from "../config/store";
 import useDocumentTitle from "../hooks/useDocumentTitle";
+import RelatedProducts from "./RelatedProducts";
 
 // Product page shared by /men/:params and /ladies/:params.
 
@@ -701,6 +702,7 @@ function ProductDetails({ category }) {
           </Policies>
         </InfoContainer>
       </Wrapper>
+      <RelatedProducts productId={product._id} />
       <Footer />
     </Container>
   );

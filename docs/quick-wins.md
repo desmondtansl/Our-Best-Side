@@ -52,7 +52,7 @@ Batch A of the improvement list (items 1, 5, 6, 14, 17 and 18).
 - `client/src/components/Footer.jsx`
 
 - **Carousel:** the three photos now come from the shop's own product photos, resized to 1200px tall and compressed (60–190 KB each). Netlify serves them with the site. Each has `alt` text for screen readers and search engines.
-- **Footer:** the hot-linked card-logo image is replaced by a **🔒 Secure checkout** label and text badges for **VISA**, **Mastercard** and **AMEX** (the cards Stripe Checkout accepts). They use lightgray borders to match the site.
+- **Footer:** the hot-linked card-logo image is replaced by a **🔒 Secure checkout** label and text badges for **VISA**, **Mastercard** and **AMEX** (the cards Stripe Checkout accepts). They use lightgray borders to match the site. *(Batch C replaced these text badges with the official colour logos and added PayNow; see `search-filters-and-related.md`.)*
 - **Result:** the browser check found no requests to other sites (apart from Google Fonts).
 - **Not done here:** existing product photos in S3 were not recompressed. That is part of Batch D (photo compression).
 

@@ -5,9 +5,12 @@ import { useSelector } from "react-redux";
 import React from "react";
 import { UserAuth } from "../context/Auth";
 import { Badge } from "@mui/material";
+import SearchBar from "./SearchBar.jsx";
 
+// min-height (not height) so the header grows when the search box wraps
+// under the links, instead of overlapping the page.
 const Container = styled.div`
-  height: 60px;
+  min-height: 60px;
 
   @media (max-width: 820px) {
     height: auto;
@@ -171,11 +174,18 @@ const Center = styled.div`
   }
 `;
 
+// When the search box and links don't fit on one line (e.g. an admin's
+// extra links), the search box wraps to the line below them.
 const Right = styled.div`
   flex: 1;
   display: flex;
+  flex-wrap: wrap-reverse;
   align-items: center;
   justify-content: flex-end;
+
+  @media (max-width: 1024px) {
+    flex-wrap: wrap;
+  }
 
   @media (max-width: 768px) {
     flex: 1;
@@ -205,6 +215,18 @@ const Right = styled.div`
   @media (max-width: 280px) {
     width: 100%;
     margin-top: 10px;
+    justify-content: space-around;
+  }
+`;
+
+// Account/login links and the cart stay together on one line.
+const Links = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  @media (max-width: 414px) {
+    flex: 1;
     justify-content: space-around;
   }
 `;
@@ -264,32 +286,35 @@ function Navbar() {
           <Logo>Our Best Side</Logo>
         </Center>
         <Right>
-          {user.data ? (
-            <>
-              <NavLink to="/account" style={{ textDecoration: "none" }}>
-                <MenuItems>Account</MenuItems>
+          <SearchBar />
+          <Links>
+            {user.data ? (
+              <>
+                <NavLink to="/account" style={{ textDecoration: "none" }}>
+                  <MenuItems>Account</MenuItems>
+                </NavLink>
+                <NavLink to="/" style={{ textDecoration: "none" }}>
+                  <MenuItems onClick={handleLogout}>Logout</MenuItems>
+                </NavLink>
+              </>
+            ) : (
+              <NavLink to="/login" style={{ textDecoration: "none" }}>
+                <MenuItems>Login</MenuItems>
               </NavLink>
-              <NavLink to="/" style={{ textDecoration: "none" }}>
-                <MenuItems onClick={handleLogout}>Logout</MenuItems>
+            )}
+            {user.data && user.data.isAdmin && (
+              <NavLink to="/dashboard" style={{ textDecoration: "none" }}>
+                Dashboard
               </NavLink>
-            </>
-          ) : (
-            <NavLink to="/login" style={{ textDecoration: "none" }}>
-              <MenuItems>Login</MenuItems>
+            )}
+            <NavLink to="/cart" style={{ textDecoration: "none" }}>
+              <MenuItems>
+                <Badge badgeContent={quantity}>
+                  <ShoppingCartOutlinedIcon />
+                </Badge>
+              </MenuItems>
             </NavLink>
-          )}
-          {user.data && user.data.isAdmin && (
-            <NavLink to="/dashboard" style={{ textDecoration: "none" }}>
-              Dashboard
-            </NavLink>
-          )}
-          <NavLink to="/cart" style={{ textDecoration: "none" }}>
-            <MenuItems>
-              <Badge badgeContent={quantity}>
-                <ShoppingCartOutlinedIcon />
-              </Badge>
-            </MenuItems>
-          </NavLink>
+          </Links>
         </Right>
       </Wrapper>
     </Container>
