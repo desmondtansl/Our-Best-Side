@@ -185,6 +185,9 @@ describe("AdminEditProduct", () => {
     await renderPage();
     expect(screen.getByText("← Back to Dashboard")).toHaveAttribute("href", "/dashboard");
     expect(screen.getByText("← Back to search")).toHaveAttribute("href", "/search");
+    // Both back links look the same.
+    expect(getComputedStyle(screen.getByText("← Back to search")).fontWeight).toBe("600");
+    expect(getComputedStyle(screen.getByText("← Back to Dashboard")).fontWeight).toBe("600");
   });
 
   it("does not require choosing a new photo to submit", async () => {

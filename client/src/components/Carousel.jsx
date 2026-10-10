@@ -4,6 +4,7 @@ import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import { carouselPhotos } from "../assets/carouselPhotos.js";
 import { Link as NavLink } from "react-router-dom";
+import { buttonLink } from "../styles/links";
 
 // Banner height on computers: 85% of the screen, between 480px and 860px.
 const BANNER_HEIGHT = "max(480px, min(85vh, 860px))";
@@ -139,11 +140,10 @@ const Description = styled.p`
   }
 `;
 
-const Button = styled.button`
-  padding: 10px;
+// "SHOP NOW": the site's button link (see styles/links.js).
+const Button = styled(NavLink)`
+  ${buttonLink}
   font-size: 20px;
-  background-color: transparent;
-  cursor: pointer;
 
   @media (max-width: 1280px) {
     font-size: 18px;
@@ -268,11 +268,7 @@ function Carousel() {
               <Description long={item.description.length > LONG_DESCRIPTION}>
                 {item.description}
               </Description>
-              <Button>
-                <NavLink to={item.link} style={{ textDecoration: "none" }}>
-                  SHOP NOW
-                </NavLink>
-              </Button>
+              <Button to={item.link}>SHOP NOW</Button>
             </InfoContainer>
           </Slide>
         ))}

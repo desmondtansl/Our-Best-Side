@@ -19,6 +19,7 @@ import { redirectTo } from "../utils/redirect";
 import { productImageUrl } from "../utils/products";
 import { DELIVERY } from "../config/store";
 import useDocumentTitle from "../hooks/useDocumentTitle";
+import { buttonLink } from "../styles/links";
 
 // Full-height column so the footer sits at the bottom even when the cart is short.
 const Container = styled.div`
@@ -56,9 +57,11 @@ const Top = styled.div`
   }
 `;
 
-const TopButton = styled.button`
-  padding: 10px;
-  cursor: pointer;
+// The site's button link (see styles/links.js).
+const TopButton = styled(Link)`
+  ${buttonLink}
+  font-size: 14px;
+  font-weight: 500;
 `;
 
 const Bottom = styled.div`
@@ -375,9 +378,7 @@ function Cart() {
       <Wrapper>
         <Title>Your Cart</Title>
         <Top>
-          <Link to="/">
-            <TopButton>Continue Shopping</TopButton>
-          </Link>
+          <TopButton to="/">Continue Shopping</TopButton>
         </Top>
         <Bottom>
           <Info>

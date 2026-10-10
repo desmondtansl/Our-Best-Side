@@ -9,6 +9,10 @@ import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import SearchBar from "./SearchBar.jsx";
 import useModal from "../hooks/useModal";
+import useCloseOnBack from "../hooks/useCloseOnBack";
+
+// The cart count badge, in the site's teal (also used by the desktop header).
+export const CART_BADGE = { "& .MuiBadge-badge": { backgroundColor: "teal", color: "white" } };
 
 // Header for phones and tablets: one slim bar that stays at the top of the
 // screen, with a menu button (opens a slide-out menu), search, the logo, and
@@ -67,6 +71,7 @@ const IconLink = styled(Link)`
   width: 44px;
   height: 44px;
   color: black;
+  text-decoration: none;
 
   @media (max-width: 320px) {
     width: 40px;
@@ -191,15 +196,32 @@ function MobileNav({ user, quantity, onLogout }) {
     setSearchOpen(false);
   }, [location.pathname, location.search]);
 
+  // The phone's Back button closes the menu.
+  const { close, closeForLink } = useCloseOnBack(menuOpen, setMenuOpen);
+
+  // Menu links (and Logout, which opens the homepage) take the menu's place
+  // in the history, so Back afterwards returns to the page the menu was
+  // opened on. A link to the page that's already open just closes the menu
+  // (returns false).
+  const closeForPage = (path) => {
+    if (path === location.pathname + location.search) {
+      close();
+      return false;
+    }
+    closeForLink();
+    return true;
+  };
+  const followLink = (event) => {
+    if (!closeForPage(event.currentTarget.getAttribute("href"))) event.preventDefault();
+  };
+
   // While the menu is open: focus moves into it (and back to the menu button
   // when it closes), Esc closes it, Tab stays inside and the page is locked.
   const trapFocus = useModal(menuOpen, {
-    onClose: () => setMenuOpen(false),
+    onClose: close,
     containerRef: drawerRef,
     returnFocusRef: menuButtonRef,
   });
-
-  const close = () => setMenuOpen(false);
 
   return (
     <Header>
@@ -237,15 +259,7 @@ function MobileNav({ user, quantity, onLogout }) {
             to="/cart"
             aria-label={`Cart, ${quantity} ${quantity === 1 ? "item" : "items"}`}
           >
-            <Badge
-              badgeContent={quantity}
-              sx={{
-                "& .MuiBadge-badge": {
-                  backgroundColor: "teal",
-                  color: "white",
-                },
-              }}
-            >
+            <Badge badgeContent={quantity} sx={CART_BADGE}>
               <ShoppingCartOutlinedIcon />
             </Badge>
           </IconLink>
@@ -276,7 +290,7 @@ function MobileNav({ user, quantity, onLogout }) {
             <MenuList>
               {SECTIONS.map(({ to, label }) => (
                 <li key={to}>
-                  <MenuLink to={to} onClick={close}>
+                  <MenuLink to={to} replace onClick={followLink}>
                     {label}
                   </MenuLink>
                 </li>
@@ -286,13 +300,13 @@ function MobileNav({ user, quantity, onLogout }) {
               {user ? (
                 <>
                   <li>
-                    <MenuLink to="/account" onClick={close}>
+                    <MenuLink to="/account" replace onClick={followLink}>
                       My account
                     </MenuLink>
                   </li>
                   {user.isAdmin && (
                     <li>
-                      <MenuLink to="/dashboard" onClick={close}>
+                      <MenuLink to="/dashboard" replace onClick={followLink}>
                         Dashboard
                       </MenuLink>
                     </li>
@@ -301,8 +315,8 @@ function MobileNav({ user, quantity, onLogout }) {
                     <MenuButton
                       type="button"
                       onClick={() => {
-                        close();
-                        onLogout();
+                        closeForPage("/");
+                        onLogout({ replace: true });
                       }}
                     >
                       Logout
@@ -312,19 +326,19 @@ function MobileNav({ user, quantity, onLogout }) {
               ) : (
                 <>
                   <li>
-                    <MenuLink to="/login" onClick={close}>
+                    <MenuLink to="/login" replace onClick={followLink}>
                       Log in
                     </MenuLink>
                   </li>
                   <li>
-                    <MenuLink to="/signup" onClick={close}>
+                    <MenuLink to="/signup" replace onClick={followLink}>
                       Sign up
                     </MenuLink>
                   </li>
                 </>
               )}
               <li>
-                <MenuLink to="/cart" onClick={close}>
+                <MenuLink to="/cart" replace onClick={followLink}>
                   Cart{quantity > 0 ? ` (${quantity})` : ""}
                 </MenuLink>
               </li>

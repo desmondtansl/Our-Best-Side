@@ -157,9 +157,7 @@ function Login() {
         </Form>
         <InfoContainer>
           Don't have an account?{" "}
-          <Link to="/signup" style={{ textDecoration: "none" }}>
-            Sign up here
-          </Link>
+          <Link to="/signup">Sign up here</Link>
         </InfoContainer>
       </Wrapper>
       <SpareContainer></SpareContainer>

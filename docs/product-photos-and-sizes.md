@@ -83,7 +83,7 @@ npm run optimize-photos -w server                # compress and update products
   - **Men's** or **ladies' clothing** otherwise: chest/bust, waist and hips
 - **Highlighting:** your chosen size is highlighted in the chart.
 - **Tips:** measuring tips that match the chart.
-- **Closing:** with ✕, Esc or a tap outside. While it's open, the page behind can't scroll, and focus moves into the pop-up and back afterwards.
+- **Closing:** with ✕, Esc, a tap outside, or the phone's Back button (see [header-back-button-and-dark-mode.md](header-back-button-and-dark-mode.md)). While it's open, the page behind can't scroll, and focus moves into the pop-up and back afterwards.
 
 > **⚠️ The measurements are typical sizing placeholders, not this shop's garments.** Replace them with your own in `client/src/config/sizeGuide.js` before going live, the same way as the delivery and returns wording.
 

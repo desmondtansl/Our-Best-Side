@@ -54,6 +54,21 @@ describe("SizeGuide", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  it("closes with the phone's Back button, staying on the product page", () => {
+    const back = vi.spyOn(window.history, "back").mockImplementation(() => {});
+    const trigger = open({ product: { category: ["Men"] }, sizes: ["S", "M"], selectedSize: "M" });
+    expect(window.history.state).toMatchObject({ popup: true });
+    fireEvent.popState(window);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(trigger);
+
+    // The close button removes the guide's history entry instead.
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByRole("button", { name: "Close size guide" }));
+    expect(back).toHaveBeenCalledTimes(1);
+    back.mockRestore();
+  });
+
   it("isn't offered for products without sizes", () => {
     render(<SizeGuide product={{ category: ["Men"] }} sizes={[]} selectedSize="" />);
     expect(screen.queryByRole("button", { name: "Size guide" })).not.toBeInTheDocument();

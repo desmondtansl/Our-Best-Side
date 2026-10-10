@@ -35,7 +35,7 @@ Batch E of the improvement list (item 11, mobile menu and sticky header), widene
   - Keyboard and screen readers: focus moves into the menu and stays there (Tab cycles round), then returns to ☰ when it closes. The menu is announced as a dialog.
 - **Tap targets:** all icons are 44×44px, Apple's minimum comfortable size. On the very narrowest screens (320px or less, e.g. a folded Galaxy Z Fold's 280px cover screen) they're 40px so everything fits.
 - **Logo size:** the logo takes the space between the icon groups and stays centred. Its text shrinks slightly on narrow phones (20px down to 15px at 280px wide), so the icons are never pushed off the screen.
-- **Icon colour:** icons and menu text are black, matching the product titles. The desktop header keeps its blue links.
+- **Icon colour:** icons and menu text are black, matching the product titles. The desktop header now matches (see [header-back-button-and-dark-mode.md](header-back-button-and-dark-mode.md)).
 - **Old overflow fixed:** the desktop header used to be wider than the screen at tablet widths (up to 138px for admins). Tablets now get the compact bar instead, so nothing overflows.
 
 ### Homepage
@@ -110,7 +110,7 @@ The old per-device rules (separate rules for 280, 360, 375, 390, 393, 414, 540, 
 
 ## Not covered
 - **Real devices:** the iPhone check used Chrome emulating an iPhone, not Safari on a real device. Please give it a quick look on your phone after deploying. Android checks use the same engine as Android's browsers, so they're a closer match.
-- **Android Back button:** while the menu is open, Android's Back button or gesture goes back a page instead of just closing the menu. This is the usual behaviour for websites.
+- **Android Back button:** now closes the open menu instead of leaving the page (see [header-back-button-and-dark-mode.md](header-back-button-and-dark-mode.md)).
 - **Admin pages:** these get the new header on phones, but their forms weren't redesigned for phones.
 
 ## Deploying

@@ -6,9 +6,10 @@ import React from "react";
 import { UserAuth } from "../context/Auth";
 import { Badge } from "@mui/material";
 import SearchBar from "./SearchBar.jsx";
-import MobileNav from "./MobileNav.jsx";
+import MobileNav, { CART_BADGE } from "./MobileNav.jsx";
 import useMediaQuery from "../hooks/useMediaQuery";
 import { TABLET_QUERY } from "../config/breakpoints";
+import { navLink } from "../styles/links";
 
 // Site header. Phones and tablets get the compact MobileNav; this desktop
 // header is used on wider screens.
@@ -64,12 +65,21 @@ const Logo = styled.h1`
   font-weight: bold;
 `;
 
+// Black like the mobile header, underlined under a mouse pointer.
 const MenuItems = styled.div`
+  ${navLink}
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   margin-left: 25px;
   padding: 10px 30px;
+`;
+
+// Dashboard (admins only) looks like the other links but without their extra
+// spacing, so the header still fits on narrower computer screens.
+const CompactMenuItem = styled(MenuItems)`
+  margin-left: 0px;
+  padding: 10px 0px;
 `;
 
 function Navbar() {
@@ -78,10 +88,16 @@ function Navbar() {
   const navigate = useNavigate();
   const isTablet = useMediaQuery(TABLET_QUERY);
 
-  const handleLogout = () => {
+  const logOut = () => {
     setUser({ data: null, loading: false, error: null });
     localStorage.removeItem("token");
-    navigate("/");
+  };
+
+  // For the mobile menu, which passes { replace: true } to take the menu's
+  // place in the history.
+  const handleLogout = (options) => {
+    logOut();
+    navigate("/", options);
   };
 
   if (isTablet) {
@@ -117,8 +133,10 @@ function Navbar() {
                 <NavLink to="/account" style={{ textDecoration: "none" }}>
                   <MenuItems>Account</MenuItems>
                 </NavLink>
-                <NavLink to="/" style={{ textDecoration: "none" }}>
-                  <MenuItems onClick={handleLogout}>Logout</MenuItems>
+                {/* The link opens the homepage; clicking it (or pressing Enter)
+                    logs out on the way. */}
+                <NavLink to="/" style={{ textDecoration: "none" }} onClick={logOut}>
+                  <MenuItems>Logout</MenuItems>
                 </NavLink>
               </>
             ) : (
@@ -128,12 +146,12 @@ function Navbar() {
             )}
             {user.data && user.data.isAdmin && (
               <NavLink to="/dashboard" style={{ textDecoration: "none" }}>
-                Dashboard
+                <CompactMenuItem>Dashboard</CompactMenuItem>
               </NavLink>
             )}
             <NavLink to="/cart" style={{ textDecoration: "none" }}>
               <MenuItems>
-                <Badge badgeContent={quantity}>
+                <Badge badgeContent={quantity} sx={CART_BADGE}>
                   <ShoppingCartOutlinedIcon />
                 </Badge>
               </MenuItems>
