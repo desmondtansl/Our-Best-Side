@@ -30,6 +30,7 @@ export const UserProvider = ({ children }) => {
             id: response.data.user.id,
             email: response.data.user.email,
             isAdmin: response.data.user.isAdmin,
+            isOwner: Boolean(response.data.user.isOwner),
           },
           loading: false,
           error: null,

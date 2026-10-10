@@ -3,6 +3,11 @@ import Product from "./models/Product.js";
 // Stock is tracked either for a product as a whole (inStock) or, when the
 // product has sizeStock, for each size, with inStock kept as their total.
 
+// The admin dashboard lists products (or sizes) at or below this number as
+// low stock. The same number as LOW_STOCK_THRESHOLD in
+// client/src/config/store.js, where product pages start showing "Only N left".
+export const LOW_STOCK_THRESHOLD = 3;
+
 const idOf = (item) => String(item.product ?? item.productId);
 
 // Total quantity per product across cart lines (the same product can appear

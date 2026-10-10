@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
+import { useSearchParams } from "react-router-dom";
 import BackToDashboard from "../components/BackToDashboard";
 import {
   formatDate,
@@ -57,12 +58,19 @@ const ErrorText = styled.p`
 // Statuses an admin can set; "pending" is managed by checkout itself.
 const ADMIN_STATUSES = ["paid", "processing", "shipped", "delivered", "cancelled"];
 
+// "Waiting to ship" covers two statuses; the dashboard links here with it.
+const TO_SHIP = "paid,processing";
+
 const API = () => `${import.meta.env.VITE_BASE_URL}/admin/orders`;
 
 function AdminOrders() {
   useDocumentTitle("Orders");
   const [orders, setOrders] = useState(null);
-  const [filter, setFilter] = useState("");
+  // The filter lives in the address (?status=…), so the dashboard can link
+  // to a filtered list and Back returns to the previous filter.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filter = searchParams.get("status") || "";
+  const setFilter = (value) => setSearchParams(value ? { status: value } : {});
   const [error, setError] = useState("");
   const [savingId, setSavingId] = useState(null);
 
@@ -106,6 +114,7 @@ function AdminOrders() {
         Show:{" "}
         <Select value={filter} onChange={(e) => setFilter(e.target.value)}>
           <option value="">All orders</option>
+          <option value={TO_SHIP}>Waiting to ship</option>
           {ADMIN_STATUSES.map((status) => (
             <option key={status} value={status}>
               {STATUS_LABELS[status]}

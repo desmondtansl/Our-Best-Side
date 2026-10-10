@@ -16,6 +16,15 @@ export const formatDate = (value) =>
     year: "numeric",
   });
 
+export const formatDateTime = (value) =>
+  new Date(value).toLocaleString("en-SG", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
 // Short, readable order reference from a MongoDB id.
 export const orderNumber = (id) => String(id).slice(-8).toUpperCase();
 

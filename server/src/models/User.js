@@ -33,6 +33,12 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    // The shop owner: an admin who can also grant and remove admin access.
+    // Only set in the database (Atlas), never from the site.
+    isOwner: {
+      type: Boolean,
+      default: false,
+    },
     // Saved cards live in Stripe under this customer; we never store card data.
     stripeCustomerId: {
       type: String,
@@ -41,4 +47,7 @@ const userSchema = new Schema(
   },
   { timestamps: true }
 );
+// An owner is always an admin, even if isAdmin wasn't also set.
+export const isAdmin = (user) => Boolean(user?.isAdmin || user?.isOwner);
+
 export default mongoose.model("user", userSchema);

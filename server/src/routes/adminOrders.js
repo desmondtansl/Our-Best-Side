@@ -12,16 +12,17 @@ const ADMIN_STATUSES = ORDER_STATUSES.filter((status) => status !== "pending");
 
 router.use(checkAuth, requireAdmin);
 
-// LIST ORDERS (optionally filtered by status)
+// LIST ORDERS (optionally filtered by status, or several statuses separated
+// by commas, e.g. "paid,processing" for orders waiting to ship)
 
 router.get("/", async (req, res) => {
   try {
-    const { status } = req.query;
-    if (status && !ORDER_STATUSES.includes(status)) {
+    const statuses = req.query.status ? String(req.query.status).split(",") : [];
+    if (statuses.some((status) => !ORDER_STATUSES.includes(status))) {
       return res.status(400).json({ data: "", error: "Invalid status" });
     }
     const orders = await Order.find(
-      status ? { status } : { status: { $ne: "pending" } }
+      statuses.length ? { status: { $in: statuses } } : { status: { $ne: "pending" } }
     )
       .sort({ createdAt: -1 })
       .limit(200);

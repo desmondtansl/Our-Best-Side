@@ -120,6 +120,7 @@ function Login() {
             id: response.data.data.user.id,
             email: response.data.data.user.email,
             isAdmin: response.data.data.user.isAdmin,
+            isOwner: Boolean(response.data.data.user.isOwner),
           },
           error: null,
           loading: false,

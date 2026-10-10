@@ -1,4 +1,4 @@
-import User from "../models/User.js";
+import User, { isAdmin } from "../models/User.js";
 
 // Must run after checkAuth, which sets req.user to the token's email.
 // Admin status is read from the database rather than the token, since
@@ -6,7 +6,7 @@ import User from "../models/User.js";
 const requireAdmin = async (req, res, next) => {
   try {
     const user = await User.findOne({ email: req.user });
-    if (!user || !user.isAdmin) {
+    if (!isAdmin(user)) {
       return res.status(403).json({
         data: "",
         errors: [
