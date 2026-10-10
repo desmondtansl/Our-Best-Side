@@ -22,9 +22,9 @@ const order = {
   shippingAddress: { name: "Guest", line1: "10 Bayfront Ave", city: "Singapore", country: "SG" },
 };
 
-const renderPage = () =>
+const renderPage = (url = "/admin/orders") =>
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[url]}>
       <AdminOrders />
     </MemoryRouter>
   );
@@ -63,5 +63,15 @@ describe("AdminOrders", () => {
         params: { status: "delivered" },
       })
     );
+  });
+
+  it("opens filtered to orders waiting to ship from the dashboard's link", async () => {
+    renderPage("/admin/orders?status=paid,processing");
+    await screen.findByText("#ABCD1234");
+    expect(screen.getByLabelText(/Show/)).toHaveValue("paid,processing");
+    expect(screen.getByRole("option", { name: "Waiting to ship" }).selected).toBe(true);
+    expect(axios.get).toHaveBeenCalledWith(expect.stringMatching(/\/admin\/orders$/), {
+      params: { status: "paid,processing" },
+    });
   });
 });

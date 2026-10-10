@@ -46,12 +46,18 @@ export const createApp = async () => {
   return createApp();
 };
 
-export const createUser = async ({ email, password = "password123", isAdmin = false }) => {
+export const createUser = async ({
+  email,
+  password = "password123",
+  isAdmin = false,
+  isOwner = false,
+}) => {
   const { default: User } = await import("../src/models/User.js");
   const user = await User.create({
     email,
     password: await bcrypt.hash(password, 10),
     isAdmin,
+    isOwner,
   });
   return user;
 };

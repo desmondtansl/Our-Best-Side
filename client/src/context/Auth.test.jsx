@@ -43,6 +43,7 @@ describe("UserProvider", () => {
       id: "user-1",
       email: "admin@example.com",
       isAdmin: true,
+      isOwner: false,
     });
     expect(axios.get).toHaveBeenCalledWith(
       expect.stringMatching(/\/auth\/user$/)

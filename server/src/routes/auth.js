@@ -1,6 +1,6 @@
 import express from "express";
 import { body, validationResult } from "express-validator";
-import User from "../models/User.js";
+import User, { isAdmin } from "../models/User.js";
 import bcrypt from "bcryptjs";
 import JWT from "jsonwebtoken";
 import checkAuth from "../middleware/checkAuth.js";
@@ -97,7 +97,7 @@ router.post("/login", async (req, res) => {
     }
 
     const token = await JWT.sign(
-      { email: user.email, isAdmin: user.isAdmin },
+      { email: user.email, isAdmin: isAdmin(user) },
       process.env.JWT_SECRET,
       {
         expiresIn: 86400,
@@ -110,7 +110,8 @@ router.post("/login", async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
-          isAdmin: user.isAdmin,
+          isAdmin: isAdmin(user),
+          isOwner: Boolean(user.isOwner),
         },
       },
       error: "",
@@ -136,7 +137,8 @@ router.get("/user", checkAuth, async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
-          isAdmin: user.isAdmin,
+          isAdmin: isAdmin(user),
+          isOwner: Boolean(user.isOwner),
         },
       },
       errors: "",

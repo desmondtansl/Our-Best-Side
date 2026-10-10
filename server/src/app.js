@@ -5,6 +5,8 @@ import authRoutes from "./routes/auth.js";
 import checkoutRoutes from "./routes/checkout.js";
 import accountRoutes from "./routes/account.js";
 import adminOrdersRoutes from "./routes/adminOrders.js";
+import adminStatsRoutes from "./routes/adminStats.js";
+import adminUsersRoutes from "./routes/adminUsers.js";
 import { stripeWebhook } from "./routes/webhook.js";
 
 export const createApp = () => {
@@ -28,5 +30,7 @@ export const createApp = () => {
   app.use("/checkout", checkoutRoutes);
   app.use("/account", accountRoutes);
   app.use("/admin/orders", adminOrdersRoutes);
+  app.use("/admin/stats", adminStatsRoutes);
+  app.use("/admin/users", adminUsersRoutes);
   return app;
 };

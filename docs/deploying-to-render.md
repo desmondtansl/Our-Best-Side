@@ -97,7 +97,7 @@ npm run seed -w server
 
 - **Network Access** must include `0.0.0.0/0`. Render's free services don't have fixed outbound IPs.
 - If the password contains `@ : / ? # %`, URL-encode it or change it to letters and numbers only.
-- New users are created with `isAdmin: false`. To make an admin, open **Browse Collections** → `users` and set `isAdmin` to `true`.
+- New users are created with `isAdmin: false`. To make yourself the **shop owner**, open **Browse Collections** → `users` and set `isOwner` to `true` on your own account. The owner is an admin and can give other people admin access from **Dashboard → Manage Admins** (see `admin-dashboard-and-access.md`).
 
 ## Things to know about Render's free plan
 

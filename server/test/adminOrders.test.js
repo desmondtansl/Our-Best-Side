@@ -59,6 +59,18 @@ describe("admin order routes", () => {
       .set("Authorization", `Bearer ${adminToken}`);
     assert.deepEqual(shipped.body.data.map((o) => o.status), ["shipped"]);
 
+    // Several statuses, as the dashboard's "Waiting to ship" link uses.
+    await Order.create({ ...base, status: "processing" });
+    const toShip = await request(app)
+      .get("/admin/orders?status=paid,processing")
+      .set("Authorization", `Bearer ${adminToken}`);
+    assert.deepEqual(toShip.body.data.map((o) => o.status).sort(), ["paid", "processing"]);
+
+    const partlyBad = await request(app)
+      .get("/admin/orders?status=paid,lost")
+      .set("Authorization", `Bearer ${adminToken}`);
+    assert.equal(partlyBad.status, 400);
+
     const bad = await request(app)
       .get("/admin/orders?status=lost")
       .set("Authorization", `Bearer ${adminToken}`);

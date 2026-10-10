@@ -10,11 +10,13 @@ import SearchProduct from "./pages/AdminSearchProduct.jsx";
 import EditProduct from "./pages/AdminEditProduct.jsx";
 import Dashboard from "./pages/AdminDashboard.jsx";
 import AdminOrders from "./pages/AdminOrders.jsx";
+import AdminUsers from "./pages/AdminUsers.jsx";
 import IndividualMenProduct from "./pages/IndividualMenProduct.jsx";
 import IndividualLadiesProduct from "./pages/IndividualLadiesProduct.jsx";
 import Account from "./pages/Account.jsx";
 import { UserAuth } from "./context/Auth.jsx";
 import ProtectedRoutes from "./routes/ProtectedRoutes.jsx";
+import OwnerRoutes from "./routes/OwnerRoutes.jsx";
 import UserRoutes from "./routes/UserRoutes.jsx";
 import Success from "./pages/Success.jsx";
 import NotFound from "./pages/NotFound.jsx";
@@ -47,6 +49,9 @@ function App() {
           <Route path="/search" element={<SearchProduct />} />
           <Route path="/search/:params" element={<EditProduct />} />
           <Route path="/admin/orders" element={<AdminOrders />} />
+          <Route element={<OwnerRoutes />}>
+            <Route path="/admin/users" element={<AdminUsers />} />
+          </Route>
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

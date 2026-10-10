@@ -55,7 +55,30 @@ describe("auth routes", () => {
       id: admin.id,
       email: "admin@example.com",
       isAdmin: true,
+      isOwner: false,
     });
+  });
+
+  it("treats an owner as an admin, at login and in GET /auth/user", async () => {
+    // Set in the database with isOwner only, without isAdmin.
+    const owner = await createUser({ email: "owner@example.com", isOwner: true });
+    const login = await request(app)
+      .post("/auth/login")
+      .send({ email: "owner@example.com", password: "password123" });
+    assert.equal(login.body.data.user.isAdmin, true);
+    assert.equal(login.body.data.user.isOwner, true);
+
+    const res = await request(app)
+      .get("/auth/user")
+      .set("Authorization", `Bearer ${tokenFor(owner.email)}`);
+    assert.equal(res.body.data.user.isAdmin, true);
+    assert.equal(res.body.data.user.isOwner, true);
+
+    // And can use admin-only routes.
+    const orders = await request(app)
+      .get("/admin/orders")
+      .set("Authorization", `Bearer ${tokenFor(owner.email)}`);
+    assert.equal(orders.status, 200);
   });
 
   it("GET /auth/user returns isAdmin false for a normal user", async () => {
