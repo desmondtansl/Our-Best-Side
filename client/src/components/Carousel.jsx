@@ -11,6 +11,13 @@ const BANNER_HEIGHT = "max(480px, min(85vh, 860px))";
 // Photo shape (width / height) assumed until the photo has loaded: portrait.
 const DEFAULT_RATIO = 2 / 3;
 
+// On phones and tablets the photo spans the screen above the text. Its
+// height follows its shape, trimming very tall portrait photos to 4:5, and is
+// at most 65% of the screen height.
+const MOBILE_MIN_RATIO = 4 / 5;
+const mobilePhotoHeight = (ratio) =>
+  `min(calc(100vw / ${Math.max(ratio, MOBILE_MIN_RATIO)}), 65vh)`;
+
 // Headings and descriptions longer than this get a smaller text size.
 const LONG_TITLE = 22;
 const LONG_DESCRIPTION = 90;
@@ -23,6 +30,7 @@ const Container = styled.div`
   overflow: hidden;
 `;
 
+// On phones and tablets the arrows sit halfway down the photo.
 const Arrow = styled.button`
   width: 50px;
   height: 50px;
@@ -44,18 +52,12 @@ const Arrow = styled.button`
   z-index: 2;
 
   @media (max-width: 1024px) {
-    width: 45px;
-    height: 45px;
-  }
-
-  @media (max-width: 414px) {
-    width: 40px;
-    height: 40px;
-  }
-
-  @media (max-width: 280px) {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
+    top: calc(${(props) => mobilePhotoHeight(props.ratio)} / 2 - 22px);
+    bottom: auto;
+    margin: 0px;
+    opacity: 0.85;
   }
 `;
 
@@ -65,13 +67,10 @@ const Wrapper = styled.div`
   transform: translateX(${(props) => props.slideIndex * -100}vw);
 `;
 
-// On computers each slide is a fixed-height banner: the photo fills the left
-// part and the text sits right beside it, so there's no gap between them.
-// On tablets and phones (where the photo is hidden) the slide fits the text.
 // On computers each slide is a banner: the photo fills the left part and the
 // text sits right beside it, so there's no gap between them. The banner grows
 // taller if the text needs more room, rather than cutting it off.
-// On tablets and phones (where the photo is hidden) the slide fits the text.
+// On phones and tablets the photo sits on top with the text below it.
 const Slide = styled.div`
   display: flex;
   align-items: stretch;
@@ -80,9 +79,8 @@ const Slide = styled.div`
   background-color: ${(props) => (props.bg ? `#${props.bg}` : "white")};
 
   @media (max-width: 1024px) {
+    flex-direction: column;
     min-height: 0px;
-    align-items: center;
-    background-color: white;
   }
 `;
 
@@ -100,7 +98,8 @@ const ImageContainer = styled.div`
   }
 
   @media (max-width: 1024px) {
-    display: none;
+    width: 100%;
+    height: ${(props) => mobilePhotoHeight(props.ratio)};
   }
 `;
 
@@ -113,15 +112,11 @@ const Title = styled.h1`
   overflow-wrap: break-word;
 
   @media (max-width: 1024px) {
-    font-size: ${(props) => (props.long ? "34px" : "45px")};
+    font-size: ${(props) => (props.long ? "28px" : "36px")};
   }
 
-  @media (max-width: 768px) {
-    font-size: ${(props) => (props.long ? "30px" : "40px")};
-  }
-
-  @media (max-width: 280px) {
-    font-size: ${(props) => (props.long ? "26px" : "36px")};
+  @media (max-width: 600px) {
+    font-size: ${(props) => (props.long ? "24px" : "30px")};
   }
 `;
 
@@ -137,12 +132,10 @@ const Description = styled.p`
     font-size: ${(props) => (props.long ? "16px" : "18px")};
   }
 
-  @media (max-width: 414px) {
-    font-size: ${(props) => (props.long ? "14px" : "15px")};
-  }
-
-  @media (max-width: 280px) {
-    font-size: 14px;
+  @media (max-width: 1024px) {
+    margin: 12px 0px 20px;
+    font-size: ${(props) => (props.long ? "15px" : "16px")};
+    letter-spacing: 1px;
   }
 `;
 
@@ -181,8 +174,6 @@ const Button = styled.button`
   }
 `;
 
-// Fills its column (trimming the sides as needed), keeping the upper part of
-// the photo, where the faces are, in view.
 // Fills its column, trimming the edges as needed. By default the upper part
 // of the photo (where faces usually are) stays in view; a slide can set
 // imagePosition (e.g. "center", "left top") to keep a different part.
@@ -198,7 +189,6 @@ const Image = styled.img`
   object-position: ${(props) => props.position || "center 30%"};
 `;
 
-// The side padding keeps text clear of the arrows on tablets and phones.
 const InfoContainer = styled.div`
   flex: 1;
   min-width: 0px;
@@ -214,17 +204,11 @@ const InfoContainer = styled.div`
   }
 
   @media (max-width: 1024px) {
-    padding: 35px 70px;
-    font-size: 14px;
+    padding: 24px 24px 28px;
   }
 
-  @media (max-width: 820px) {
-    padding: 30px 70px;
-  }
-
-  @media (max-width: 414px) {
-    padding: 20px 56px;
-    font-size: 12px;
+  @media (max-width: 600px) {
+    padding: 20px 16px 24px;
   }
 `;
 
@@ -253,6 +237,7 @@ function Carousel() {
   };
 
   const showArrows = slides.length > 1;
+  const currentRatio = ratios[slides[slideIndex]?.id] || DEFAULT_RATIO;
 
   return (
     <Container>
@@ -260,6 +245,7 @@ function Carousel() {
         <Arrow
           type="button"
           direction="left"
+          ratio={currentRatio}
           aria-label="Previous slide"
           onClick={() => handleClick("left")}
         >
@@ -295,6 +281,7 @@ function Carousel() {
         <Arrow
           type="button"
           direction="right"
+          ratio={currentRatio}
           aria-label="Next slide"
           onClick={() => handleClick("right")}
         >

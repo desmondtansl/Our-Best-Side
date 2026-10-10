@@ -10,16 +10,10 @@ const Container = styled.div`
   justify-content: center;
   flex-direction: column;
 
-  @media (max-width: 375px) {
-    height: 20vh;
-  }
-
-  @media (max-width: 360px) {
-    height: 20vh;
-  }
-
-  @media (max-width: 280px) {
-    height: 20vh;
+  @media (max-width: 1024px) {
+    height: auto;
+    padding: 48px 16px;
+    text-align: center;
   }
 `;
 
@@ -27,36 +21,13 @@ const Title = styled.h1`
   font-size: 60px;
   margin-bottom: 20px;
 
-  @media (max-width: 820px) {
-    font-size: 50px;
-  }
-
-  @media (max-width: 540px) {
+  @media (max-width: 1024px) {
     font-size: 36px;
   }
 
-  @media (max-width: 414px) {
-    font-size: 28px;
-  }
-
-  @media (max-width: 393px) {
-    font-size: 26px;
-  }
-
-  @media (max-width: 390px) {
-    font-size: 26px;
-  }
-
-  @media (max-width: 375px) {
-    font-size: 26px;
-  }
-
-  @media (max-width: 360px) {
-    font-size: 25px;
-  }
-
-  @media (max-width: 280px) {
-    font-size: 18px;
+  @media (max-width: 600px) {
+    font-size: 24px;
+    margin-bottom: 16px;
   }
 `;
 
@@ -67,28 +38,12 @@ const InputContainer = styled.div`
   justify-content: space-between;
   border: 1px solid lightgray;
 
-  @media (max-width: 820px) {
-    width: 70%;
-  }
-
-  @media (max-width: 414px) {
-    width: 70%;
-  }
-
-  @media (max-width: 390px) {
-    width: 70%;
-  }
-
-  @media (max-width: 375px) {
-    width: 70%;
-  }
-
-  @media (max-width: 360px) {
-    width: 70%;
-  }
-
-  @media (max-width: 280px) {
-    width: 70%;
+  @media (max-width: 1024px) {
+    width: 100%;
+    max-width: 420px;
+    height: 48px;
+    border-radius: 10px;
+    overflow: hidden;
   }
 `;
 
@@ -98,29 +53,9 @@ const Input = styled.input`
   padding-left: 20px;
   font-style: italic;
 
-  @media (max-width: 820px) {
+  @media (max-width: 1024px) {
+    min-width: 0px;
     padding-left: 12px;
-  }
-
-  @media (max-width: 414px) {
-    padding-left: 8px;
-  }
-
-  @media (max-width: 390px) {
-    padding-left: 8px;
-  }
-
-  @media (max-width: 375px) {
-    padding-left: 8px;
-  }
-
-  @media (max-width: 360px) {
-    padding-left: 5px;
-  }
-
-  @media (max-width: 280px) {
-    padding-left: 5px;
-    font-size: 11px;
   }
 `;
 

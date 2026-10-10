@@ -239,6 +239,10 @@ const SummaryItem = styled.div`
 
 const SummaryTitle = styled.h1`
   font-weight: 200;
+
+  @media (max-width: 600px) {
+    font-size: 26px;
+  }
 `;
 
 const SummaryItemText = styled.span`

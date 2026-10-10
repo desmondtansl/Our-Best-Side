@@ -12,9 +12,15 @@ import {
 // Filter and sort bar above product listings and search results. Every
 // change is written to the page address (see utils/shop.js).
 
+// Spans every column when the listing is a grid (tablets and phones).
 const Container = styled.div`
+  grid-column: 1 / -1;
   width: 100%;
   margin-bottom: 20px;
+
+  @media (max-width: 1024px) {
+    margin-bottom: 0px;
+  }
 `;
 
 const Toolbar = styled.div`
@@ -24,6 +30,10 @@ const Toolbar = styled.div`
   gap: 16px;
   padding-bottom: 12px;
   border-bottom: 0.5px solid lightgray;
+
+  @media (max-width: 600px) {
+    gap: 10px 12px;
+  }
 `;
 
 const FiltersButton = styled.button`
@@ -43,10 +53,16 @@ const FiltersButton = styled.button`
   }
 `;
 
+// On phones the count gets its own line under the Filters button and sort.
 const Count = styled.p`
   margin: 0;
   font-size: 14px;
   font-weight: 300;
+
+  @media (max-width: 600px) {
+    order: 3;
+    width: 100%;
+  }
 `;
 
 const SortLabel = styled.label`
@@ -56,6 +72,18 @@ const SortLabel = styled.label`
   gap: 8px;
   font-size: 14px;
   font-weight: 500;
+`;
+
+// "Sort by" is hidden on phones to save space (screen readers still read it).
+const SortText = styled.span`
+  @media (max-width: 600px) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0px, 0px, 0px, 0px);
+    white-space: nowrap;
+  }
 `;
 
 const Select = styled.select`
@@ -233,7 +261,7 @@ function ShopFilters({ facets, count, searchParams, setSearchParams }) {
           </Count>
         )}
         <SortLabel>
-          Sort by
+          <SortText>Sort by</SortText>
           <Select
             value={filters.sort}
             onChange={(e) =>

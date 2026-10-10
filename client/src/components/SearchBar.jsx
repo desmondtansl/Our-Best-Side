@@ -14,34 +14,15 @@ const MIN_CHARACTERS = 2;
 const DEBOUNCE_MS = 250;
 const LIST_ID = "search-suggestions";
 
-// On narrower screens the search box takes its own line under the links,
-// so the header doesn't overflow.
+// In the desktop header the box sits beside the links; in the mobile header
+// (fullWidth) it spans the screen under the bar.
 const Wrapper = styled.div`
-  margin-left: 25px;
-
-  @media (max-width: 1024px) {
-    order: 1;
-    flex-basis: 100%;
-    display: flex;
-    justify-content: flex-end;
-    margin: 10px 0px 0px;
-    padding-right: 10px;
-  }
-
-  @media (max-width: 540px) {
-    justify-content: center;
-    padding-right: 0px;
-  }
+  margin-left: ${(props) => (props.fullWidth ? "0px" : "25px")};
 `;
 
 // Holds the box and its suggestions, so the list lines up with the box.
 const Inner = styled.div`
   position: relative;
-
-  @media (max-width: 540px) {
-    width: 100%;
-    max-width: 320px;
-  }
 `;
 
 const Form = styled.form`
@@ -53,14 +34,17 @@ const Form = styled.form`
   overflow: hidden;
 `;
 
+// 16px text on phones: iPhones zoom the page in when a smaller text box is
+// tapped.
 const Input = styled.input`
   flex: 1;
-  width: 180px;
-  padding: 8px 10px;
+  width: ${(props) => (props.fullWidth ? "100%" : "180px")};
+  min-width: 0px;
+  padding: ${(props) => (props.fullWidth ? "10px 12px" : "8px 10px")};
   border: none;
   outline: none;
   font-family: inherit;
-  font-size: 14px;
+  font-size: ${(props) => (props.fullWidth ? "16px" : "14px")};
 `;
 
 const SubmitButton = styled.button`
@@ -76,9 +60,10 @@ const List = styled.ul`
   position: absolute;
   top: calc(100% + 6px);
   right: 0px;
+  left: ${(props) => (props.fullWidth ? "0px" : "auto")};
   z-index: 20;
-  width: 320px;
-  max-width: 90vw;
+  width: ${(props) => (props.fullWidth ? "auto" : "320px")};
+  max-width: ${(props) => (props.fullWidth ? "none" : "90vw")};
   margin: 0px;
   padding: 6px 0px;
   list-style: none;
@@ -132,7 +117,7 @@ const Empty = styled.li`
   font-weight: 300;
 `;
 
-function SearchBar() {
+function SearchBar({ fullWidth = false, autoFocus = false }) {
   const navigate = useNavigate();
   const location = useLocation();
   const wrapperRef = useRef(null);
@@ -221,10 +206,12 @@ function SearchBar() {
   const optionId = (index) => `${LIST_ID}-${index}`;
 
   return (
-    <Wrapper ref={wrapperRef} onBlur={handleBlur}>
+    <Wrapper ref={wrapperRef} onBlur={handleBlur} fullWidth={fullWidth}>
       <Inner>
         <Form role="search" onSubmit={submit}>
           <Input
+            fullWidth={fullWidth}
+            autoFocus={autoFocus}
             type="search"
             placeholder="Search products"
             aria-label="Search products"
@@ -249,7 +236,12 @@ function SearchBar() {
           </SubmitButton>
         </Form>
         {showList && (
-          <List id={LIST_ID} role="listbox" aria-label="Search suggestions">
+          <List
+            id={LIST_ID}
+            role="listbox"
+            aria-label="Search suggestions"
+            fullWidth={fullWidth}
+          >
             {suggestions.length === 0 && <Empty>No matching products</Empty>}
             {suggestions.map((product, index) => (
               <Option

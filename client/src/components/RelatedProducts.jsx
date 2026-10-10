@@ -12,7 +12,7 @@ const Section = styled.section`
   border-top: 0.5px solid lightgray;
 
   @media (max-width: 768px) {
-    padding: 20px 10px;
+    padding: 20px 16px;
   }
 `;
 
