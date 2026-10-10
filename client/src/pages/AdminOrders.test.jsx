@@ -281,7 +281,7 @@ describe("AdminOrders", () => {
         expect(axios.patch.mock.calls[0][1]).toEqual({ status: "cancelled" });
         const [url, body] = axios.post.mock.calls[0];
         expect(url).toMatch(/\/admin\/orders\/64b0000000000000abcd1234\/refund$/);
-        expect(body).toEqual({ amount: 250 });
+        expect(body).toEqual({ amount: 250, requestId: expect.any(String) });
       });
 
       it("cancels without refunding when unticked, and reminds to refund", async () => {

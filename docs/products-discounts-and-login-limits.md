@@ -125,6 +125,33 @@ Every product now has a status. Products from before this update count as **live
 - `client/src/pages/AdminDiscounts.jsx` (new)
 - `client/src/components/DiscountCode.jsx` (new)
 
+### Homepage banner
+
+Each running promotion is announced in a teal banner at the top of the homepage, under the header. This is the same look as the old announcement bar.
+
+**What it shows:**
+- **The message:** by default, "Use promo code XMAS20 for 20% off!". You can write your own, e.g. "Use promo code XMAS20 for the festive season!", up to 140 characters.
+- **The code:** shoppers can tap it to copy it ("Copied!").
+- **The end date,** if there is one: "Ends 31 Dec 2026".
+- **✕** closes the banner. It stays closed in that shopper's browser for that code, and a new code shows again.
+
+**When it shows:** only while the promotion is **running**.
+- A promotion created for a later date gets its banner on its start date.
+- The banner disappears when the promotion ends or is paused, within a minute (browsers may keep the list for up to 60 seconds).
+- Up to 3 banners show at once, newest first.
+
+**In the Discounts form:**
+- **Turning it off:** each promotion has **Show a banner on the homepage while it's running**, ticked by default. Untick it for codes you want to keep private, e.g. staff or influencer codes.
+- **Banner message:** an optional box. Left empty, the banner uses the standard wording, which follows the code and percentage.
+- **Preview:** shows exactly what the banner will say.
+- **The list:** shows "Banner showing" for running promotions with a banner, and "Banner on" for the others.
+
+**Files:**
+- `client/src/components/PromoBanner.jsx` (new)
+- `client/src/pages/Homepage.jsx`
+- `server/src/routes/promotions.js` (new): `GET /promotions/banners`, public, which returns only the code, percentage, end date and message
+- `showBanner` and `bannerText` on `server/src/models/Promotion.js`
+
 ## 7. Login attempt limits
 
 Three limits, each counted over a fixed time window:
@@ -165,7 +192,7 @@ Three limits, each counted over a fixed time window:
 | GET | `/admin/products/:id` | Returns one product, whatever its status |
 | PATCH | `/admin/products/:id/status` | Takes `{ status }`. Archiving also un-features the product. |
 | PUT | `/admin/products/stock` | Takes `{ changes: [{ id, updatedAt, inStock }` or `{ id, updatedAt, sizeStock: { S: 3 } }] }`. Returns `{ saved, conflicts }`. |
-| GET / POST | `/admin/promotions` | Lists promotions (each with `state`), or creates one from `{ name, code, percentOff, startDate, endDate?, active? }` |
+| GET / POST | `/admin/promotions` | Lists promotions (each with `state`), or creates one from `{ name, code, percentOff, startDate, endDate?, active?, showBanner?, bannerText? }` |
 | PUT / DELETE | `/admin/promotions/:id` | Edits a promotion, or deletes one that was never used |
 
 **For shoppers:**

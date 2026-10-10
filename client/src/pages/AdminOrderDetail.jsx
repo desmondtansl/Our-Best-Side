@@ -374,10 +374,11 @@ function RefundPanel({ order, onRefunded }) {
           order={order}
           amount={value}
           onClose={() => setConfirming(false)}
-          onConfirm={async () => {
+          onConfirm={async (requestId) => {
             try {
               const response = await axios.post(`${ORDERS_API()}/${order._id}/refund`, {
                 amount: value,
+                requestId,
               });
               onRefunded(response.data.data);
             } catch (err) {

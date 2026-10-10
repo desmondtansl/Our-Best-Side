@@ -229,7 +229,9 @@ router.put("/:orderId/notes", async (req, res) => {
 });
 
 // REFUND through Stripe, in full or in part
-// Body: { amount } in the order's currency, e.g. 25.5. Refunding doesn't
+// Body: { amount, requestId }: the amount in the order's currency, e.g.
+// 25.5, and an id made once per confirmed refund, so repeats of the same
+// request refund once. Refunding doesn't
 // change the order's status; cancel it separately if it won't be sent.
 
 router.post("/:orderId/refund", async (req, res) => {
@@ -246,6 +248,11 @@ router.post("/:orderId/refund", async (req, res) => {
     }
     if (!isStripeConfigured()) {
       return res.status(503).json({ data: "", error: "Stripe isn't set up on the server" });
+    }
+    // One id per confirmed refund (see refundOrder).
+    const requestId = String(req.body?.requestId || "");
+    if (!/^[A-Za-z0-9-]{8,64}$/.test(requestId)) {
+      return badRequest(res, "The refund request is missing its id. Reload the page and try again.");
     }
     const amount = Number(req.body?.amount);
     const remaining = refundableAmount(order);
@@ -264,7 +271,7 @@ router.post("/:orderId/refund", async (req, res) => {
       );
     }
     try {
-      await refundOrder(order, amount, req.user);
+      await refundOrder(order, amount, req.user, requestId);
     } catch (error) {
       // Admins see Stripe's message (e.g. "Charge has already been refunded").
       console.error("Stripe refund failed:", error?.message);

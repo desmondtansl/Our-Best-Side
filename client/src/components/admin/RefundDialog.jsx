@@ -9,12 +9,16 @@ import AdminDialog, {
   DialogError,
 } from "./AdminDialog";
 import { formatMoney, orderNumber } from "../../utils/format";
+import { newRequestId } from "../../utils/requestId";
 
-// Confirms a refund through Stripe. `onConfirm()` returns a promise; if it
-// fails, the pop-up stays open with Stripe's message.
+// Confirms a refund through Stripe. `onConfirm(requestId)` returns a
+// promise; if it fails, the pop-up stays open with Stripe's message. The
+// request id stays the same while the pop-up is open, so trying again after
+// an error can never refund twice.
 function RefundDialog({ order, amount, onConfirm, onClose }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [requestId] = useState(newRequestId);
   const money = formatMoney(amount, order.currency);
   const card = order.paymentMethod?.last4
     ? `the ${order.paymentMethod.brand?.toUpperCase() || "card"} ending ${order.paymentMethod.last4}`
@@ -50,7 +54,7 @@ function RefundDialog({ order, amount, onConfirm, onClose }) {
                 setError("");
                 setSaving(true);
                 try {
-                  await onConfirm();
+                  await onConfirm(requestId);
                   close();
                 } catch (err) {
                   setError(err.message);

@@ -18,6 +18,10 @@ const promotionSchema = new Schema(
     endDate: { type: String },
     startsAt: { type: Date, required: true },
     endsAt: { type: Date },
+    // While running, the promotion is announced in a banner on the homepage
+    // (unless turned off). Empty text means the standard wording.
+    showBanner: { type: Boolean, default: true },
+    bannerText: { type: String, trim: true, default: "" },
     // Paused promotions can't be used, whatever their dates.
     active: { type: Boolean, default: true },
     stripeCouponId: { type: String },
@@ -34,5 +38,9 @@ export const promotionState = (promotion, now = new Date()) => {
   if (promotion.endsAt && now >= promotion.endsAt) return "ended";
   return "running";
 };
+
+// The homepage banner's wording.
+export const bannerTextFor = (promotion) =>
+  promotion.bannerText || `Use promo code ${promotion.code} for ${promotion.percentOff}% off!`;
 
 export default mongoose.model("promotion", promotionSchema);
