@@ -98,10 +98,11 @@ const discountLimit = limitPerAddress(
   "Too many codes tried. Please wait a few minutes and try again."
 );
 
-// With a discount code, the Stripe checkout page closes after an hour (the
-// least Stripe allows is 30 minutes), so a code can't be used long after it
-// ends. Without one, Stripe's default of 24 hours applies.
-const DISCOUNT_CHECKOUT_MINUTES = 60;
+// The Stripe checkout page closes after an hour (Stripe's default is 24
+// hours; the least it allows is 30 minutes). Stock is checked when checkout
+// starts, so a short window keeps that check close to the payment, and a
+// discount code can't be used long after it ends.
+const CHECKOUT_MINUTES = 60;
 
 // CHECK A DISCOUNT CODE (from the cart, before checkout)
 // Body: { code }. Returns the promotion's name and percentage.
@@ -213,11 +214,11 @@ router.post("/create-checkout-session", checkoutLimit, optionalAuth, async (req,
       }),
     });
 
-    // Stripe shows product photos on its checkout page; a checkout session
-    // lasts up to 24 hours, so sign the links for that long.
+    // Stripe shows product photos on its checkout page, so the links are
+    // signed for as long as the page stays open.
     const images = await Promise.all(
       orderItems.map((item) =>
-        isValidImageKey(item.image) ? signedImageUrl(item.image, 24 * 60 * 60) : undefined
+        isValidImageKey(item.image) ? signedImageUrl(item.image, CHECKOUT_MINUTES * 60) : undefined
       )
     );
 
@@ -243,10 +244,8 @@ router.post("/create-checkout-session", checkoutLimit, optionalAuth, async (req,
         };
       }),
       shipping_address_collection: { allowed_countries: getShippingCountries() },
-      ...(promotion && {
-        discounts: [{ coupon: await stripeCouponFor(promotion) }],
-        expires_at: Math.floor(Date.now() / 1000) + DISCOUNT_CHECKOUT_MINUTES * 60,
-      }),
+      expires_at: Math.floor(Date.now() / 1000) + CHECKOUT_MINUTES * 60,
+      ...(promotion && { discounts: [{ coupon: await stripeCouponFor(promotion) }] }),
       client_reference_id: order.id,
       metadata: { orderId: order.id },
       success_url: `${process.env.BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,

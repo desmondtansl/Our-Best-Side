@@ -8,7 +8,7 @@ import cartReducer, { addProduct } from "../redux/cartRedux";
 import { UserAuth } from "../context/Auth";
 
 vi.mock("axios", () => ({
-  default: { get: vi.fn(), defaults: { headers: { common: {} } } },
+  default: { get: vi.fn(), post: vi.fn(() => Promise.resolve({})), defaults: { headers: { common: {} } } },
 }));
 vi.mock("../context/Auth", () => ({ UserAuth: vi.fn() }));
 

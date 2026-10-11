@@ -44,13 +44,28 @@ const userSchema = new Schema(
       type: String,
     },
     addresses: [addressSchema],
-    // Raised by "Log out of all devices": login tokens made before it stop
-    // working (see tokens.js).
+    // Raised by "Log out of all devices", a password change and turning
+    // two-step login on or off: login tokens made before it stop working
+    // (see tokens.js).
     tokenVersion: { type: Number, default: 0 },
+    // Two-step login with an authenticator app (see totp.js). Required for
+    // admins. `secret` is never sent to the browser after setup; `pending`
+    // holds a new secret until the first code confirms it. `lastUsedStep`
+    // stops a code being used twice. If the owner loses both the phone and
+    // the recovery codes, set `twoFactor.enabled` to false in Atlas.
+    twoFactor: {
+      enabled: { type: Boolean, default: false },
+      secret: { type: String, select: false },
+      pending: { type: String, select: false },
+      lastUsedStep: { type: Number, select: false },
+      recoveryCodes: { type: [String], select: false },
+    },
   },
   { timestamps: true }
 );
 // An owner is always an admin, even if isAdmin wasn't also set.
 export const isAdmin = (user) => Boolean(user?.isAdmin || user?.isOwner);
+
+export const hasTwoFactor = (user) => Boolean(user?.twoFactor?.enabled);
 
 export default mongoose.model("user", userSchema);

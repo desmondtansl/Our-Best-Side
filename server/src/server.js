@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import { createApp } from "./app.js";
+import { createApp, isProduction } from "./app.js";
 
 dotenv.config();
 
@@ -16,6 +16,11 @@ mongoose.set("strictQuery", true);
 const MONGO_URI = process.env.MONGO_URI;
 
 const main = async () => {
+  // Without BASE_URL, Stripe would send shoppers to a broken address and no
+  // website could call the API, so don't start half-configured.
+  if (isProduction() && !process.env.BASE_URL) {
+    throw new Error("BASE_URL must be set in production (e.g. https://ourbestside.netlify.app)");
+  }
   await mongoose.connect(MONGO_URI);
   console.log("Connected to mongoDB");
 

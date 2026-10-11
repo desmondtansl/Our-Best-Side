@@ -13,6 +13,8 @@ process.env.AWS_ACCESS_KEY_SECRET = "test";
 process.env.STRIPE_PRIVATE_KEY = "sk_test_dummy";
 process.env.STRIPE_WEBHOOK_SECRET = "whsec_test_secret";
 process.env.BASE_URL = "https://shop.example.com";
+// The public page limit is tested on its own (security.test.js).
+process.env.PUBLIC_REQUESTS_PER_MINUTE = "100000";
 delete process.env.CURRENCY;
 delete process.env.SHIPPING_COUNTRIES;
 
@@ -46,11 +48,17 @@ export const createApp = async () => {
   return createApp();
 };
 
+// The authenticator-app secret test accounts with two-step login use.
+export const TEST_TOTP_SECRET = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP";
+
+// Admins and owners need two-step login, so they get it unless the test
+// says otherwise (twoFactor: false).
 export const createUser = async ({
   email,
   password = "password123",
   isAdmin = false,
   isOwner = false,
+  twoFactor = isAdmin || isOwner,
 }) => {
   const { default: User } = await import("../src/models/User.js");
   const user = await User.create({
@@ -58,6 +66,7 @@ export const createUser = async ({
     password: await bcrypt.hash(password, 10),
     isAdmin,
     isOwner,
+    ...(twoFactor && { twoFactor: { enabled: true, secret: TEST_TOTP_SECRET, recoveryCodes: [] } }),
   });
   return user;
 };

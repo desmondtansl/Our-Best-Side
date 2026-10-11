@@ -135,14 +135,14 @@ describe("AdminUsers", () => {
   it("checks what address the server sees for the owner", async () => {
     axios.get.mockImplementation(async (url) =>
       url.endsWith("/connection")
-        ? { data: { data: { ip: "203.0.113.9", forwardedFor: "203.0.113.9", trustProxyHops: 1 } } }
+        ? { data: { data: { ip: "10.0.0.7", forwardedFor: "203.0.113.9, 10.0.0.7", trustProxyHops: 1, verdict: "too-low", suggestedHops: 2 } } }
         : { data: { data: { admins: [owner, staff], log: [] } } }
     );
     renderPage();
     fireEvent.click(await screen.findByRole("button", { name: "Check my connection" }));
     const result = await screen.findByText(/The server sees your address as/);
-    expect(result).toHaveTextContent("203.0.113.9");
-    expect(result).toHaveTextContent("TRUST_PROXY_HOPS");
+    expect(result).toHaveTextContent("10.0.0.7");
+    expect(result).toHaveTextContent("set TRUST_PROXY_HOPS to 2");
   });
 
   it("shows the admin activity, filtered by admin", async () => {

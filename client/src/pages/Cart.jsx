@@ -364,7 +364,7 @@ function Cart() {
       );
       redirectTo(response.data.data);
     } catch (err) {
-      console.log(err);
+      console.log(err.message);
       setCheckoutError(errorMessage(err, "Checkout failed, please try again"));
       setCheckingOut(false);
     }

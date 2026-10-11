@@ -88,7 +88,7 @@ describe("checkout", () => {
         image
       );
       assert.match(image, /X-Amz-Signature=/);
-      assert.match(image, /X-Amz-Expires=86400/);
+      assert.match(image, /X-Amz-Expires=3600/);
       assert.equal(
         params.success_url,
         "https://shop.example.com/success?session_id={CHECKOUT_SESSION_ID}"
@@ -96,8 +96,9 @@ describe("checkout", () => {
       assert.deepEqual(params.shipping_address_collection, {
         allowed_countries: ["SG"],
       });
-      // Without a code, Stripe's usual 24 hours apply.
-      assert.equal(params.expires_at, undefined);
+      // The checkout page closes after an hour, with or without a code.
+      const minutesOpen = (params.expires_at - Date.now() / 1000) / 60;
+      assert.ok(minutesOpen > 59 && minutesOpen <= 60, String(minutesOpen));
     });
 
     it("creates a pending guest order linked to the session", async () => {

@@ -12,6 +12,13 @@ import adminProductsRoutes from "./routes/adminProducts.js";
 import adminPromotionsRoutes from "./routes/adminPromotions.js";
 import promotionsRoutes from "./routes/promotions.js";
 import { stripeWebhook } from "./routes/webhook.js";
+import { memoryLimitPerAddress, MINUTE } from "./rateLimit.js";
+
+// Production when NODE_ENV says so, or when running on Render (which sets
+// RENDER=true), so a missing NODE_ENV can't quietly turn the protections
+// below off.
+export const isProduction = () =>
+  process.env.NODE_ENV === "production" || process.env.RENDER === "true";
 
 // How many proxies sit in front of the server (TRUST_PROXY_HOPS, default 1
 // for Render).
@@ -22,13 +29,23 @@ export const trustProxyHops = () => {
 
 // The websites allowed to call the API from a browser: the shop (BASE_URL)
 // and any listed in ALLOWED_ORIGINS (comma-separated). Outside production
-// (local development and tests), any site may.
+// (local development and tests), any site may. In production with none set,
+// no other website may (server.js also refuses to start without BASE_URL).
 export const allowedOrigins = () => {
-  if (process.env.NODE_ENV !== "production") return true;
+  if (!isProduction()) return true;
   const origins = [process.env.BASE_URL, ...(process.env.ALLOWED_ORIGINS || "").split(",")]
     .map((origin) => String(origin || "").trim().replace(/\/+$/, ""))
     .filter(Boolean);
-  return origins.length ? origins : true;
+  return origins.length ? origins : false;
+};
+
+// Page views per visitor address per minute for the public pages (products,
+// search, banners, the order summary after paying): far more than any
+// shopper needs, but stops one machine flooding the server.
+// PUBLIC_REQUESTS_PER_MINUTE changes it.
+const publicRequestsPerMinute = () => {
+  const value = Number(process.env.PUBLIC_REQUESTS_PER_MINUTE ?? 300);
+  return Number.isInteger(value) && value > 0 ? value : 300;
 };
 
 // Headers for every API response: no sniffing content types, never shown
@@ -41,7 +58,7 @@ const securityHeaders = (req, res, next) => {
     "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
     "Cross-Origin-Opener-Policy": "same-origin",
   });
-  if (process.env.NODE_ENV === "production") {
+  if (isProduction()) {
     res.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   }
   next();
@@ -71,6 +88,12 @@ export const createApp = () => {
       maxAge: 600,
     })
   );
+  const publicLimit = memoryLimitPerAddress(
+    { max: publicRequestsPerMinute(), windowMs: MINUTE },
+    "Too many requests from your connection. Please wait a minute and try again."
+  );
+  const limitReads = (req, res, next) => (req.method === "GET" ? publicLimit(req, res, next) : next());
+  app.use(["/products", "/promotions", "/checkout/order"], limitReads);
   app.use("/products", productsRoutes);
   app.use("/auth", authRoutes);
   app.use("/checkout", checkoutRoutes);

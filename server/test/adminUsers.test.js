@@ -73,7 +73,11 @@ describe("admin access routes", () => {
     assert.equal(res.body.data.log[0].email, "shopper@example.com");
     assert.equal(res.body.data.log[0].by, "owner@example.com");
 
-    // The new admin can use admin pages straight away.
+    // The new admin can use admin pages once two-step login is on.
+    const blocked = await as("shopper@example.com").get("/admin/orders");
+    assert.equal(blocked.status, 403);
+    assert.equal(blocked.body.code, "TWO_FACTOR_REQUIRED");
+    await User.updateOne({ email: "shopper@example.com" }, { $set: { twoFactor: { enabled: true, secret: "JBSWY3DPEHPK3PXP" } } });
     assert.equal((await as("shopper@example.com").get("/admin/orders")).status, 200);
   });
 

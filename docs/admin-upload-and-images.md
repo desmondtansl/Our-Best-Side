@@ -53,7 +53,8 @@ S3 returns the photo
   - new `isValidImageKey(key)`: only plain file names, so arbitrary paths can't be signed
   - `imageUrl()` (the public-URL helper) was **removed**
 - `client/src/utils/products.js`: `productImageUrl()` now points at the API route. This covers the homepage, listings, product pages and cart. Setting `VITE_IMAGE_BASE_URL` still switches back to a direct image host if that's ever wanted.
-- **Stripe checkout:** the product photos sent to Stripe are signed links valid for 24 hours, the lifetime of a checkout session, instead of public URLs.
+- **Stripe checkout:** the product photos sent to Stripe are signed links valid for 1 hour, the lifetime of a checkout session, instead of public URLs.
+- **Only shop photos:** the image link only works for photos that a product (of any status) or a past order uses.
 
 **Nothing to change in AWS:** the IAM user already has `s3:GetObject`. Leave **Block all public access** on.
 

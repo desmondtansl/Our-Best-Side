@@ -3,10 +3,14 @@
 #
 # Content-Security-Policy lists what pages may load: scripts only from this
 # site; styles from this site and Google Fonts (inline styles are how the
-# components are styled); fonts from Google Fonts; photos from the API on
-# Render and the S3 bucket it redirects to; data only from the API. If the
-# site later loads something from a new address (e.g. the API on a custom
-# domain), add it below or browsers will block it.
+# components are styled); fonts from Google Fonts; photos from the API and
+# the S3 bucket it redirects to; data only from the API.
+#
+# %API_ORIGIN% and %IMAGE_ORIGIN% are filled in when the site is built (see
+# vite.config.js): the API's address from VITE_BASE_URL, and the photo
+# bucket's address (VITE_IMAGE_ORIGIN, or the shop's bucket by default). If
+# the site later loads something from another address, add it below or
+# browsers will block it.
 /*
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
@@ -14,4 +18,4 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   Cross-Origin-Opener-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.onrender.com https://*.amazonaws.com; connect-src 'self' https://*.onrender.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: %API_ORIGIN% %IMAGE_ORIGIN%; connect-src 'self' %API_ORIGIN%; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests

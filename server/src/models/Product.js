@@ -25,10 +25,10 @@ const productSchema = new Schema(
     description: { type: String },
     // The main photo's S3 key: always the first of `images`. Listings, the
     // cart, checkout and orders use it.
-    image: { type: String },
+    image: { type: String, index: true },
     // Every photo's S3 key, main photo first (up to MAX_PHOTOS). Products
     // created before multiple photos were supported only have `image`.
-    images: [{ type: String }],
+    images: { type: [String], index: true },
     category: [{ type: String }],
     size: [{ type: String }],
     color: [{ type: String }],

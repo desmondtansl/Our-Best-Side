@@ -7,6 +7,7 @@ import Footer from "../components/Footer";
 import OrderHistory from "../components/account/OrderHistory";
 import SavedAddresses from "../components/account/SavedAddresses";
 import PaymentMethods from "../components/account/PaymentMethods";
+import Security from "../components/account/Security";
 import { UserAuth } from "../context/Auth";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import { LinkButton, ErrorText } from "../components/account/styles";
@@ -62,6 +63,7 @@ const TABS = [
   { id: "orders", label: "Orders", Component: OrderHistory },
   { id: "addresses", label: "Addresses", Component: SavedAddresses },
   { id: "payments", label: "Payment methods", Component: PaymentMethods },
+  { id: "security", label: "Security", Component: Security },
 ];
 
 function Account() {

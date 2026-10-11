@@ -77,7 +77,7 @@ Put the `whsec_...` it prints into `server/.env` as `STRIPE_WEBHOOK_SECRET`.
 
 An old secret key can't be recovered or paired with a new key ID. If it's lost, create a new access key under **IAM → Users → Security credentials**.
 
-**Private bucket, signed image links.** The bucket does **not** need to be public; leave **Block all public access** turned on. Every product image on the site loads from the API (`GET /products/image/<key>`), which answers with a redirect to a signed S3 link valid for 1 hour. Browsers cache that redirect for 55 minutes. Stripe's checkout page gets links valid for 24 hours. This uses the key's `s3:GetObject` permission.
+**Private bucket, signed image links.** The bucket does **not** need to be public; leave **Block all public access** turned on. Every product image on the site loads from the API (`GET /products/image/<key>`), which answers with a redirect to a signed S3 link valid for 1 hour. Browsers cache that redirect for 55 minutes. Stripe's checkout page gets links valid for 1 hour (checkout pages close after an hour). Only photos that a product or a past order uses get a link. This uses the key's `s3:GetObject` permission.
 
 If images don't show:
 1. Open `https://<render-service>.onrender.com/products/image/<key>` in the browser, using the `image` value of a product from MongoDB.

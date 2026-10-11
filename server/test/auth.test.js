@@ -8,7 +8,9 @@ import {
   createApp,
   createUser,
   tokenFor,
+  TEST_TOTP_SECRET,
 } from "./helpers.js";
+import { codeAt, currentStep } from "../src/totp.js";
 
 describe("auth routes", () => {
   let app;
@@ -56,15 +58,20 @@ describe("auth routes", () => {
       email: "admin@example.com",
       isAdmin: true,
       isOwner: false,
+      twoFactorEnabled: true,
     });
   });
 
   it("treats an owner as an admin, at login and in GET /auth/user", async () => {
     // Set in the database with isOwner only, without isAdmin.
     const owner = await createUser({ email: "owner@example.com", isOwner: true });
-    const login = await request(app)
+    const first = await request(app)
       .post("/auth/login")
       .send({ email: "owner@example.com", password: "password123" });
+    assert.equal(first.body.data.twoFactorRequired, true);
+    const login = await request(app)
+      .post("/auth/login/two-factor")
+      .send({ ticket: first.body.data.ticket, code: codeAt(TEST_TOTP_SECRET, currentStep()) });
     assert.equal(login.body.data.user.isAdmin, true);
     assert.equal(login.body.data.user.isOwner, true);
 

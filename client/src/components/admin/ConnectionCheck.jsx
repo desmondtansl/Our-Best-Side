@@ -53,10 +53,27 @@ function ConnectionCheck() {
       </div>
       {result && (
         <span role="status">
-          The server sees your address as <Address>{result.ip}</Address>. If that isn&apos;t your
-          address, find yours in this list: <Address>{result.forwardedFor || "(empty)"}</Address>.
-          Then, on Render, set <Address>TRUST_PROXY_HOPS</Address> to 1 plus the number of
-          addresses that come after yours (it&apos;s {String(result.trustProxyHops)} now).
+          The server sees your address as <Address>{result.ip}</Address>.{" "}
+          {result.verdict === "ok" && (
+            <>The proxy setting looks right. Compare the address with the one on the site above.</>
+          )}
+          {result.verdict === "too-low" && (
+            <>
+              That&apos;s a proxy&apos;s address, so every visitor may share the same limits. On
+              Render, set <Address>TRUST_PROXY_HOPS</Address> to{" "}
+              <Address>{result.suggestedHops}</Address>, then check again.
+            </>
+          )}
+          {result.verdict === "too-high" && (
+            <>
+              The server trusts more proxies than there are, so a visitor could make up their own
+              address and get past the limits. On Render, set{" "}
+              <Address>TRUST_PROXY_HOPS</Address> to <Address>{result.suggestedHops}</Address>,
+              then check again.
+            </>
+          )}{" "}
+          (Now: {String(result.trustProxyHops)}. Addresses received:{" "}
+          <Address>{result.forwardedFor || "(none)"}</Address>.)
         </span>
       )}
       {error && <span role="alert">{error}</span>}

@@ -6,7 +6,7 @@ import { UserAuth } from "../context/Auth";
 
 vi.mock("../context/Auth", () => ({ UserAuth: vi.fn() }));
 vi.mock("axios", () => ({
-  default: { get: vi.fn(), defaults: { headers: { common: {} } } },
+  default: { get: vi.fn(), post: vi.fn(() => Promise.resolve({})), defaults: { headers: { common: {} } } },
 }));
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -114,6 +114,12 @@ describe("AdminDashboard", () => {
     expect(setUser).toHaveBeenCalledWith({ data: null, loading: false, error: null });
     expect(localStorage.getItem("token")).toBeNull();
     expect(screen.getByText("Homepage")).toBeInTheDocument();
+    // The server is told too, so the token stops working there as well.
+    expect(axios.post).toHaveBeenCalledWith(
+      expect.stringMatching(/\/auth\/logout$/),
+      null,
+      { headers: { Authorization: "Bearer t" } }
+    );
   });
 
   it("shows sales for today, 7 and 30 days", async () => {

@@ -6,6 +6,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { UserAuth } from "../context/Auth";
 import { errorMessage } from "../utils/format";
+import { startSession, userFrom } from "../utils/session";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const Container = styled.div`
@@ -125,9 +126,9 @@ function Login() {
       );
       // Sign the new user straight in and take them to their account.
       const { token, user: newUser } = response.data.data;
-      localStorage.setItem("token", token);
+      startSession(token);
       setUser({
-        data: { id: newUser.id, email: newUser.email, isAdmin: false },
+        data: userFrom(newUser),
         error: null,
         loading: false,
       });

@@ -15,7 +15,10 @@ This is a one-off step in **MongoDB Atlas**:
 
 1. Open **Browse Collections** → `users`, and find your own account.
 2. Add the field `isOwner` with the value `true` (a Boolean), and save.
-3. Log out of the site and log in again. **Manage Admins** now appears on the dashboard.
+3. Log out of the site and log in again.
+4. Turn on two-step login: **My Account → Security** (see [security-hardening.md](security-hardening.md)). Admin pages need it. **Manage Admins** then appears on the dashboard.
+
+Every admin needs two-step login. Someone you grant access to is sent to **My Account → Security** to turn it on the first time they open the dashboard.
 
 An owner is always an admin, even without `isAdmin`. After this, you never need Atlas to change who is an admin.
 

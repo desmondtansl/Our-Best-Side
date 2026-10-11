@@ -60,10 +60,11 @@ export const findStockProblem = (items, productsById) => {
 };
 
 // Stock never goes below 0. If two shoppers bought the last item at the same
-// moment, it's set to 0 and logged so the owner can follow up.
+// moment, it's set to 0 and logged so the owner can follow up. Returns true
+// when the product had sold out.
 const clampSizeStock = async (id) => {
   const product = await Product.findById(id);
-  if (!product) return;
+  if (!product) return false;
   let oversold = false;
   for (const entry of product.sizeStock) {
     if (entry.inStock < 0) {
@@ -71,15 +72,18 @@ const clampSizeStock = async (id) => {
       oversold = true;
     }
   }
-  if (!oversold) return;
+  if (!oversold) return false;
   product.inStock = product.sizeStock.reduce((sum, entry) => sum + entry.inStock, 0);
   await product.save();
   console.warn(`Product ${id} sold more than was in stock; stock set to 0.`);
+  return true;
 };
 
 // Takes an order's items out of stock (direction -1, when payment succeeds)
-// or puts them back (+1, when an order is cancelled).
+// or puts them back (+1, when an order is cancelled). Returns true when
+// taking them out sold more than was in stock.
 export const adjustStock = async (items, direction) => {
+  let oversold = false;
   for (const [id] of quantitiesByProduct(items)) {
     const product = await Product.findById(id, "sizeStock");
     if (!product) continue;
@@ -93,8 +97,8 @@ export const adjustStock = async (items, direction) => {
         );
         if (!result.matchedCount) {
           console.warn(`Product ${id} no longer has size "${size}"; its stock wasn't changed.`);
-        } else if (direction < 0) {
-          await clampSizeStock(id);
+        } else if (direction < 0 && (await clampSizeStock(id))) {
+          oversold = true;
         }
         continue;
       }
@@ -109,9 +113,11 @@ export const adjustStock = async (items, direction) => {
           { $set: { inStock: 0 } }
         );
         if (clamped.modifiedCount) {
+          oversold = true;
           console.warn(`Product ${id} sold more than was in stock; stock set to 0.`);
         }
       }
     }
   }
+  return oversold;
 };

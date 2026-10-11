@@ -25,12 +25,12 @@ const renderAt = (data) => {
 
 describe("OwnerRoutes", () => {
   it("shows owner pages to the owner", () => {
-    renderAt({ email: "owner@example.com", isAdmin: true, isOwner: true });
+    renderAt({ email: "owner@example.com", isAdmin: true, isOwner: true, twoFactorEnabled: true });
     expect(screen.getByText("Manage Admins")).toBeInTheDocument();
   });
 
   it("sends other admins back to the dashboard", () => {
-    renderAt({ email: "staff@example.com", isAdmin: true, isOwner: false });
+    renderAt({ email: "staff@example.com", isAdmin: true, isOwner: false, twoFactorEnabled: true });
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(screen.queryByText("Manage Admins")).not.toBeInTheDocument();
   });
