@@ -76,6 +76,18 @@ const Input = styled.input`
   padding: 10px;
 `;
 
+const Hint = styled.p`
+  margin: 6px 0px 0px;
+  font-size: 13px;
+  font-weight: 300;
+`;
+
+const ErrorText = styled.p`
+  margin: 10px 0px 0px;
+  color: red;
+  font-size: 14px;
+`;
+
 const Button = styled.button`
   width: auto;
   border: none;
@@ -101,6 +113,7 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
     try {
       const response = await axios.post(
@@ -119,11 +132,8 @@ function Login() {
         loading: false,
       });
       navigate("/account");
-    } catch (error) {
-      console.log(error);
-      const message = errorMessage(error, "Sign up failed");
-      setError(message);
-      alert(message);
+    } catch (err) {
+      setError(errorMessage(err, "Sign up failed"));
     } finally {
       setLoading(false);
     }
@@ -143,10 +153,14 @@ function Login() {
             required
             placeholder="Password"
             type="password"
-            minlength="8"
+            minLength={8}
+            maxLength={72}
+            autoComplete="new-password"
             onChange={(e) => setPassword(e.target.value)}
           />
-          <Button>Signup</Button>
+          <Hint>At least 8 characters. Avoid common passwords and your email address.</Hint>
+          {error && <ErrorText role="alert">{error}</ErrorText>}
+          <Button disabled={loading}>Signup</Button>
         </Form>
       </Wrapper>
       <SpareContainer></SpareContainer>

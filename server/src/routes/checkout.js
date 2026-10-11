@@ -1,4 +1,5 @@
 import express from "express";
+import { internalError } from "../errors.js";
 import mongoose from "mongoose";
 import { findUsablePromotion, stripeCouponFor, discountOn } from "../promotions.js";
 import stripe, {
@@ -11,6 +12,8 @@ import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import User from "../models/User.js";
 import optionalAuth from "../middleware/optionalAuth.js";
+import { limitPerAddress, MINUTE } from "../rateLimit.js";
+import { parseList } from "../productFields.js";
 import { findStockProblem } from "../inventory.js";
 import { signedImageUrl, isValidImageKey } from "../s3.js";
 
@@ -73,10 +76,37 @@ const toStripeShipping = (address) => ({
   },
 });
 
+// The product's option matching `chosen` (ignoring case and spaces at the
+// ends), "" for a product without such options, or undefined when the
+// product has options and `chosen` isn't one of them.
+const matchOption = (options, chosen) => {
+  const list = parseList(options);
+  if (!list.length) return "";
+  const wanted = String(chosen || "").trim().toLowerCase();
+  return list.find((option) => option.toLowerCase() === wanted);
+};
+
+// Per visitor address: enough for any shopper, too few for a script.
+const checkoutLimit = limitPerAddress(
+  "checkout",
+  { max: 30, windowMs: 15 * MINUTE },
+  "Too many checkout attempts from your connection. Please wait a few minutes and try again."
+);
+const discountLimit = limitPerAddress(
+  "discount-check",
+  { max: 20, windowMs: 15 * MINUTE },
+  "Too many codes tried. Please wait a few minutes and try again."
+);
+
+// With a discount code, the Stripe checkout page closes after an hour (the
+// least Stripe allows is 30 minutes), so a code can't be used long after it
+// ends. Without one, Stripe's default of 24 hours applies.
+const DISCOUNT_CHECKOUT_MINUTES = 60;
+
 // CHECK A DISCOUNT CODE (from the cart, before checkout)
 // Body: { code }. Returns the promotion's name and percentage.
 
-router.post("/discount", async (req, res) => {
+router.post("/discount", discountLimit, async (req, res) => {
   try {
     const { promotion, error } = await findUsablePromotion(req.body?.code);
     if (error) return badRequest(res, error);
@@ -92,7 +122,7 @@ router.post("/discount", async (req, res) => {
 // CREATE A STRIPE CHECKOUT SESSION FOR THE CART
 // Body: { items, addressId?, discountCode? }
 
-router.post("/create-checkout-session", optionalAuth, async (req, res) => {
+router.post("/create-checkout-session", checkoutLimit, optionalAuth, async (req, res) => {
   if (!isStripeConfigured()) return paymentsNotConfigured(res);
   let order;
   try {
@@ -116,12 +146,22 @@ router.post("/create-checkout-session", optionalAuth, async (req, res) => {
             : "Some items in your cart are no longer available"
         );
       }
+      // The size and colour must be ones the product offers (spelt as the
+      // product has them), so no other text reaches the order or receipt.
+      const size = matchOption(product.size, item.size);
+      const color = matchOption(product.color, item.color);
+      if (size === undefined) {
+        return badRequest(res, `Please choose an available size for ${product.title}`);
+      }
+      if (color === undefined) {
+        return badRequest(res, `Please choose an available colour for ${product.title}`);
+      }
       orderItems.push({
         product: product._id,
         title: product.title,
         image: product.image,
-        size: item.size,
-        color: item.color,
+        size,
+        color,
         price: product.price,
         quantity: item.quantity,
       });
@@ -134,7 +174,8 @@ router.post("/create-checkout-session", optionalAuth, async (req, res) => {
 
     let savedAddress;
     if (req.body?.addressId) {
-      savedAddress = user?.addresses.id(req.body.addressId);
+      const addressId = String(req.body.addressId);
+      savedAddress = /^[a-f0-9]{24}$/i.test(addressId) ? user?.addresses.id(addressId) : null;
       if (!savedAddress) return badRequest(res, "Address not found");
     }
 
@@ -202,7 +243,10 @@ router.post("/create-checkout-session", optionalAuth, async (req, res) => {
         };
       }),
       shipping_address_collection: { allowed_countries: getShippingCountries() },
-      ...(promotion && { discounts: [{ coupon: await stripeCouponFor(promotion) }] }),
+      ...(promotion && {
+        discounts: [{ coupon: await stripeCouponFor(promotion) }],
+        expires_at: Math.floor(Date.now() / 1000) + DISCOUNT_CHECKOUT_MINUTES * 60,
+      }),
       client_reference_id: order.id,
       metadata: { orderId: order.id },
       success_url: `${process.env.BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -274,7 +318,7 @@ router.get("/order/:sessionId", async (req, res) => {
       error: "",
     });
   } catch (error) {
-    return res.status(400).json({ data: "", error: error.message });
+    return internalError(res, error);
   }
 });
 

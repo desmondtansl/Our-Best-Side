@@ -1,4 +1,5 @@
 import express from "express";
+import { internalError } from "../errors.js";
 import Promotion, { bannerTextFor } from "../models/Promotion.js";
 
 const router = express.Router();
@@ -32,7 +33,7 @@ router.get("/banners", async (req, res) => {
       error: "",
     });
   } catch (error) {
-    return res.status(400).json({ data: "", error: error.message });
+    return internalError(res, error);
   }
 });
 

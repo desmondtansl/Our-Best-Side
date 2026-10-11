@@ -131,4 +131,34 @@ describe("AdminUsers", () => {
       "nobody@example.com"
     );
   });
+
+  it("checks what address the server sees for the owner", async () => {
+    axios.get.mockImplementation(async (url) =>
+      url.endsWith("/connection")
+        ? { data: { data: { ip: "203.0.113.9", forwardedFor: "203.0.113.9", trustProxyHops: 1 } } }
+        : { data: { data: { admins: [owner, staff], log: [] } } }
+    );
+    renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: "Check my connection" }));
+    const result = await screen.findByText(/The server sees your address as/);
+    expect(result).toHaveTextContent("203.0.113.9");
+    expect(result).toHaveTextContent("TRUST_PROXY_HOPS");
+  });
+
+  it("shows the admin activity, filtered by admin", async () => {
+    const activity = [
+      { _id: "a1", by: "staff@example.com", summary: "Refunded $20.00 on order #ABCD1234", createdAt: "2026-10-10T02:00:00.000Z" },
+      { _id: "a2", by: "owner@example.com", summary: "Gave admin access to staff@example.com", createdAt: "2026-10-09T02:00:00.000Z" },
+    ];
+    axios.get.mockImplementation(async (url) =>
+      url.endsWith("/activity")
+        ? { data: { data: activity } }
+        : { data: { data: { admins: [owner, staff], log: [] } } }
+    );
+    renderPage();
+    expect(await screen.findAllByTestId("activity")).toHaveLength(2);
+    expect(screen.getByText(/Refunded \$20.00 on order #ABCD1234/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Show activity by"), { target: { value: "staff@example.com" } });
+    expect(screen.getAllByTestId("activity")).toHaveLength(1);
+  });
 });

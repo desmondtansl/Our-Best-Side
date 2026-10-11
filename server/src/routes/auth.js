@@ -1,61 +1,49 @@
 import express from "express";
-import { body, validationResult } from "express-validator";
 import User, { isAdmin } from "../models/User.js";
 import bcrypt from "bcryptjs";
-import JWT from "jsonwebtoken";
+import { signToken } from "../tokens.js";
+import { passwordProblem } from "../passwords.js";
+import { limitPerAddress, MINUTE } from "../rateLimit.js";
 import checkAuth from "../middleware/checkAuth.js";
+import { internalError, SOMETHING_WENT_WRONG } from "../errors.js";
 import { checkLogin, recordFailure, recordSuccess, TOO_MANY } from "../loginLimits.js";
 
 const router = express.Router();
 
-router.post(
-  "/signup",
-  body("email").isEmail().withMessage("Invalid email"),
-  body("password").isLength({ min: 8 }).withMessage("Invalid password"),
-  async (req, res) => {
-    const validationErrors = validationResult(req);
+// Sign-ups per visitor address: plenty for a household, too few for a
+// script creating accounts.
+const signupLimit = limitPerAddress(
+  "signup",
+  { max: 10, windowMs: 60 * MINUTE },
+  "Too many sign-ups from your connection. Please try again later.",
+  (res, message) => res.json({ data: "", error: [{ msg: message }] })
+);
 
-    if (!validationErrors.isEmpty()) {
-      const errors = validationErrors.array().map((error) => {
-        return {
-          msg: error.msg,
-        };
-      });
-      return res.status(400).json({
-        data: "",
-        error: errors,
-      });
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const signupError = (res, msg) => res.status(400).json({ data: "", error: [{ msg }] });
+
+router.post("/signup", signupLimit, async (req, res) => {
+  try {
+    // Only plain text is accepted: a list or an object is refused, never
+    // passed on to the database.
+    const rawEmail = req.body?.email;
+    const password = req.body?.password;
+    const email = typeof rawEmail === "string" ? rawEmail.trim().toLowerCase() : "";
+    if (!email || email.length > 254 || !EMAIL_PATTERN.test(email)) {
+      return signupError(res, "Invalid email");
     }
-    const { email, password } = req.body;
+    const problem = passwordProblem(password, email);
+    if (problem) return signupError(res, problem);
 
-    const user = await User.findOne({ email });
-
-    if (user) {
-      return res.status(400).json({
-        data: "",
-        error: [
-          {
-            msg: "Email already in use",
-          },
-        ],
-      });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
+    if (await User.exists({ email })) return signupError(res, "Email already in use");
 
     const newUser = await User.create({
       email,
-      password: hashedPassword,
+      password: await bcrypt.hash(password, 10),
     });
-
-    const token = await JWT.sign(
-      { email: newUser.email },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: 86400,
-      }
-    );
-    res.json({
+    const token = signToken(newUser);
+    return res.json({
       data: {
         token,
         user: {
@@ -65,8 +53,12 @@ router.post(
       },
       error: [],
     });
+  } catch (error) {
+    // Two sign-ups for the same email at once: the second one loses.
+    if (error?.code === 11000) return signupError(res, "Email already in use");
+    return internalError(res, error, "Sign-up");
   }
-);
+});
 
 const DUMMY_HASH = bcrypt.hashSync("not-a-real-password", 10);
 
@@ -87,7 +79,8 @@ router.post("/login", async (req, res) => {
   try {
     // Too many attempts: refused before the password is even checked, with
     // the same message whether or not the account exists.
-    const waitSeconds = await checkLogin(email, req.ip);
+    const deviceId = req.body?.deviceId;
+    const waitSeconds = await checkLogin(email, req.ip, deviceId);
     if (waitSeconds) {
       res.set("Retry-After", String(waitSeconds));
       return res.status(429).json({ data: "", error: [{ message: TOO_MANY }] });
@@ -102,15 +95,9 @@ router.post("/login", async (req, res) => {
       await recordFailure(email, req.ip);
       return invalidCredentials(res);
     }
-    await recordSuccess(email, req.ip);
+    await recordSuccess(email, req.ip, deviceId);
 
-    const token = await JWT.sign(
-      { email: user.email, isAdmin: isAdmin(user) },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: 86400,
-      }
-    );
+    const token = signToken(user);
 
     return res.status(200).json({
       data: {
@@ -125,21 +112,15 @@ router.post("/login", async (req, res) => {
       error: "",
     });
   } catch (error) {
-    return res.status(400).json({
-      data: "",
-      error: [
-        {
-          message: error.message,
-        },
-      ],
-    });
+    console.error("Login failed:", error?.stack || error?.message);
+    return res.status(500).json({ data: "", error: [{ message: SOMETHING_WENT_WRONG }] });
   }
 });
 
 router.get("/user", checkAuth, async (req, res) => {
   try {
     const user = await User.findOne({ email: req.user });
-    console.log(user.email);
+    if (!user) return res.status(403).json({ data: "", error: "Unauthorized" });
     return res.status(200).json({
       data: {
         user: {
@@ -152,10 +133,19 @@ router.get("/user", checkAuth, async (req, res) => {
       errors: "",
     });
   } catch (error) {
-    return res.status(400).json({
-      data: "",
-      error: error.message,
-    });
+    return internalError(res, error, "Loading the user");
+  }
+});
+
+// LOG OUT OF ALL DEVICES
+// Every login token for the account stops working, including this one.
+
+router.post("/logout-all", checkAuth, async (req, res) => {
+  try {
+    await User.updateOne({ email: req.user }, { $inc: { tokenVersion: 1 } });
+    return res.status(200).json({ data: { loggedOut: true }, error: "" });
+  } catch (error) {
+    return internalError(res, error, "Logging out everywhere");
   }
 });
 

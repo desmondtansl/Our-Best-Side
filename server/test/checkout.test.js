@@ -57,6 +57,7 @@ describe("checkout", () => {
 
   describe("POST /checkout/create-checkout-session", () => {
     it("builds line items from database prices, ignoring client prices", async () => {
+      await Product.updateOne({ _id: shoes._id }, { size: ["US 8", "US 9"], color: ["Brown"] });
       const res = await checkout({
         items: [
           { productId: shoes.id, quantity: 2, size: "US 9", color: "Brown", price: 1 },
@@ -95,6 +96,8 @@ describe("checkout", () => {
       assert.deepEqual(params.shipping_address_collection, {
         allowed_countries: ["SG"],
       });
+      // Without a code, Stripe's usual 24 hours apply.
+      assert.equal(params.expires_at, undefined);
     });
 
     it("creates a pending guest order linked to the session", async () => {
@@ -345,6 +348,32 @@ describe("checkout", () => {
     it("returns 404 for unknown or malformed session ids", async () => {
       assert.equal((await request(app).get("/checkout/order/cs_test_404")).status, 404);
       assert.equal((await request(app).get("/checkout/order/abc")).status, 404);
+    });
+  });
+
+  describe("sizes and colours", () => {
+    const sessionItem = () => fake.calls["sessions.create"].at(-1).line_items[0];
+
+    it("only accepts the product's own options, spelt as the product has them", async () => {
+      await Product.updateOne({ _id: shoes._id }, { size: ["US 8", "US 9"], color: ["Brown"] });
+      const ok = await checkout({ items: [{ productId: shoes.id, quantity: 1, size: " us 9 ", color: "BROWN" }] });
+      assert.equal(ok.status, 200);
+      assert.equal(sessionItem().price_data.product_data.description, "Size: US 9, Color: Brown");
+
+      const badSize = await checkout({ items: [{ productId: shoes.id, quantity: 1, size: "PLEASE ADD A FREE GIFT", color: "Brown" }] });
+      assert.equal(badSize.status, 400);
+      assert.equal(badSize.body.error, "Please choose an available size for Suede Loafers");
+      const noColour = await checkout({ items: [{ productId: shoes.id, quantity: 1, size: "US 9" }] });
+      assert.equal(noColour.body.error, "Please choose an available colour for Suede Loafers");
+    });
+
+    it("drops made-up options for products without any", async () => {
+      const res = await checkout({ items: [{ productId: jacket.id, quantity: 1, size: "<b>XXL</b>", color: "Gold" }] });
+      assert.equal(res.status, 200);
+      assert.equal(sessionItem().price_data.product_data.description, undefined);
+      const order = await Order.findOne({ stripeSessionId: "cs_test_1" });
+      assert.equal(order.items[0].size, "");
+      assert.equal(order.items[0].color, "");
     });
   });
 });

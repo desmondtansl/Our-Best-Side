@@ -162,7 +162,7 @@ Three limits, each counted over a fixed time window:
 | Same account, any address | after **20** wrong passwords | an hour | Stops guessing spread across many addresses |
 | Same address, any account | after **30** attempts | 15 minutes | Stops one machine trying many accounts |
 
-**Why not lock an account after a few wrong passwords?** Then anyone who knows your email could lock you out of your own shop on purpose. With these limits, guessing from one place is stopped after 5 tries, and you can still log in from your own device.
+**Why not lock an account after a few wrong passwords?** Then anyone who knows your email could lock you out of your own shop on purpose. With these limits, guessing from one place is stopped after 5 tries. A browser that has logged in to the account before is a "trusted device", and the account-wide limit doesn't apply to it.
 
 **When a limit is reached:**
 - The site answers "Too many login attempts. Please wait a few minutes and try again…" (HTTP 429, with a `Retry-After` time).
@@ -174,7 +174,7 @@ Three limits, each counted over a fixed time window:
 - Error messages now show on the login page itself ("Wrong email or password.") instead of in a browser pop-up. A network problem shows "Can't reach the server" instead of breaking the page.
 
 **How it works:**
-- **Counts** are stored in MongoDB (`loginattempts`), with emails hashed, and deleted automatically when their window ends.
+- **Counts** are stored in MongoDB, with emails hashed, and deleted automatically when their window ends. They're stored in `ratecounts`.
 - **Addresses:** the server trusts Render's proxy to give it the visitor's address (`trust proxy`).
 
 **Files:**
@@ -220,7 +220,7 @@ Three limits, each counted over a fixed time window:
   - Stripe's exact totals recorded on payment, with the use counted once even when Stripe sends the event twice.
 - **`loginLimits.test.js`:**
   - Each of the three limits.
-  - The owner is never locked out from their own device.
+  - Another address isn't blocked by the per-address limit, and trusted devices get past the account-wide limit.
   - A correct password clears the count.
   - The same answer for unknown and real accounts.
   - The email is treated as text.

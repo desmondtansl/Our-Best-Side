@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import axios from "axios";
 import { MemoryRouter } from "react-router-dom";
 import { Provider } from "react-redux";
@@ -69,5 +69,18 @@ describe("Login", () => {
     axios.post.mockRejectedValue({ request: {}, message: "Network Error" });
     renderLogin();
     expect(await screen.findByRole("alert")).toHaveTextContent("Can't reach the server");
+  });
+
+  it("sends this browser's device id, the same every time", async () => {
+    axios.post.mockRejectedValue({ response: { data: { error: [{ message: "Invalid credentials" }] } } });
+    axios.post.mockClear();
+    renderLogin();
+    await screen.findByRole("alert");
+    const first = axios.post.mock.calls[0][1].deviceId;
+    expect(first).toMatch(/^[A-Za-z0-9-]{16,64}$/);
+    fireEvent.click(screen.getByRole("button", { name: "Login" }));
+    await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(2));
+    expect(axios.post.mock.calls[1][1].deviceId).toBe(first);
+    expect(localStorage.getItem("deviceId")).toBe(first);
   });
 });

@@ -44,6 +44,9 @@ const userSchema = new Schema(
       type: String,
     },
     addresses: [addressSchema],
+    // Raised by "Log out of all devices": login tokens made before it stop
+    // working (see tokens.js).
+    tokenVersion: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

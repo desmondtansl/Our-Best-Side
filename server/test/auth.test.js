@@ -25,13 +25,13 @@ describe("auth routes", () => {
   it("signs up and logs in a user", async () => {
     const signup = await request(app)
       .post("/auth/signup")
-      .send({ email: "new@example.com", password: "password123" });
+      .send({ email: "new@example.com", password: "linen-shirt-2026" });
     assert.equal(signup.status, 200);
     assert.ok(signup.body.data.token);
 
     const login = await request(app)
       .post("/auth/login")
-      .send({ email: "new@example.com", password: "password123" });
+      .send({ email: "new@example.com", password: "linen-shirt-2026" });
     assert.equal(login.status, 200);
     assert.equal(login.body.data.user.email, "new@example.com");
     assert.equal(login.body.data.user.isAdmin, false);

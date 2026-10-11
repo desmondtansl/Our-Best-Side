@@ -213,4 +213,17 @@ describe("Account page", () => {
     expect(await screen.findByTestId("address")).toBeInTheDocument();
     expect(screen.queryByTestId("order")).not.toBeInTheDocument();
   });
+
+  it("logs out of all devices after confirming", async () => {
+    localStorage.setItem("token", "t");
+    axios.post.mockResolvedValue({ data: { data: { loggedOut: true } } });
+    const setUser = vi.fn();
+    UserAuth.mockReturnValue([{ data: { email: "sam@example.com" }, loading: false, error: null }, setUser]);
+    renderAccount();
+    fireEvent.click(await screen.findByRole("button", { name: "Log out of all devices" }));
+    expect(window.confirm).toHaveBeenCalledWith(expect.stringMatching(/^Log out of all devices\?/));
+    await waitFor(() => expect(setUser).toHaveBeenCalledWith({ data: null, loading: false, error: null }));
+    expect(axios.post).toHaveBeenCalledWith(expect.stringMatching(/\/auth\/logout-all$/));
+    expect(localStorage.getItem("token")).toBeNull();
+  });
 });

@@ -1,4 +1,6 @@
 import express from "express";
+import { logActivity } from "../activity.js";
+import { internalError } from "../errors.js";
 import mongoose from "mongoose";
 import Product, { PRODUCT_STATUSES } from "../models/Product.js";
 import checkAuth from "../middleware/checkAuth.js";
@@ -41,7 +43,7 @@ router.get("/", async (req, res) => {
     if (!sort) return badRequest(res, "Invalid sort");
 
     const filter = statusFilter(status);
-    const words = String(req.query.q || "").trim().split(/\s+/).filter(Boolean).slice(0, 10);
+    const words = String(req.query.q || "").slice(0, 100).trim().split(/\s+/).filter(Boolean).slice(0, 10);
     if (words.length) {
       filter.$and = words.map((word) => ({
         title: { $regex: `\\b${escapeRegex(word)}`, $options: "i" },
@@ -63,7 +65,7 @@ router.get("/", async (req, res) => {
       error: "",
     });
   } catch (error) {
-    return badRequest(res, error.message);
+    return internalError(res, error);
   }
 });
 
@@ -76,7 +78,7 @@ router.get("/:id", async (req, res) => {
     if (!product) return notFound(res);
     return res.status(200).json({ data: product, error: "" });
   } catch (error) {
-    return badRequest(res, error.message);
+    return internalError(res, error);
   }
 });
 
@@ -95,9 +97,11 @@ router.patch("/:id/status", async (req, res) => {
     const update = status === "archived" ? { status, featured: false } : { status };
     const product = await Product.findByIdAndUpdate(req.params.id, { $set: update }, { new: true });
     if (!product) return notFound(res);
+    const verbs = { live: "Published", draft: "Moved to drafts", archived: "Archived" };
+    await logActivity(req, "product.status", `${verbs[status]} "${product.title}"`);
     return res.status(200).json({ data: product, error: "" });
   } catch (error) {
-    return badRequest(res, error.message);
+    return internalError(res, error);
   }
 });
 
@@ -144,14 +148,30 @@ router.put("/stock", async (req, res) => {
     const conflicts = [];
     for (const { product, update, updatedAt } of planned) {
       const filter = { _id: product._id };
-      if (updatedAt) filter.updatedAt = new Date(updatedAt);
+      if (updatedAt) {
+        const loadedAt = new Date(updatedAt);
+        // A timestamp that isn't a real date can't match: treat it as changed.
+        if (Number.isNaN(loadedAt.getTime())) {
+          conflicts.push({ id: product.id, title: product.title });
+          continue;
+        }
+        filter.updatedAt = loadedAt;
+      }
       const result = await Product.findOneAndUpdate(filter, { $set: update }, { new: true });
       if (result) saved.push(result);
       else conflicts.push({ id: product.id, title: product.title });
     }
+    if (saved.length) {
+      const names = saved.map((p) => `"${p.title}"`);
+      await logActivity(
+        req,
+        "product.stock",
+        `Updated stock for ${names.slice(0, 5).join(", ")}${names.length > 5 ? ` and ${names.length - 5} more` : ""}`
+      );
+    }
     return res.status(200).json({ data: { saved, conflicts }, error: "" });
   } catch (error) {
-    return badRequest(res, error.message);
+    return internalError(res, error);
   }
 });
 

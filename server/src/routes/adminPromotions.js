@@ -1,4 +1,6 @@
 import express from "express";
+import { logActivity } from "../activity.js";
+import { internalError } from "../errors.js";
 import mongoose from "mongoose";
 import Promotion, { promotionState } from "../models/Promotion.js";
 import checkAuth from "../middleware/checkAuth.js";
@@ -24,7 +26,7 @@ router.get("/", async (req, res) => {
     const promotions = await Promotion.find().sort({ createdAt: -1, _id: -1 });
     return res.status(200).json({ data: promotions.map(withState), error: "" });
   } catch (error) {
-    return badRequest(res, error.message);
+    return internalError(res, error);
   }
 });
 
@@ -36,9 +38,10 @@ router.post("/", async (req, res) => {
     const { fields, error } = parsePromotion(req.body);
     if (error) return badRequest(res, error);
     const promotion = await Promotion.create(fields);
+    await logActivity(req, "promotion.create", `Created promotion ${promotion.code} (${promotion.percentOff}% off)`);
     return res.status(201).json({ data: withState(promotion), error: "" });
   } catch (error) {
-    return badRequest(res, duplicateCode(error) || error.message);
+    return duplicateCode(error) ? badRequest(res, duplicateCode(error)) : internalError(res, error);
   }
 });
 
@@ -60,9 +63,12 @@ router.put("/:id", async (req, res) => {
       update.$unset = { ...update.$unset, endDate: 1, endsAt: 1 };
     }
     const promotion = await Promotion.findByIdAndUpdate(req.params.id, update, { new: true });
+    const pausedChange =
+      existing.active !== promotion.active ? (promotion.active ? "Resumed" : "Paused") : "Edited";
+    await logActivity(req, "promotion.edit", `${pausedChange} promotion ${promotion.code}`);
     return res.status(200).json({ data: withState(promotion), error: "" });
   } catch (error) {
-    return badRequest(res, duplicateCode(error) || error.message);
+    return duplicateCode(error) ? badRequest(res, duplicateCode(error)) : internalError(res, error);
   }
 });
 
@@ -78,9 +84,10 @@ router.delete("/:id", async (req, res) => {
       return badRequest(res, "This promotion has been used, so it can't be deleted. Pause it instead.");
     }
     await Promotion.deleteOne({ _id: promotion._id });
+    await logActivity(req, "promotion.delete", `Deleted promotion ${promotion.code}`);
     return res.status(200).json({ data: { id: promotion.id }, error: "" });
   } catch (error) {
-    return badRequest(res, error.message);
+    return internalError(res, error);
   }
 });
 

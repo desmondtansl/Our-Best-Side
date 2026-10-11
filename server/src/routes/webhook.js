@@ -80,7 +80,7 @@ export const stripeWebhook = async (req, res) => {
       secret
     );
   } catch (error) {
-    return res.status(400).json({ data: "", error: `Webhook error: ${error.message}` });
+    return res.status(400).json({ data: "", error: "Invalid signature" });
   }
 
   try {
@@ -113,7 +113,7 @@ export const stripeWebhook = async (req, res) => {
     return res.status(200).json({ received: true });
   } catch (error) {
     // A 500 makes Stripe retry the event later.
-    console.log("Webhook handler failed:", error.message);
-    return res.status(500).json({ data: "", error: error.message });
+    console.error("Webhook handler failed:", error?.stack || error?.message);
+    return res.status(500).json({ data: "", error: "Webhook handler failed" });
   }
 };

@@ -22,7 +22,7 @@ const MONGO_VERSION = process.env.MONGOMS_VERSION || "6.0.14";
 let mongod;
 
 export const setupDatabase = async () => {
-  mongoose.set("strictQuery", false);
+  mongoose.set("strictQuery", true);
   mongod = await MongoMemoryServer.create({
     binary: { version: MONGO_VERSION },
   });

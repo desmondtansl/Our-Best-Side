@@ -1,4 +1,6 @@
 import express from "express";
+import { logActivity, orderRef, money } from "../activity.js";
+import { internalError } from "../errors.js";
 import mongoose from "mongoose";
 import Order, { ORDER_STATUSES, refundableAmount } from "../models/Order.js";
 import checkAuth from "../middleware/checkAuth.js";
@@ -37,7 +39,7 @@ const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 // The search box matches the order number (the last characters of the id,
 // as shown on the site, with or without "#") or part of the customer's email.
 const searchFilter = (q) => {
-  const text = String(q || "").trim().replace(/^#/, "");
+  const text = String(q || "").trim().replace(/^#/, "").slice(0, 100);
   if (!text) return null;
   const conditions = [{ email: { $regex: escapeRegex(text), $options: "i" } }];
   if (/^[0-9a-f]{4,24}$/i.test(text)) {
@@ -115,7 +117,7 @@ router.get("/", async (req, res) => {
       error: "",
     });
   } catch (error) {
-    return badRequest(res, error.message);
+    return internalError(res, error);
   }
 });
 
@@ -129,7 +131,7 @@ router.get("/:orderId", async (req, res) => {
     if (!order) return notFound(res);
     return res.status(200).json({ data: forAdmin(order), error: "" });
   } catch (error) {
-    return badRequest(res, error.message);
+    return internalError(res, error);
   }
 });
 
@@ -177,10 +179,13 @@ router.patch("/:orderId", async (req, res) => {
     if (status === "cancelled") {
       await adjustStock(previous.items, 1);
     }
+    if (previous.status !== status) {
+      await logActivity(req, "order.status", `Changed order ${orderRef(orderId)} from ${previous.status} to ${status}`);
+    }
     const order = await Order.findById(orderId);
     return res.status(200).json({ data: forAdmin(order), error: "" });
   } catch (error) {
-    return badRequest(res, error.message);
+    return internalError(res, error);
   }
 });
 
@@ -199,9 +204,10 @@ router.put("/:orderId/tracking", async (req, res) => {
       { new: true }
     );
     if (!order) return notFound(res);
+    await logActivity(req, "order.tracking", `Updated tracking on order ${orderRef(orderId)}`);
     return res.status(200).json({ data: forAdmin(order), error: "" });
   } catch (error) {
-    return badRequest(res, error.message);
+    return internalError(res, error);
   }
 });
 
@@ -222,9 +228,10 @@ router.put("/:orderId/notes", async (req, res) => {
       { new: true }
     );
     if (!order) return notFound(res);
+    await logActivity(req, "order.notes", `Edited the notes on order ${orderRef(orderId)}`);
     return res.status(200).json({ data: forAdmin(order), error: "" });
   } catch (error) {
-    return badRequest(res, error.message);
+    return internalError(res, error);
   }
 });
 
@@ -280,10 +287,11 @@ router.post("/:orderId/refund", async (req, res) => {
         error: `Stripe didn't make the refund: ${error?.message || "unknown error"}`,
       });
     }
+    await logActivity(req, "order.refund", `Refunded ${money(amount, order.currency)} on order ${orderRef(orderId)}`);
     const updated = await Order.findById(orderId);
     return res.status(200).json({ data: forAdmin(updated), error: "" });
   } catch (error) {
-    return badRequest(res, error.message);
+    return internalError(res, error);
   }
 });
 

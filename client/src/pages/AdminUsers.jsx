@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import BackToDashboard from "../components/BackToDashboard";
+import ConnectionCheck from "../components/admin/ConnectionCheck";
+import AdminActivity from "../components/admin/AdminActivity";
 import { UserAuth } from "../context/Auth";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import { formatDateTime, errorMessage } from "../utils/format";
@@ -196,6 +198,21 @@ function AdminUsers() {
           );
         })}
       </Section>
+
+      {data && (
+        <Section aria-labelledby="activity-title">
+          <SectionTitle id="activity-title">Admin activity</SectionTitle>
+          <Muted>The last 100 things admins did: orders, refunds, products, stock and discounts.</Muted>
+          <AdminActivity />
+        </Section>
+      )}
+
+      {data && (
+        <Section aria-labelledby="connection-title">
+          <SectionTitle id="connection-title">Connection check</SectionTitle>
+          <ConnectionCheck />
+        </Section>
+      )}
 
       {data && (
         <Section aria-labelledby="changes-title">

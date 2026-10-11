@@ -1,45 +1,23 @@
-import JWT from "jsonwebtoken";
+import { verifyToken, tokenFrom } from "../tokens.js";
 
+// Requires a valid, current login token. Sets req.user to its email.
 const checkAuth = async (req, res, next) => {
-  let token = req.header("Authorization");
-
-  if (!token) {
-    return res.status(403).json({
-      data: "",
-      errors: [
-        {
-          message: "Unauthorized",
-        },
-      ],
-    });
-  }
-
-  token = token.split(" ")[1];
-
   try {
-    const user = await JWT.verify(token, process.env.JWT_SECRET);
-    console.log(user);
-    // if (!user.isAdmin) {
-    //   return res.status(403).json({
-    //     data: "",
-    //     errors: [
-    //       {
-    //         message: "Unauthorized",
-    //       },
-    //     ],
-    //   });
-    // }
-    req.user = user.email;
-    next();
+    const email = await verifyToken(tokenFrom(req));
+    if (!email) {
+      return res.status(403).json({
+        data: "",
+        errors: [
+          {
+            message: "Unauthorized",
+          },
+        ],
+      });
+    }
+    req.user = email;
+    return next();
   } catch (error) {
-    return res.status(403).json({
-      data: "",
-      errors: [
-        {
-          message: "Unauthorized",
-        },
-      ],
-    });
+    return next(error);
   }
 };
 
