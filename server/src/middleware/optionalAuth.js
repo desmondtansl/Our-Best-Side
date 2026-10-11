@@ -1,18 +1,15 @@
-import JWT from "jsonwebtoken";
+import { verifyToken, tokenFrom } from "../tokens.js";
 
 // Like checkAuth, but lets requests without a valid token through as guests.
-// Sets req.user to the token's email when the token is valid.
-const optionalAuth = (req, res, next) => {
-  const header = req.header("Authorization");
-  if (header) {
-    try {
-      const user = JWT.verify(header.split(" ")[1], process.env.JWT_SECRET);
-      req.user = user.email;
-    } catch (error) {
-      // Expired or invalid tokens fall back to guest checkout.
-    }
+// Sets req.user to the token's email when the token is valid and current.
+const optionalAuth = async (req, res, next) => {
+  try {
+    const email = await verifyToken(tokenFrom(req));
+    if (email) req.user = email;
+    return next();
+  } catch (error) {
+    return next(error);
   }
-  next();
 };
 
 export default optionalAuth;

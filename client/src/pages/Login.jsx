@@ -7,6 +7,7 @@ import axios from "axios";
 import { UserAuth } from "../context/Auth";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import { errorMessage } from "../utils/format";
+import { deviceId } from "../utils/deviceId";
 
 const Container = styled.div`
   overflow: hidden;
@@ -117,6 +118,7 @@ function Login() {
         {
           email,
           password,
+          deviceId: deviceId(),
         }
       );
 
@@ -134,8 +136,6 @@ function Login() {
         });
       }
       navigate("/");
-
-      console.log(response);
     } catch (err) {
       const message = errorMessage(err, "Couldn't log in. Please try again.");
       setError(message === "Invalid credentials" ? "Wrong email or password." : message);

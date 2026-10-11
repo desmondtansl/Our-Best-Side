@@ -60,8 +60,11 @@ export const findUsablePromotion = async (rawCode) => {
   if (!code) return { error: "Enter a discount code" };
   const promotion = CODE_PATTERN.test(code) ? await Promotion.findOne({ code }) : null;
   const state = promotion && promotionState(promotion);
-  if (!promotion || state === "paused") return { error: "That discount code isn't valid" };
-  if (state === "scheduled") return { error: "That discount code can't be used yet" };
+  // Scheduled codes read as not valid, so trying codes can't reveal a
+  // promotion before it starts.
+  if (!promotion || state === "paused" || state === "scheduled") {
+    return { error: "That discount code isn't valid" };
+  }
   if (state === "ended") return { error: "That discount code has expired" };
   return { promotion };
 };

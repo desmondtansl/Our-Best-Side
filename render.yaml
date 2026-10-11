@@ -15,6 +15,10 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "20"
+      # Production mode: no stack traces in error pages, HTTPS-only headers,
+      # and only the shop's own website (BASE_URL) may call the API.
+      - key: NODE_ENV
+        value: production
       - key: MONGO_URI
         sync: false
       - key: JWT_SECRET

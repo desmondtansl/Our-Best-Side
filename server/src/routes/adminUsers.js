@@ -1,4 +1,7 @@
 import express from "express";
+import { logActivity } from "../activity.js";
+import AdminActivity from "../models/AdminActivity.js";
+import { internalError } from "../errors.js";
 import User from "../models/User.js";
 import AdminAccessLog from "../models/AdminAccessLog.js";
 import checkAuth from "../middleware/checkAuth.js";
@@ -25,13 +28,41 @@ const respond = async (res) =>
     error: "",
   });
 
+// ADMIN ACTIVITY: the last 100 actions by any admin, newest first.
+
+router.get("/activity", async (req, res) => {
+  try {
+    const activity = await AdminActivity.find().sort({ createdAt: -1, _id: -1 }).limit(100);
+    return res.status(200).json({ data: activity, error: "" });
+  } catch (error) {
+    return internalError(res, error);
+  }
+});
+
+// CONNECTION CHECK
+// What the server sees as the owner's internet address, so they can check
+// it matches their real one (e.g. on whatismyipaddress.com). If it doesn't,
+// every visitor may look like the same address to the rate limits; the
+// TRUST_PROXY_HOPS setting on Render fixes that.
+
+router.get("/connection", (req, res) =>
+  res.status(200).json({
+    data: {
+      ip: req.ip,
+      forwardedFor: String(req.header("x-forwarded-for") || ""),
+      trustProxyHops: req.app.get("trust proxy"),
+    },
+    error: "",
+  })
+);
+
 // LIST ADMINS AND THE LAST 10 CHANGES
 
 router.get("/", async (req, res) => {
   try {
     return await respond(res);
   } catch (error) {
-    return res.status(400).json({ data: "", error: error.message });
+    return internalError(res, error);
   }
 });
 
@@ -56,9 +87,10 @@ router.post("/grant", async (req, res) => {
     user.isAdmin = true;
     await user.save();
     await AdminAccessLog.create({ action: "grant", email, by: req.owner.email });
+    await logActivity(req, "admin.grant", `Gave admin access to ${email}`);
     return await respond(res);
   } catch (error) {
-    return res.status(400).json({ data: "", error: error.message });
+    return internalError(res, error);
   }
 });
 
@@ -85,9 +117,10 @@ router.post("/revoke", async (req, res) => {
     user.isAdmin = false;
     await user.save();
     await AdminAccessLog.create({ action: "revoke", email, by: req.owner.email });
+    await logActivity(req, "admin.revoke", `Removed admin access from ${email}`);
     return await respond(res);
   } catch (error) {
-    return res.status(400).json({ data: "", error: error.message });
+    return internalError(res, error);
   }
 });
 

@@ -37,13 +37,15 @@ export const UserProvider = ({ children }) => {
         });
       }
     } catch (error) {
-      console.log(error.message);
-      console.log(error.response.data.error);
-      return setUser({
-        data: null,
-        error: error.response.data.error,
-        loading: false,
-      });
+      if (error?.response) {
+        // The token is expired, or was logged out on all devices: forget it.
+        localStorage.removeItem("token");
+        delete axios.defaults.headers.common["Authorization"];
+        return setUser({ data: null, error: null, loading: false });
+      }
+      // The server can't be reached: keep the token for next time, and stop
+      // waiting so pages don't stay on the loading icon.
+      return setUser({ data: null, error: "Can't reach the server", loading: false });
     }
   };
 

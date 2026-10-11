@@ -3,7 +3,15 @@ import mongoose from "mongoose";
 import { createApp } from "./app.js";
 
 dotenv.config();
-mongoose.set("strictQuery", false);
+
+// A safety net: an error no route caught is logged, and the server keeps
+// running instead of shutting down (which would take the shop offline until
+// Render restarted it).
+process.on("unhandledRejection", (error) => {
+  console.error("Unhandled error:", error?.stack || error);
+});
+// Query filters only use fields the models define; anything else is dropped.
+mongoose.set("strictQuery", true);
 
 const MONGO_URI = process.env.MONGO_URI;
 

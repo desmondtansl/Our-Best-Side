@@ -1,4 +1,6 @@
 import express from "express";
+import { logActivity } from "../activity.js";
+import { internalError } from "../errors.js";
 import mongoose from "mongoose";
 import Product, { MAX_PHOTOS, productPhotos, VISIBLE } from "../models/Product.js";
 import multer from "multer";
@@ -83,8 +85,7 @@ const FEATURED_LIMIT = 8;
 const notFound = (res) =>
   res.status(404).json({ data: "", error: "Product not found" });
 
-const serverError = (res, error) =>
-  res.status(400).json({ data: "", error: error.message });
+const serverError = (res, error) => internalError(res, error, "Products");
 
 // Each request builds its own result, so concurrent visitors never share or
 // overwrite each other's product lists. Shoppers only ever see live products
@@ -135,6 +136,11 @@ router.post("/upload", uploadMiddleware, async (req, res) => {
 
     const photos = await storePhotos(files);
     const product = await Product.create({ ...fields, image: photos[0], images: photos });
+    await logActivity(
+      req,
+      "product.create",
+      `Uploaded "${product.title}"${product.status === "draft" ? " as a draft" : ""}`
+    );
     res.status(200).json({
       data: product,
       error: "",
@@ -391,6 +397,12 @@ router.put("/:params", uploadMiddleware, async (req, res) => {
       { new: true, runValidators: true }
     );
     if (!getEditedProduct) return notFound(res);
+    const changed = Object.keys(update).filter((key) => !["image", "inStock"].includes(key));
+    await logActivity(
+      req,
+      "product.edit",
+      `Edited "${getEditedProduct.title}"${changed.length ? ` (${changed.join(", ")})` : ""}`
+    );
 
     res.status(200).json({
       data: getEditedProduct,

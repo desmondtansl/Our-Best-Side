@@ -1,4 +1,5 @@
 import express from "express";
+import { internalError } from "../errors.js";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import checkAuth from "../middleware/checkAuth.js";
@@ -137,7 +138,7 @@ router.get("/", async (req, res) => {
       error: "",
     });
   } catch (error) {
-    return res.status(400).json({ data: "", error: error.message });
+    return internalError(res, error);
   }
 });
 

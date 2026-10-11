@@ -1,4 +1,5 @@
 import express from "express";
+import { internalError } from "../errors.js";
 import { body, validationResult } from "express-validator";
 import User from "../models/User.js";
 import Order from "../models/Order.js";
@@ -37,7 +38,7 @@ const loadUser = async (req, res, next) => {
     req.account = user;
     next();
   } catch (error) {
-    return res.status(400).json({ data: "", error: error.message });
+    return internalError(res, error);
   }
 };
 
@@ -141,7 +142,7 @@ router.post("/addresses", addressValidators(false), rejectInvalid, async (req, r
     await user.save();
     return addressesResponse(res, user, 201);
   } catch (error) {
-    return res.status(400).json({ data: "", error: error.message });
+    return internalError(res, error);
   }
 });
 
@@ -169,7 +170,7 @@ router.put(
       await user.save();
       return addressesResponse(res, user);
     } catch (error) {
-      return res.status(400).json({ data: "", error: error.message });
+      return internalError(res, error);
     }
   }
 );
@@ -186,7 +187,7 @@ router.delete("/addresses/:addressId", async (req, res) => {
     await user.save();
     return addressesResponse(res, user);
   } catch (error) {
-    return res.status(400).json({ data: "", error: error.message });
+    return internalError(res, error);
   }
 });
 
@@ -201,7 +202,7 @@ router.get("/orders", async (req, res) => {
     ).sort({ createdAt: -1 });
     return res.status(200).json({ data: orders, error: "" });
   } catch (error) {
-    return res.status(400).json({ data: "", error: error.message });
+    return internalError(res, error);
   }
 });
 

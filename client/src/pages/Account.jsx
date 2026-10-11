@@ -1,5 +1,7 @@
+import { useState } from "react";
+import axios from "axios";
 import styled from "styled-components";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import OrderHistory from "../components/account/OrderHistory";
@@ -7,6 +9,8 @@ import SavedAddresses from "../components/account/SavedAddresses";
 import PaymentMethods from "../components/account/PaymentMethods";
 import { UserAuth } from "../context/Auth";
 import useDocumentTitle from "../hooks/useDocumentTitle";
+import { LinkButton, ErrorText } from "../components/account/styles";
+import { errorMessage } from "../utils/format";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -62,8 +66,31 @@ const TABS = [
 
 function Account() {
   useDocumentTitle("My Account");
-  const [user] = UserAuth();
+  const [user, setUser] = UserAuth();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [logoutError, setLogoutError] = useState("");
+
+  // Every device logged in to this account is logged out, including this one.
+  const logOutEverywhere = async () => {
+    if (
+      !window.confirm(
+        "Log out of all devices? You'll need to log in again everywhere, including on this device."
+      )
+    ) {
+      return;
+    }
+    setLogoutError("");
+    try {
+      await axios.post(`${import.meta.env.VITE_BASE_URL}/auth/logout-all`);
+      localStorage.removeItem("token");
+      delete axios.defaults.headers.common["Authorization"];
+      setUser({ data: null, loading: false, error: null });
+      navigate("/login");
+    } catch (err) {
+      setLogoutError(errorMessage(err, "Couldn't log out of all devices"));
+    }
+  };
   const active = TABS.find((tab) => tab.id === searchParams.get("tab")) || TABS[0];
   const { Component } = active;
 
@@ -73,6 +100,10 @@ function Account() {
       <Wrapper>
         <Title>My account</Title>
         <Email>{user.data?.email}</Email>
+        <LinkButton type="button" onClick={logOutEverywhere}>
+          Log out of all devices
+        </LinkButton>
+        {logoutError && <ErrorText role="alert">{logoutError}</ErrorText>}
         <Tabs role="tablist">
           {TABS.map((tab) => (
             <Tab

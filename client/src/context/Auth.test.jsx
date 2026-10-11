@@ -61,4 +61,31 @@ describe("UserProvider", () => {
     expect(renderedUser().data).toBeNull();
     expect(axios.get).not.toHaveBeenCalled();
   });
+
+  it("forgets a token the server refuses (expired, or logged out everywhere)", async () => {
+    localStorage.setItem("token", "old-token");
+    axios.get.mockRejectedValue({ response: { status: 403, data: { errors: [] } } });
+    render(
+      <UserProvider>
+        <ShowUser />
+      </UserProvider>
+    );
+    await waitFor(() => expect(renderedUser().loading).toBe(false));
+    expect(renderedUser().data).toBeNull();
+    expect(localStorage.getItem("token")).toBeNull();
+    expect(axios.defaults.headers.common.Authorization).toBeUndefined();
+  });
+
+  it("stops loading when the server can't be reached, keeping the token", async () => {
+    localStorage.setItem("token", "stored-token");
+    axios.get.mockRejectedValue({ request: {}, message: "Network Error" });
+    render(
+      <UserProvider>
+        <ShowUser />
+      </UserProvider>
+    );
+    await waitFor(() => expect(renderedUser().loading).toBe(false));
+    expect(renderedUser().error).toBe("Can't reach the server");
+    expect(localStorage.getItem("token")).toBe("stored-token");
+  });
 });

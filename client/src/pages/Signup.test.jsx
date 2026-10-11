@@ -70,7 +70,7 @@ describe("Signup", () => {
     });
     renderSignup();
     submit();
-    await waitFor(() => expect(window.alert).toHaveBeenCalledWith("Email already in use"));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Email already in use");
   });
 
   it("says the server can't be reached instead of 'undefined'", async () => {
@@ -78,7 +78,7 @@ describe("Signup", () => {
     renderSignup();
     submit();
     await waitFor(() =>
-      expect(window.alert).toHaveBeenCalledWith("Can't reach the server")
+      expect(screen.getByRole("alert")).toHaveTextContent("Can't reach the server")
     );
   });
 });

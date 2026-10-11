@@ -35,6 +35,11 @@ export const parseCategories = (value) => [
 export const parseBoolean = (value) =>
   value === true || ["true", "on", "1", "yes"].includes(String(value).toLowerCase());
 
+const MAX_TITLE = 150;
+const MAX_DESCRIPTION = 5000;
+const MAX_OPTIONS = 50;
+const MAX_OPTION_LENGTH = 50;
+
 // Returns { fields } with normalised values for the keys present in `body`,
 // or { error } when a value is invalid.
 export const parseProductFields = (body, { requireAll = false } = {}) => {
@@ -44,9 +49,23 @@ export const parseProductFields = (body, { requireAll = false } = {}) => {
   for (const key of ["title", "description"]) {
     if (has(key)) fields[key] = String(body[key]).trim();
   }
+  if (fields.title && fields.title.length > MAX_TITLE) {
+    return { error: `The title can be at most ${MAX_TITLE} characters` };
+  }
+  if (fields.description && fields.description.length > MAX_DESCRIPTION) {
+    return { error: `The description can be at most ${MAX_DESCRIPTION} characters` };
+  }
   if (has("category")) fields.category = parseCategories(body.category);
   if (has("size")) fields.size = parseList(body.size);
   if (has("color")) fields.color = parseList(body.color);
+  for (const key of ["category", "size", "color"]) {
+    const list = fields[key] || [];
+    if (list.length > MAX_OPTIONS || list.some((option) => option.length > MAX_OPTION_LENGTH)) {
+      return {
+        error: `Enter at most ${MAX_OPTIONS} ${key === "color" ? "colours" : `${key === "size" ? "sizes" : "categories"}`}, each up to ${MAX_OPTION_LENGTH} characters`,
+      };
+    }
+  }
   if (has("featured")) fields.featured = parseBoolean(body.featured);
 
   if (has("price")) {

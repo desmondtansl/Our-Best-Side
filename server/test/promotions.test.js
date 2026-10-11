@@ -150,14 +150,15 @@ describe("discount codes", () => {
       assert.deepEqual(ok.body.data, { code: "WELCOME10", name: "Welcome offer", percentOff: 10 });
     });
 
-    it("explains unknown, paused, not-yet-started and expired codes", async () => {
+    it("explains unknown, paused and expired codes, without revealing scheduled ones", async () => {
       await admin.post("/admin/promotions", promo({ code: "PAUSED", active: false }));
       await admin.post("/admin/promotions", promo({ code: "SOON", startDate: sgDate(1) }));
       await admin.post("/admin/promotions", promo({ code: "PAST", startDate: sgDate(-5), endDate: sgDate(-1) }));
       const message = async (code) => (await checkCode(code)).body.error;
       assert.equal(await message("NOPE"), "That discount code isn't valid");
       assert.equal(await message("PAUSED"), "That discount code isn't valid");
-      assert.equal(await message("SOON"), "That discount code can't be used yet");
+      // Not yet started reads as not valid, so it can't be discovered early.
+      assert.equal(await message("SOON"), "That discount code isn't valid");
       assert.equal(await message("PAST"), "That discount code has expired");
       assert.equal(await message(""), "Enter a discount code");
       assert.equal(await message({ $ne: null }), "That discount code isn't valid");
@@ -180,6 +181,10 @@ describe("discount codes", () => {
       assert.equal(coupon.duration, "once");
       const [params] = fake.calls["sessions.create"];
       assert.deepEqual(params.discounts, [{ coupon: "coupon_test_1" }]);
+      // With a code, the Stripe page closes after an hour, so the code can't be
+      // used long after it ends.
+      const minutesOpen = (params.expires_at - Date.now() / 1000) / 60;
+      assert.ok(minutesOpen > 58 && minutesOpen <= 60, String(minutesOpen));
       // Line items stay at full price; Stripe takes the discount off.
       assert.equal(params.line_items[0].price_data.unit_amount, 3333);
 
