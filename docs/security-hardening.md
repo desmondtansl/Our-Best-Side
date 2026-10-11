@@ -60,6 +60,8 @@ If the site starts loading something from a new address, add that address to the
 
 Stripe's checkout page closes 30 minutes after it opens (the shortest time Stripe allows). A shopper who takes longer starts checkout again from the cart.
 
+Stripe's page doesn't show a countdown, so the cart says "You'll have 30 minutes to complete payment." under the Checkout button. The number is `CHECKOUT_MINUTES` in `client/src/config/store.js`: change it there if the server's time (`CHECKOUT_MINUTES` in `server/src/routes/checkout.js`) ever changes.
+
 ## Accounts to keep secure
 
 - **MongoDB Atlas password:** long and random.

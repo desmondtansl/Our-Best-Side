@@ -17,7 +17,7 @@ import { UserAuth } from "../context/Auth";
 import { errorMessage, formatMoney } from "../utils/format";
 import { redirectTo } from "../utils/redirect";
 import { productImageUrl } from "../utils/products";
-import { DELIVERY } from "../config/store";
+import { DELIVERY, CHECKOUT_MINUTES } from "../config/store";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import { buttonLink } from "../styles/links";
 import DiscountCode, { discountFor } from "../components/DiscountCode";
@@ -295,6 +295,13 @@ const ShipToSelect = styled.select`
   max-width: 100%;
 `;
 
+const CheckoutNote = styled.p`
+  margin: 8px 0px 0px;
+  font-size: 13px;
+  font-weight: 300;
+  text-align: center;
+`;
+
 const CheckoutError = styled.p`
   color: red;
   font-size: 14px;
@@ -506,6 +513,11 @@ function Cart() {
             >
               {checkingOut ? "Redirecting to payment…" : "Checkout Now"}
             </SummaryButton>
+            {cart.products.length > 0 && (
+              <CheckoutNote>
+                You&apos;ll have {CHECKOUT_MINUTES} minutes to complete payment.
+              </CheckoutNote>
+            )}
             {cart.products.length > 0 && (
               <SummaryButton2 onClick={() => dispatch(resetCart())}>
                 Reset Cart

@@ -144,11 +144,17 @@ describe("Cart items", () => {
     expect(screen.getByText("Your cart is empty.")).toBeInTheDocument();
     expect(screen.getByText("Checkout Now")).toBeDisabled();
     expect(screen.queryByText("Reset Cart")).not.toBeInTheDocument();
+    expect(screen.queryByText(/minutes to complete payment/)).not.toBeInTheDocument();
   });
 });
 
 describe("Cart checkout", () => {
   afterEach(() => vi.clearAllMocks());
+
+  it("says how long shoppers have to pay on Stripe's page", () => {
+    renderCart(null);
+    expect(screen.getByText("You'll have 30 minutes to complete payment.")).toBeInTheDocument();
+  });
 
   it("sends product ids and choices, never prices, for guests", async () => {
     axios.post.mockResolvedValue({ data: { data: "https://checkout.stripe.com/pay" } });
