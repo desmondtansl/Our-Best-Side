@@ -159,10 +159,12 @@ Three limits, each counted over a fixed time window:
 | Limit | Blocks | For | Purpose |
 |---|---|---|---|
 | Same account, same address | after **5** wrong passwords | 15 minutes | Stops password guessing. A correct password clears it. |
-| Same account, any address | after **20** wrong passwords | an hour | Stops guessing spread across many addresses |
+| Same account, any address | after **20** wrong passwords | an hour | Stops guessing spread across many addresses. Accounts with two-step login skip it, since a password alone doesn't get in. |
 | Same address, any account | after **30** attempts | 15 minutes | Stops one machine trying many accounts |
 
-**Why not lock an account after a few wrong passwords?** Then anyone who knows your email could lock you out of your own shop on purpose. With these limits, guessing from one place is stopped after 5 tries. A browser that has logged in to the account before is a "trusted device", and the account-wide limit doesn't apply to it.
+**Why not lock an account after a few wrong passwords?** Then anyone who knows your email could lock you out of your own shop on purpose. With these limits, guessing from one place is stopped after 5 tries. A browser that has logged in to the account before is a "trusted device": the account-wide and per-address limits don't apply to it, so someone else (even on the same mobile network) can't lock you out of your own device.
+
+Each attempt is counted before the password is checked, so attempts sent all at once count the same as attempts sent one after another. Two-step codes have their own limit: 5 per account per 15 minutes.
 
 **When a limit is reached:**
 - The site answers "Too many login attempts. Please wait a few minutes and try again…" (HTTP 429, with a `Retry-After` time).

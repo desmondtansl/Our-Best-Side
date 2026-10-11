@@ -115,6 +115,8 @@ describe("product catalogue routes", () => {
 
   describe("GET /products/image/:key", () => {
     it("redirects to a signed, time-limited S3 link", async () => {
+      const { default: Product } = await import("../src/models/Product.js");
+      await Product.create({ title: "Tee", price: 10, category: ["Men"], image: "abc123.jfif" });
       const res = await request(app).get("/products/image/abc123.jfif");
       assert.equal(res.status, 302);
       assert.ok(
@@ -126,6 +128,19 @@ describe("product catalogue routes", () => {
       assert.match(res.headers.location, /X-Amz-Signature=/);
       assert.match(res.headers.location, /X-Amz-Expires=3600/);
       assert.equal(res.headers["cache-control"], "public, max-age=3300");
+    });
+
+    it("only signs photos that a product or a past order uses", async () => {
+      const { default: Product } = await import("../src/models/Product.js");
+      const { default: Order } = await import("../src/models/Order.js");
+      // Not used by anything: e.g. some other file in the bucket.
+      assert.equal((await request(app).get("/products/image/backup.zip")).status, 404);
+      // A draft's extra photo, and a photo only an old order still shows.
+      await Product.create({ title: "Draft", price: 10, category: ["Men"], status: "draft", image: "main.jpg", images: ["main.jpg", "second.jpg"] });
+      await Order.create({ items: [{ title: "Old", price: 5, quantity: 1, image: "retired.jpg" }], subtotal: 5, currency: "sgd" });
+      for (const key of ["second.jpg", "retired.jpg"]) {
+        assert.equal((await request(app).get(`/products/image/${key}`)).status, 302, key);
+      }
     });
 
     it("refuses keys that aren't plain file names", async () => {

@@ -11,6 +11,7 @@ const renderAt = (user) => {
     <MemoryRouter initialEntries={["/dashboard"]}>
       <Routes>
         <Route path="/" element={<div>Home page</div>} />
+        <Route path="/account" element={<div>Security settings</div>} />
         <Route element={<ProtectedRoutes />}>
           <Route path="/dashboard" element={<div>Admin page</div>} />
         </Route>
@@ -38,11 +39,21 @@ describe("ProtectedRoutes", () => {
 
   it("shows the protected page to admins", () => {
     renderAt({
-      data: { email: "admin@example.com", isAdmin: true },
+      data: { email: "admin@example.com", isAdmin: true, twoFactorEnabled: true },
       error: null,
       loading: false,
     });
     expect(screen.getByText("Admin page")).toBeInTheDocument();
+  });
+
+  it("sends admins without two-step login to set it up", () => {
+    renderAt({
+      data: { email: "admin@example.com", isAdmin: true, twoFactorEnabled: false },
+      error: null,
+      loading: false,
+    });
+    expect(screen.queryByText("Admin page")).not.toBeInTheDocument();
+    expect(screen.getByText("Security settings")).toBeInTheDocument();
   });
 
   it("shows a spinner while the user is loading", () => {

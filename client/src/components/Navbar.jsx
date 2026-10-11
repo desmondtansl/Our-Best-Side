@@ -4,6 +4,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import React from "react";
 import { UserAuth } from "../context/Auth";
+import { endSession } from "../utils/session";
 import { Badge } from "@mui/material";
 import SearchBar from "./SearchBar.jsx";
 import MobileNav, { CART_BADGE } from "./MobileNav.jsx";
@@ -89,8 +90,8 @@ function Navbar() {
   const isTablet = useMediaQuery(TABLET_QUERY);
 
   const logOut = () => {
+    endSession();
     setUser({ data: null, loading: false, error: null });
-    localStorage.removeItem("token");
   };
 
   // For the mobile menu, which passes { replace: true } to take the menu's

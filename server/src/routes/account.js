@@ -10,6 +10,24 @@ import stripe, {
   paymentsNotConfigured,
 } from "../stripe.js";
 import checkAuth from "../middleware/checkAuth.js";
+import { takeOne, MINUTE } from "../rateLimit.js";
+import QRCode from "qrcode";
+import { signToken } from "../tokens.js";
+import { checkTwoFactor, clearTwoFactor } from "../loginLimits.js";
+import {
+  newSecret,
+  otpauthUrl,
+  matchingStep,
+  newRecoveryCodes,
+  hashRecoveryCode,
+} from "../totp.js";
+import {
+  useSecondFactor,
+  recoveryCodesLeft,
+  confirmPassword,
+  TOO_MANY_PASSWORD_TRIES,
+} from "../twoFactor.js";
+import { userSummary } from "./auth.js";
 
 const router = express.Router();
 
@@ -233,9 +251,28 @@ router.get("/payment-methods", async (req, res) => {
   }
 });
 
+// Adding a card: a few times an hour per account and per address is plenty
+// for a shopper, and too few for someone using the shop to test stolen cards.
+const SETUP_LIMITS = {
+  account: { max: 5, windowMs: 60 * MINUTE },
+  address: { max: 10, windowMs: 60 * MINUTE },
+};
+
 router.post("/payment-methods/setup-session", async (req, res) => {
   if (!isStripeConfigured()) return paymentsNotConfigured(res);
   try {
+    const waits = await Promise.all([
+      takeOne("card-setup-account", req.account.id, SETUP_LIMITS.account),
+      takeOne("card-setup-address", req.ip, SETUP_LIMITS.address),
+    ]);
+    const wait = Math.max(...waits);
+    if (wait) {
+      res.set("Retry-After", String(wait));
+      return res.status(429).json({
+        data: "",
+        error: "You've tried to add a card too many times. Please wait a while and try again.",
+      });
+    }
     const customerId = await ensureStripeCustomer(req.account);
     const returnUrl = `${process.env.BASE_URL}/account?tab=payments`;
     const session = await stripe.checkout.sessions.create({
@@ -271,6 +308,127 @@ router.delete("/payment-methods/:paymentMethodId", async (req, res) => {
     return res.status(200).json({ data: { id: method.id }, error: "" });
   } catch (error) {
     return paymentErrorResponse(res, error, "remove a card");
+  }
+});
+
+// TWO-STEP LOGIN (an authenticator app on the user's phone)
+// Turning it on: setup (with the password) shows a QR code; enable (with the
+// first code) switches it on and shows the recovery codes once. Turning it
+// on or off logs out every other device; this one gets a new token.
+
+const tooManyTries = (res, wait, message = TOO_MANY_PASSWORD_TRIES) => {
+  res.set("Retry-After", String(wait));
+  return res.status(429).json({ data: "", error: message });
+};
+
+const withNewToken = (res, user, extra = {}) =>
+  res.status(200).json({
+    data: { token: signToken(user), user: userSummary(user), ...extra },
+    error: "",
+  });
+
+router.get("/two-factor", async (req, res) => {
+  try {
+    const enabled = Boolean(req.account.twoFactor?.enabled);
+    return res.status(200).json({
+      data: { enabled, recoveryCodesLeft: enabled ? await recoveryCodesLeft(req.account._id) : 0 },
+      error: "",
+    });
+  } catch (error) {
+    return internalError(res, error);
+  }
+});
+
+// Body: { password }. Returns the QR code and the key to type in instead.
+router.post("/two-factor/setup", async (req, res) => {
+  try {
+    const user = req.account;
+    if (user.twoFactor?.enabled) {
+      return res.status(400).json({ data: "", error: "Two-step login is already on" });
+    }
+    const { ok, wait } = await confirmPassword(user, req.body?.password);
+    if (wait) return tooManyTries(res, wait);
+    if (!ok) return res.status(400).json({ data: "", error: "Your password isn't right" });
+    const secret = newSecret();
+    await User.updateOne({ _id: user._id }, { $set: { "twoFactor.pending": secret } });
+    const url = otpauthUrl(secret, user.email);
+    return res.status(200).json({
+      data: { secret, otpauthUrl: url, qrCode: await QRCode.toDataURL(url, { margin: 1, width: 220 }) },
+      error: "",
+    });
+  } catch (error) {
+    return internalError(res, error);
+  }
+});
+
+// Body: { code } from the authenticator app.
+router.post("/two-factor/enable", async (req, res) => {
+  try {
+    const user = await User.findById(req.account._id).select("+twoFactor.pending");
+    if (user.twoFactor?.enabled) {
+      return res.status(400).json({ data: "", error: "Two-step login is already on" });
+    }
+    if (!user.twoFactor?.pending) {
+      return res.status(400).json({ data: "", error: "Start again: the setup has expired" });
+    }
+    const wait = await checkTwoFactor(user.email);
+    if (wait) return tooManyTries(res, wait);
+    const step = matchingStep(user.twoFactor.pending, req.body?.code);
+    if (step === null) {
+      return res.status(400).json({
+        data: "",
+        error: "That code isn't right. Check the time on your phone is set automatically, and try the newest code.",
+      });
+    }
+    await clearTwoFactor(user.email);
+    const recoveryCodes = newRecoveryCodes();
+    const updated = await User.findOneAndUpdate(
+      { _id: user._id, "twoFactor.pending": user.twoFactor.pending },
+      {
+        $set: {
+          "twoFactor.enabled": true,
+          "twoFactor.secret": user.twoFactor.pending,
+          "twoFactor.lastUsedStep": step,
+          "twoFactor.recoveryCodes": recoveryCodes.map(hashRecoveryCode),
+        },
+        $unset: { "twoFactor.pending": 1 },
+        $inc: { tokenVersion: 1 },
+      },
+      { new: true }
+    );
+    if (!updated) {
+      return res.status(400).json({ data: "", error: "Start again: the setup has expired" });
+    }
+    return withNewToken(res, updated, { recoveryCodes });
+  } catch (error) {
+    return internalError(res, error);
+  }
+});
+
+// Body: { password, code } (a code from the app, or a recovery code).
+router.post("/two-factor/disable", async (req, res) => {
+  try {
+    const user = req.account;
+    if (!user.twoFactor?.enabled) {
+      return res.status(400).json({ data: "", error: "Two-step login is already off" });
+    }
+    const { ok, wait } = await confirmPassword(user, req.body?.password);
+    if (wait) return tooManyTries(res, wait);
+    if (!ok) return res.status(400).json({ data: "", error: "Your password isn't right" });
+    const codeWait = await checkTwoFactor(user.email);
+    if (codeWait) return tooManyTries(res, codeWait);
+    if (!(await useSecondFactor(user._id, req.body?.code))) {
+      return res.status(400).json({ data: "", error: "That code isn't right" });
+    }
+    await clearTwoFactor(user.email);
+    const updated = await User.findOneAndUpdate(
+      { _id: user._id },
+      { $set: { twoFactor: { enabled: false } }, $inc: { tokenVersion: 1 } },
+      { new: true }
+    );
+    return withNewToken(res, updated);
+  } catch (error) {
+    return internalError(res, error);
   }
 });
 

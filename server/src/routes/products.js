@@ -3,6 +3,7 @@ import { logActivity } from "../activity.js";
 import { internalError } from "../errors.js";
 import mongoose from "mongoose";
 import Product, { MAX_PHOTOS, productPhotos, VISIBLE } from "../models/Product.js";
+import Order from "../models/Order.js";
 import multer from "multer";
 import checkAuth from "../middleware/checkAuth.js";
 import requireAdmin from "../middleware/requireAdmin.js";
@@ -220,13 +221,21 @@ router.get("/shop", async (req, res) => {
 // PRODUCT IMAGE
 // Redirects to a short-lived signed S3 link, so the bucket can stay private.
 // Browsers cache the redirect for a little less than the link's lifetime.
+// Only photos a product or a past order uses are signed, so nothing else
+// that is ever put in the bucket can be fetched by guessing its name.
 
 const IMAGE_LINK_SECONDS = 3600;
+
+const isShopPhoto = async (key) =>
+  Boolean(
+    (await Product.exists({ $or: [{ image: key }, { images: key }] })) ||
+      (await Order.exists({ "items.image": key }))
+  );
 
 router.get("/image/:key", async (req, res) => {
   try {
     const { key } = req.params;
-    if (!isValidImageKey(key)) {
+    if (!isValidImageKey(key) || !(await isShopPhoto(key))) {
       return res.status(404).json({ data: "", error: "Image not found" });
     }
     const url = await signedImageUrl(key, IMAGE_LINK_SECONDS);
@@ -263,13 +272,16 @@ router.get("/ladies/:params", async (req, res) => {
 
 // GET SPECIFIC PRODUCT FROM SEARCH
 
+const MAX_SEARCH_LENGTH = 100;
+const MAX_SEARCH_RESULTS = 50;
+
 router.get("/search/:params", async (req, res) => {
   try {
-    const { params } = req.params;
+    const params = String(req.params.params).slice(0, MAX_SEARCH_LENGTH);
     const fetchAllProducts = await Product.find({
       title: { $regex: "^" + escapeRegex(params), $options: "i" },
       ...VISIBLE,
-    });
+    }).limit(MAX_SEARCH_RESULTS);
     res.status(200).json({
       data: fetchAllProducts,
       error: "",

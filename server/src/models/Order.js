@@ -17,7 +17,9 @@ const orderItemSchema = new Schema(
   {
     product: { type: Schema.Types.ObjectId, ref: "product" },
     title: { type: String },
-    image: { type: String },
+    // The product photo's S3 key at the time of the order (indexed: the
+    // image route checks a photo belongs to the shop).
+    image: { type: String, index: true },
     size: { type: String },
     color: { type: String },
     price: { type: Number, required: true },

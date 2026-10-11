@@ -3,6 +3,7 @@ import axios from "axios";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import { UserAuth } from "../context/Auth";
+import { endSession } from "../utils/session";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import { navLink } from "../styles/links";
 import { Badge, Button, ErrorText, Muted } from "../components/account/styles";
@@ -309,8 +310,8 @@ function AdminDashboard() {
 
   // Runs as the Logout link opens the homepage (clicked or Enter pressed).
   const logOut = () => {
+    endSession();
     setUser({ data: null, loading: false, error: null });
-    localStorage.removeItem("token");
   };
 
   return (

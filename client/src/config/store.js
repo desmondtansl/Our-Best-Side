@@ -13,5 +13,10 @@ export const RETURNS = {
   detail: "Items must be unworn, with tags attached.",
 };
 
+// Minutes shoppers have to pay on Stripe's checkout page, shown under the
+// cart's Checkout button. The same as CHECKOUT_MINUTES in
+// server/src/routes/checkout.js (which adds a minute's margin for Stripe).
+export const CHECKOUT_MINUTES = 30;
+
 // Product pages show "Only N left" when stock is at or below this number.
 export const LOW_STOCK_THRESHOLD = 3;

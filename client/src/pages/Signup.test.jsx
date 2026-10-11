@@ -58,7 +58,7 @@ describe("Signup", () => {
     expect(await screen.findByText("Account page")).toBeInTheDocument();
     expect(localStorage.getItem("token")).toBe("new-token");
     expect(setUser).toHaveBeenCalledWith({
-      data: { id: "u1", email: "new@example.com", isAdmin: false },
+      data: { id: "u1", email: "new@example.com", isAdmin: false, isOwner: false, twoFactorEnabled: false },
       error: null,
       loading: false,
     });

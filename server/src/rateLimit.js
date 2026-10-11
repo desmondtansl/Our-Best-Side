@@ -32,6 +32,10 @@ export const increment = async ({ key, expiresAt }) => {
 
 export const countOf = async ({ key }) => (await RateCount.findOne({ key }, "count"))?.count || 0;
 
+// Takes one off a count (e.g. a login that turned out to be correct).
+export const decrement = ({ key }) =>
+  RateCount.updateOne({ key, count: { $gt: 0 } }, { $inc: { count: -1 } });
+
 export const clearCount = ({ key }) => RateCount.deleteOne({ key });
 
 // Counts one request towards a limit; returns the seconds to wait if it's
@@ -55,4 +59,26 @@ export const limitPerAddress = (name, limit, message, respond) => async (req, re
   } catch (error) {
     return next(error);
   }
+};
+
+// A lighter limit for public pages (products, search, banners), counted in
+// the server's memory instead of the database, so a flood of page views
+// doesn't also flood the database. Counts reset when the server restarts,
+// which is fine for this purpose.
+export const memoryLimitPerAddress = (limit, message) => {
+  const counts = new Map();
+  let windowStart = 0;
+  return (req, res, next) => {
+    const now = Date.now();
+    const window = Math.floor(now / limit.windowMs);
+    if (window !== windowStart) {
+      counts.clear();
+      windowStart = window;
+    }
+    const count = (counts.get(req.ip) || 0) + 1;
+    counts.set(req.ip, count);
+    if (count <= limit.max) return next();
+    res.set("Retry-After", String(secondsUntil(new Date((window + 1) * limit.windowMs), now)));
+    return res.status(429).json({ data: "", error: message });
+  };
 };

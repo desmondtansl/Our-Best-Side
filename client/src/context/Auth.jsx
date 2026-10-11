@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import axios from "axios";
+import { userFrom } from "../utils/session";
 
 const UserContext = createContext();
 
@@ -26,12 +27,7 @@ export const UserProvider = ({ children }) => {
       );
       if (response.data.user) {
         setUser({
-          data: {
-            id: response.data.user.id,
-            email: response.data.user.email,
-            isAdmin: response.data.user.isAdmin,
-            isOwner: Boolean(response.data.user.isOwner),
-          },
+          data: userFrom(response.data.user),
           loading: false,
           error: null,
         });

@@ -83,4 +83,44 @@ describe("Login", () => {
     expect(axios.post.mock.calls[1][1].deviceId).toBe(first);
     expect(localStorage.getItem("deviceId")).toBe(first);
   });
+
+  it("asks for the two-step code after the password, then logs in", async () => {
+    const setUser = vi.fn();
+    axios.post.mockImplementation(async (url) =>
+      url.endsWith("/auth/login")
+        ? { data: { data: { twoFactorRequired: true, ticket: "ticket-1" } } }
+        : {
+            data: {
+              data: {
+                token: "token-1",
+                user: { id: "u1", email: "a@b.com", isAdmin: true, isOwner: false, twoFactorEnabled: true },
+              },
+            },
+          }
+    );
+    renderLogin();
+    UserAuth.mockReturnValue([{ data: null, loading: false }, setUser]);
+    const codeBox = await screen.findByLabelText("Code");
+    expect(screen.queryByPlaceholderText("Password")).not.toBeInTheDocument();
+    fireEvent.change(codeBox, { target: { value: "123456" } });
+    fireEvent.click(screen.getByRole("button", { name: "Verify" }));
+    await waitFor(() => expect(localStorage.getItem("token")).toBe("token-1"));
+    expect(axios.post).toHaveBeenLastCalledWith(
+      expect.stringMatching(/\/auth\/login\/two-factor$/),
+      expect.objectContaining({ ticket: "ticket-1", code: "123456" })
+    );
+  });
+
+  it("shows a wrong two-step code on the page", async () => {
+    axios.post.mockImplementation(async (url) => {
+      if (url.endsWith("/auth/login")) return { data: { data: { twoFactorRequired: true, ticket: "t" } } };
+      throw { response: { status: 401, data: { error: [{ message: "That code isn't right. Please try again." }] } } };
+    });
+    renderLogin();
+    fireEvent.change(await screen.findByLabelText("Code"), { target: { value: "000000" } });
+    fireEvent.click(screen.getByRole("button", { name: "Verify" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("That code isn't right");
+    // Still on the code step, so the next code can be typed.
+    expect(screen.getByLabelText("Code")).toBeInTheDocument();
+  });
 });

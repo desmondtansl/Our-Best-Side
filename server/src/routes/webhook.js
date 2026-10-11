@@ -18,10 +18,21 @@ const toShippingAddress = (shipping) => {
   };
 };
 
+// Note added to an order whose items sold out while it was being paid for.
+export const OVERSOLD_NOTE =
+  "Stock ran out while this order was being paid for: check the stock before shipping, or refund the items that can't be sent.";
+
 const markOrderPaid = async (session) => {
-  const order = await Order.findOne({ stripeSessionId: session.id });
-  // Ignore unknown sessions and events Stripe re-delivers.
-  if (!order || order.status !== "pending") return;
+  // Claimed in one step: only one of several deliveries of the same event
+  // (Stripe retries, or sends it twice at once) finds the order still
+  // pending, so stock and promotion counts change exactly once.
+  const order = await Order.findOneAndUpdate(
+    { stripeSessionId: session.id, status: "pending" },
+    { $set: { status: "paid" }, $push: { statusHistory: { status: "paid", at: new Date() } } },
+    { new: true }
+  );
+  // Unknown sessions and events Stripe re-delivers.
+  if (!order) return;
 
   // Newer Stripe API versions move shipping_details under collected_information.
   const shipping =
@@ -55,13 +66,17 @@ const markOrderPaid = async (session) => {
     }
   }
 
-  order.status = "paid";
-  order.statusHistory.push({ status: "paid", at: new Date() });
   await order.save();
   if (order.discount?.promotion) {
     await Promotion.updateOne({ _id: order.discount.promotion }, { $inc: { timesUsed: 1 } });
   }
-  await adjustStock(order.items, -1);
+  const oversold = await adjustStock(order.items, -1);
+  if (oversold) {
+    await Order.updateOne(
+      { _id: order._id },
+      [{ $set: { notes: { $trim: { input: { $concat: [OVERSOLD_NOTE, "\n\n", { $ifNull: ["$notes", ""] }] } } } } }]
+    );
+  }
 };
 
 // POST /checkout/webhook

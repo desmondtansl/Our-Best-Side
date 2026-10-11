@@ -10,7 +10,10 @@ const ProtectedRoute = () => {
     return <HourglassBottomIcon />;
   }
 
-  return user.data?.isAdmin ? <Outlet /> : <Navigate to="/" />;
+  if (!user.data?.isAdmin) return <Navigate to="/" />;
+  // Admin pages need two-step login: admins without it are sent to set it up.
+  if (!user.data.twoFactorEnabled) return <Navigate to="/account?tab=security" replace />;
+  return <Outlet />;
 };
 
 export default ProtectedRoute;
