@@ -58,7 +58,7 @@ If the site starts loading something from a new address, add that address to the
 
 ## Checkout
 
-Stripe's checkout page closes an hour after it opens. A shopper who takes longer starts checkout again from the cart.
+Stripe's checkout page closes 30 minutes after it opens (the shortest time Stripe allows). A shopper who takes longer starts checkout again from the cart.
 
 ## Accounts to keep secure
 

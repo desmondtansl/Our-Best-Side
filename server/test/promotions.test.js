@@ -181,10 +181,10 @@ describe("discount codes", () => {
       assert.equal(coupon.duration, "once");
       const [params] = fake.calls["sessions.create"];
       assert.deepEqual(params.discounts, [{ coupon: "coupon_test_1" }]);
-      // With a code, the Stripe page closes after an hour, so the code can't be
-      // used long after it ends.
+      // With a code, the Stripe page closes after 30 minutes, so the code
+      // can't be used long after it ends.
       const minutesOpen = (params.expires_at - Date.now() / 1000) / 60;
-      assert.ok(minutesOpen > 58 && minutesOpen <= 60, String(minutesOpen));
+      assert.ok(minutesOpen > 30 && minutesOpen <= 31, String(minutesOpen));
       // Line items stay at full price; Stripe takes the discount off.
       assert.equal(params.line_items[0].price_data.unit_amount, 3333);
 

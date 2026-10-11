@@ -98,11 +98,13 @@ const discountLimit = limitPerAddress(
   "Too many codes tried. Please wait a few minutes and try again."
 );
 
-// The Stripe checkout page closes after an hour (Stripe's default is 24
-// hours; the least it allows is 30 minutes). Stock is checked when checkout
-// starts, so a short window keeps that check close to the payment, and a
-// discount code can't be used long after it ends.
-const CHECKOUT_MINUTES = 60;
+// The Stripe checkout page closes after 30 minutes, the least Stripe allows
+// (its default is 24 hours). Stock is checked when checkout starts, so a
+// short window keeps that check close to the payment, and a discount code
+// can't be used long after it ends. One extra minute is added so the time
+// the request takes, or a small difference between clocks, can't take it
+// under Stripe's minimum (Stripe would refuse to open the page).
+const CHECKOUT_MINUTES = 31;
 
 // CHECK A DISCOUNT CODE (from the cart, before checkout)
 // Body: { code }. Returns the promotion's name and percentage.
